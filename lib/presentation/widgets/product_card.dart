@@ -33,18 +33,7 @@ class ProductCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                CachedNetworkImage(
-                  imageUrl: ad.imageUrls. first,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: AppColors.divider,
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppColors.divider,
-                    child: const Icon(Icons. error),
-                  ),
-                ),
+                _buildImageWidget(),
                 if (ad.sellerVerified)
                   Positioned(
                     top: 8,
@@ -123,14 +112,7 @@ class ProductCard extends StatelessWidget {
           SizedBox(
             width: 120,
             height: 120,
-            child: CachedNetworkImage(
-              imageUrl: ad.imageUrls.first,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: AppColors.divider,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            ),
+            child: _buildImageWidget(),
           ),
           // Details
           Expanded(
@@ -147,7 +129,7 @@ class ProductCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontWeight: FontWeight. bold,
+                            fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
@@ -193,6 +175,57 @@ class ProductCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Helper method to safely handle Cloudinary images
+  Widget _buildImageWidget() {
+    // Check if ad has images (Cloudinary URLs)
+    if (ad.imageUrls.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: ad.imageUrls.first, // First Cloudinary URL
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: AppColors.divider,
+          child: const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBrown),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildPlaceholder(),
+      );
+    }
+
+    // No images available - show placeholder
+    return _buildPlaceholder();
+  }
+
+  // Placeholder widget for missing/failed images
+  Widget _buildPlaceholder() {
+    return Container(
+      color: AppColors.divider,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              color: Colors.grey[400],
+              size: 40,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No Image',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

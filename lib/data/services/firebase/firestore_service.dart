@@ -3,11 +3,8 @@ import '../../../core/utils/constants.dart';
 import '../../../domain/entities/advertisement.dart';
 import '../../../domain/entities/expense.dart';
 
-
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // ADVERTISEMENTS
 
   // Create advertisement
   Future<String> createAdvertisement(Advertisement ad) async {
@@ -22,16 +19,17 @@ class FirestoreService {
   }
 
   // Get advertisements with pagination
+  // FIXED: Reordered query to place where clauses before orderBy
   Stream<List<Advertisement>> getAdvertisements({
     String? category,
     String? location,
     int limit = 20,
   }) {
     try {
-      Query query = _firestore
-          .collection(AppConstants. adsCollection)
-          .where('isActive', isEqualTo: true)
-          .orderBy('createdAt', descending: true);
+      Query query = _firestore.collection(AppConstants.adsCollection);
+
+      // Add all where clauses first
+      query = query.where('isActive', isEqualTo: true);
 
       if (category != null) {
         query = query.where('category', isEqualTo: category);
@@ -41,10 +39,14 @@ class FirestoreService {
         query = query.where('location', isEqualTo: location);
       }
 
+      // Then add orderBy
+      query = query.orderBy('createdAt', descending: true);
+
+      // Finally add limit
       query = query.limit(limit);
 
-      return query.snapshots(). map((snapshot) {
-        return snapshot.docs. map((doc) {
+      return query.snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
           data['id'] = doc.id;
           return Advertisement.fromJson(data);
@@ -56,7 +58,7 @@ class FirestoreService {
   }
 
   // Get single advertisement
-  Future<Advertisement? > getAdvertisement(String id) async {
+  Future<Advertisement?> getAdvertisement(String id) async {
     try {
       final doc = await _firestore
           .collection(AppConstants.adsCollection)
@@ -67,7 +69,7 @@ class FirestoreService {
 
       final data = doc.data()!;
       data['id'] = doc.id;
-      return Advertisement. fromJson(data);
+      return Advertisement.fromJson(data);
     } catch (e) {
       throw Exception('Failed to get ad: $e');
     }
@@ -101,7 +103,7 @@ class FirestoreService {
   Stream<List<Advertisement>> searchAdvertisements(String query) {
     try {
       return _firestore
-          .collection(AppConstants. adsCollection)
+          .collection(AppConstants.adsCollection)
           .where('isActive', isEqualTo: true)
           .orderBy('title')
           .startAt([query])
@@ -111,8 +113,8 @@ class FirestoreService {
         return snapshot.docs.map((doc) {
           final data = doc.data();
           data['id'] = doc.id;
-          return Advertisement. fromJson(data);
-        }). toList();
+          return Advertisement.fromJson(data);
+        }).toList();
       });
     } catch (e) {
       throw Exception('Failed to search ads: $e');
@@ -131,8 +133,8 @@ class FirestoreService {
         return snapshot.docs.map((doc) {
           final data = doc.data();
           data['id'] = doc.id;
-          return Advertisement. fromJson(data);
-        }). toList();
+          return Advertisement.fromJson(data);
+        }).toList();
       });
     } catch (e) {
       throw Exception('Failed to get user ads: $e');
@@ -162,7 +164,7 @@ class FirestoreService {
           .orderBy('date', descending: true)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs. map((doc) {
+        return snapshot.docs.map((doc) {
           final data = doc.data();
           data['id'] = doc.id;
           return Expense.fromJson(data);
@@ -183,12 +185,12 @@ class FirestoreService {
       return _firestore
           .collection(AppConstants.expensesCollection)
           .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: startDate. toIso8601String())
-          . where('date', isLessThanOrEqualTo: endDate.toIso8601String())
+          .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
+          .where('date', isLessThanOrEqualTo: endDate.toIso8601String())
           .orderBy('date', descending: true)
-          . snapshots()
+          .snapshots()
           .map((snapshot) {
-        return snapshot. docs.map((doc) {
+        return snapshot.docs.map((doc) {
           final data = doc.data();
           data['id'] = doc.id;
           return Expense.fromJson(data);
@@ -215,8 +217,8 @@ class FirestoreService {
   Future<void> deleteExpense(String id) async {
     try {
       await _firestore
-          .collection(AppConstants. expensesCollection)
-          . doc(id)
+          .collection(AppConstants.expensesCollection)
+          .doc(id)
           .delete();
     } catch (e) {
       throw Exception('Failed to delete expense: $e');
@@ -232,8 +234,8 @@ class FirestoreService {
           .collection(AppConstants.usersCollection)
           .doc(userId)
           .collection('favorites')
-          . doc(adId)
-          .set({'addedAt': DateTime.now(). toIso8601String()});
+          .doc(adId)
+          .set({'addedAt': DateTime.now().toIso8601String()});
     } catch (e) {
       throw Exception('Failed to add favorite: $e');
     }
@@ -244,7 +246,7 @@ class FirestoreService {
     try {
       await _firestore
           .collection(AppConstants.usersCollection)
-          . doc(userId)
+          .doc(userId)
           .collection('favorites')
           .doc(adId)
           .delete();
@@ -260,7 +262,7 @@ class FirestoreService {
           .collection(AppConstants.usersCollection)
           .doc(userId)
           .collection('favorites')
-          . snapshots()
+          .snapshots()
           .map((snapshot) => snapshot.docs.map((doc) => doc.id).toList());
     } catch (e) {
       throw Exception('Failed to get favorites: $e');

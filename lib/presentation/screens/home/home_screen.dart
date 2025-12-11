@@ -403,7 +403,7 @@ class _FeatureCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBrown. withOpacity(0.3),
+              color: AppColors.primaryBrown.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -434,7 +434,7 @@ class _FeatureCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white. withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 12,
                     ),
                   ),
@@ -471,7 +471,7 @@ class _ActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors. primaryBrown. withOpacity(0.1),
+                  color: AppColors.primaryBrown.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
