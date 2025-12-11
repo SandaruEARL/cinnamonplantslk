@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/services/firebase/auth_service.dart';
+import '../../../domain/entities/user.dart' as app_user;
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -65,11 +67,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
       );
+
+      // Debug log to catch type issues
+      debugPrint('Sign-in returned type: ${user.runtimeType}');
+      debugPrint('Sign-in returned value: $user');
+
       emit(AuthAuthenticated(user));
-    } catch (e) {
+        } catch (e, stackTrace) {
+      debugPrint('Sign-in exception: $e');
+      debugPrint('$stackTrace');
       emit(AuthError(e.toString()));
     }
   }
+
 
   Future<void> _onSignOutRequested(
       AuthSignOutRequested event,

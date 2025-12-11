@@ -11,11 +11,15 @@ dependencies:
     sdk: flutter
 
   # Firebase
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.16.0
-  cloud_firestore: ^4.14.0
-  firebase_storage: ^11.6.0
-  firebase_messaging: ^14.7.10
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  firebase_storage: ^13.0.4
+  firebase_messaging: ^16.0.4
+
+  # Image Upload
+  cloudinary_api: ^1.1.1
+  cloudinary_url_gen: ^1.8.0
 
   # State Management
   flutter_bloc: ^8.1.3
