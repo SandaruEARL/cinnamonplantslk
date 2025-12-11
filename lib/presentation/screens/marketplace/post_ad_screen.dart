@@ -294,14 +294,17 @@ class _PostAdScreenState extends State<PostAdScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Upload images to Cloudinary
+      // 1. Upload images to Cloudinary
+      print('📤 Uploading ${_selectedImages.length} images...');
       final cloudinaryService = CloudinaryService();
       final imageUrls = await cloudinaryService.uploadAdImages(_selectedImages);
-      final adId = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // Create advertisement
+      print('✅ Images uploaded: $imageUrls');
+      print('📊 Number of URLs: ${imageUrls.length}');
+
+      // 2. Create advertisement WITHOUT setting the ID
       final ad = Advertisement(
-        id: adId,
+        id: '', // ⚠️ Empty string - Firestore will create the real ID
         sellerId: authState.user.id,
         sellerName: authState.user.name,
         sellerPhone: authState.user.phone,
@@ -316,13 +319,18 @@ class _PostAdScreenState extends State<PostAdScreen> {
             ? int.parse(_quantityController.text)
             : null,
         location: _locationController.text.trim(),
-        imageUrls: imageUrls,
+        imageUrls: imageUrls, // ⚠️ This should have the URLs
         createdAt: DateTime.now(),
       );
 
-      // Save to Firestore
+      print('📝 Ad object created with ${ad.imageUrls.length} images');
+      print('🔍 Ad JSON: ${ad.toJson()}');
+
+      // 3. Save to Firestore
       final firestoreService = context.read<FirestoreService>();
-      await firestoreService.createAdvertisement(ad);
+      final docId = await firestoreService.createAdvertisement(ad);
+
+      print('✅ Ad saved with ID: $docId');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -334,6 +342,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
+      print('❌ Error submitting ad: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
