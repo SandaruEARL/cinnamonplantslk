@@ -48,6 +48,7 @@ class MyApp extends StatelessWidget {
         RepositoryProvider(create: (context) => MessagingService()),
         RepositoryProvider. value(value: tfliteService),
 
+
       ],
       child: BlocProvider(
         create: (context) => AuthBloc(

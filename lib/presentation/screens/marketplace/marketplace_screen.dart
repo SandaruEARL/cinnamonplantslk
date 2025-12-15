@@ -1,5 +1,6 @@
 import 'package:cinnamon_marketplace_app/presentation/screens/marketplace/post_ad_screen.dart';
 import 'package:cinnamon_marketplace_app/presentation/screens/marketplace/product_details_screen.dart';
+import 'package:cinnamon_marketplace_app/presentation/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/app_colors.dart';
@@ -24,39 +25,50 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
-          SliverAppBar(
-            expandedHeight: 120,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Marketplace'),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+      appBar: AppBar(
+        title: const Text('Marketplace'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-                onPressed: () {
-                  setState(() {
-                    _isGridView = !_isGridView;
-                  });
-                },
-              ),
-            ],
           ),
-
+        ],
+      ),
+      body: CustomScrollView(
+        slivers: [
           // Search Bar
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search products.. .',
+                  hintText: 'Search products...',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.filter_list),
@@ -87,7 +99,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       });
                     },
                   ),
-                  ... AppConstants.productCategories.map((category) {
+                  ...AppConstants.productCategories.map((category) {
                     return _CategoryChip(
                       label: category,
                       isSelected: _selectedCategory == category,
@@ -105,7 +117,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
           // Products Grid/List
           StreamBuilder<List<Advertisement>>(
-            stream: context.read<FirestoreService>(). getAdvertisements(
+            stream: context.read<FirestoreService>().getAdvertisements(
               category: _selectedCategory,
             ),
             builder: (context, snapshot) {
@@ -115,7 +127,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 );
               }
 
-              if (! snapshot.hasData || snapshot.data!.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
                     child: Column(
@@ -124,7 +136,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         Icon(
                           Icons.inventory_2_outlined,
                           size: 80,
-                          color: AppColors.textSecondary. withOpacity(0.5),
+                          color: AppColors.textSecondary.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
                         const Text(
@@ -178,7 +190,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         ),
                       );
                     },
-                    childCount: ads. length,
+                    childCount: ads.length,
                   ),
                 );
               }
@@ -186,7 +198,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton. extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -202,7 +214,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   void _navigateToDetails(Advertisement ad) {
-    Navigator.of(context). push(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ProductDetailsScreen(ad: ad),
       ),
@@ -234,7 +246,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   groupValue: _sortBy,
                   onChanged: (value) {
                     setState(() {
-                      _sortBy = value. toString();
+                      _sortBy = value.toString();
                     });
                     Navigator.pop(context);
                   },
@@ -260,7 +272,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   groupValue: _sortBy,
                   onChanged: (value) {
                     setState(() {
-                      _sortBy = value. toString();
+                      _sortBy = value.toString();
                     });
                     Navigator.pop(context);
                   },
@@ -281,8 +293,8 @@ class _CategoryChip extends StatelessWidget {
 
   const _CategoryChip({
     required this.label,
-    required this. isSelected,
-    required this. onTap,
+    required this.isSelected,
+    required this.onTap,
   });
 
   @override

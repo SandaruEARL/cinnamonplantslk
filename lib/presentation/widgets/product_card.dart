@@ -23,11 +23,13 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildGridCard(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,6 +54,7 @@ class ProductCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C2C2C),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -59,7 +62,7 @@ class ProductCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Rs. ${ad.price.toStringAsFixed(2)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryBrown,
@@ -96,11 +99,13 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildHorizontalCard(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -127,6 +132,7 @@ class ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C2C2C),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -134,7 +140,7 @@ class ProductCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Rs. ${ad.price.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primaryBrown,
@@ -181,7 +187,7 @@ class ProductCard extends StatelessWidget {
       return _buildPlaceholder(aspectRatio);
     }
 
-    // ✅ USE CLOUDINARY THUMBNAIL - significantly faster loading
+    // USE CLOUDINARY THUMBNAIL - significantly faster loading
     final thumbnailUrl = CloudinaryService.getThumbnailUrl(imageUrl, size: size);
     final placeholderUrl = CloudinaryService.getPlaceholderUrl(imageUrl);
 
@@ -225,7 +231,7 @@ class ProductCard extends StatelessWidget {
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: Container(
-        color: Colors.grey[200],
+        color: Colors.grey[100],
         child: Icon(
           Icons.image,
           size: 48,
@@ -237,7 +243,7 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildErrorWidget() {
     return Container(
-      color: Colors.grey[200],
+      color: Colors.grey[100],
       child: Center(
         child: Icon(
           Icons.broken_image,
@@ -255,9 +261,9 @@ class ProductCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
+            Colors.grey[100]!,
             Colors.grey[200]!,
-            Colors.grey[300]!,
-            Colors.grey[200]!,
+            Colors.grey[100]!,
           ],
           stops: const [0.0, 0.5, 1.0],
         ),

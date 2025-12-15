@@ -93,8 +93,8 @@ class CloudinaryService {
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final publicId = 'ads_${DateTime.now().millisecondsSinceEpoch}_$index';
-      final folder = 'cinnamon_marketplace/advertisements';
-      final eager = 'w_400,h_400,c_fill,q_auto:eco,f_auto|w_800,h_800,c_limit,q_auto,f_auto';
+      const folder = 'cinnamon_marketplace/advertisements';
+      const eager = 'w_400,h_400,c_fill,q_auto:eco,f_auto|w_800,h_800,c_limit,q_auto,f_auto';
 
       // ✅ CRITICAL FIX: Include ALL parameters in signature (alphabetically ordered)
       // Cloudinary validates: eager, eager_async, folder, public_id, timestamp
@@ -147,8 +147,8 @@ class CloudinaryService {
 
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final publicId = 'profiles_$userId';
-      final folder = 'cinnamon_marketplace/profiles';
-      final eager = 'w_200,h_200,c_fill,g_face,q_auto,f_auto|w_400,h_400,c_fill,g_face,q_auto,f_auto';
+      const folder = 'cinnamon_marketplace/profiles';
+      const eager = 'w_200,h_200,c_fill,g_face,q_auto,f_auto|w_400,h_400,c_fill,g_face,q_auto,f_auto';
 
       // ✅ CRITICAL FIX: Include ALL parameters in signature (alphabetically ordered)
       final paramsToSign = 'eager=$eager&eager_async=true&folder=$folder&overwrite=true&public_id=$publicId&timestamp=$timestamp$apiSecret';

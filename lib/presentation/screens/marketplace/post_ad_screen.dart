@@ -130,7 +130,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
 
             // Category
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Category',
                 prefixIcon: Icon(Icons.category),
@@ -211,7 +211,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
             // Grade (for cinnamon bales)
             if (_selectedCategory.contains('Bales'))
               DropdownButtonFormField<String>(
-                value: _selectedGrade,
+                initialValue: _selectedGrade,
                 decoration: const InputDecoration(
                   labelText: 'Grade',
                   prefixIcon: Icon(Icons.grade),
