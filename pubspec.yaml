@@ -61,6 +61,10 @@ dependencies:
   get_it: ^7.6.7
   injectable: ^2.3.2
 
+  # For model updates
+  http: ^1.2.0
+  crypto: ^3.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

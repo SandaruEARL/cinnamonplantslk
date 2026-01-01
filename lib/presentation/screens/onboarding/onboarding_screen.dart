@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/app_colors.dart';
-import '../auth/login_screen.dart';
-
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -19,7 +19,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     OnboardingPage(
       icon: Icons.storefront,
       title: 'Buy & Sell Cinnamon',
-      description: 'Connect directly with farmers, nurseries, and buyers.  Trade cinnamon products easily.',
+      description: 'Connect directly with farmers, nurseries, and buyers. Trade cinnamon products easily.',
     ),
     OnboardingPage(
       icon: Icons.psychology,
@@ -43,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Align(
               alignment: Alignment.topRight,
               child: TextButton(
-                onPressed: () => _goToLogin(),
+                onPressed: () => _completeOnboarding(),
                 child: const Text('Skip'),
               ),
             ),
@@ -86,7 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_currentPage == _pages.length - 1) {
-                      _goToLogin();
+                      _completeOnboarding();
                     } else {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 300),
@@ -136,7 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 16),
           Text(
             page.description,
-            style: Theme.of(context).textTheme.bodyLarge?. copyWith(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
@@ -146,10 +146,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  void _goToLogin() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+  Future<void> _completeOnboarding() async {
+    // Mark onboarding as complete
+    final prefs = context.read<SharedPreferences>();
+    await prefs.setBool('is_first_time', false);
+
+    if (mounted) {
+      // Navigate to home (not login!)
+      // User can browse freely, login only needed for posting ads
+      Navigator.pushReplacementNamed(context, '/home');
+    }
   }
 
   @override
@@ -166,7 +172,7 @@ class OnboardingPage {
 
   OnboardingPage({
     required this.icon,
-    required this. title,
+    required this.title,
     required this.description,
   });
 }

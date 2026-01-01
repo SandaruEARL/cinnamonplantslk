@@ -1,3 +1,5 @@
+import 'package:cinnamon_marketplace_app/presentation/bloc/auth/auth_bloc.dart';
+import 'package:cinnamon_marketplace_app/presentation/bloc/auth/auth_state.dart';
 import 'package:cinnamon_marketplace_app/presentation/screens/marketplace/post_ad_screen.dart';
 import 'package:cinnamon_marketplace_app/presentation/screens/marketplace/product_details_screen.dart';
 import 'package:cinnamon_marketplace_app/presentation/screens/profile/profile_screen.dart';
@@ -9,7 +11,6 @@ import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
 import '../../widgets/product_card.dart';
 
-
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
 
@@ -18,7 +19,7 @@ class MarketplaceScreen extends StatefulWidget {
 }
 
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
-  String?  _selectedCategory;
+  String? _selectedCategory;
   String _sortBy = 'Latest';
   bool _isGridView = true;
 
@@ -33,30 +34,53 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
+          // Show login button or profile based on auth state
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthAuthenticated) {
+                // User logged in - show profile
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
                   ),
                 );
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
+              } else {
+                // Not logged in - show login button
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/login');
+                    },
+                    icon: const Icon(Icons.login, color: Colors.white, size: 20),
+                    label: const Text(
+                      'Login',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -198,14 +222,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           ),
         ],
       ),
+      // Post Ad button with auth guard
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const PostAdScreen(),
-            ),
-          );
-        },
+        onPressed: () => _handlePostAd(context),
         backgroundColor: AppColors.primaryBrown,
         icon: const Icon(Icons.add),
         label: const Text('Post Ad'),
@@ -219,6 +238,91 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         builder: (context) => ProductDetailsScreen(ad: ad),
       ),
     );
+  }
+
+  // Auth guard for posting ads
+  Future<void> _handlePostAd(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticated) {
+      // User is logged in - go to post ad screen
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const PostAdScreen(),
+        ),
+      );
+    } else {
+      // User not logged in - show login prompt
+      final shouldLogin = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBrown.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.store,
+                  color: AppColors.primaryBrown,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Post Your Ad',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'To post ads and connect with buyers, you need to create an account.',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              Text(
+                '✓ Free to sign up\n✓ Takes less than 1 minute\n✓ Start selling immediately',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Maybe Later'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBrown,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Sign Up / Login'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldLogin == true && context.mounted) {
+        Navigator.pushNamed(context, '/login');
+      }
+    }
   }
 
   void _showFilterSheet() {
