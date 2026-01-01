@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../core/app_colors.dart';
-import '../../domain/entities/advertisement.dart';
+import '../../../core/app_colors.dart';
+import '../../../domain/entities/advertisement.dart';
+import '../../../data/services/cloudinary/cloudinary_service.dart';
 
 class ProductCard extends StatelessWidget {
   final Advertisement ad;
@@ -18,85 +19,78 @@ class ProductCard extends StatelessWidget {
     if (isHorizontal) {
       return _buildHorizontalCard(context);
     }
-    return _buildVerticalCard(context);
+    return _buildGridCard(context);
   }
 
-  Widget _buildVerticalCard(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
+  Widget _buildGridCard(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
+          // Optimized Image - Use thumbnail URL
           Expanded(
-            flex: 3,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildImageWidget(),
-                if (ad.sellerVerified)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: AppColors.accentGreen,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.verified,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-              ],
+            child: _buildOptimizedImage(
+              size: 400, // Thumbnail size
+              aspectRatio: 1.0,
             ),
           ),
-          // Details
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ad.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+
+          // Product Info
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  ad.title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C2C2C),
                   ),
-                  const Spacer(),
-                  Text(
-                    'Rs. ${ad.price.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryBrown,
-                    ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Rs. ${ad.price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryBrown,
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 12),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          ad.location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      size: 12,
+                      color: Colors.grey[600],
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        ad.location,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -105,68 +99,72 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildHorizontalCard(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
       child: Row(
         children: [
-          // Image
+          // Optimized Image - Use thumbnail URL
           SizedBox(
             width: 120,
             height: 120,
-            child: _buildImageWidget(),
+            child: _buildOptimizedImage(
+              size: 240, // 2x for retina
+              aspectRatio: 1.0,
+            ),
           ),
-          // Details
+
+          // Product Info
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          ad.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      if (ad.sellerVerified)
-                        const Icon(
-                          Icons.verified,
-                          color: AppColors.accentGreen,
-                          size: 20,
-                        ),
-                    ],
+                  Text(
+                    ad.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C2C2C),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    ad.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    'Rs. ${ad.price.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryBrown,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 4),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Rs. ${ad.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryBrown,
-                        ),
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Colors.grey[600],
                       ),
-                      Text(
-                        ad.location,
-                        style: const TextStyle(fontSize: 12),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          ad.location,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -179,52 +177,95 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  // Helper method to safely handle Cloudinary images
-  Widget _buildImageWidget() {
-    // Check if ad has images (Cloudinary URLs)
-    if (ad.imageUrls.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: ad.imageUrls.first, // First Cloudinary URL
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          color: AppColors.divider,
-          child: const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBrown),
-            ),
-          ),
-        ),
-        errorWidget: (context, url, error) => _buildPlaceholder(),
-      );
+  Widget _buildOptimizedImage({
+    required int size,
+    required double aspectRatio,
+  }) {
+    final imageUrl = ad.imageUrls.isNotEmpty ? ad.imageUrls.first : '';
+
+    if (imageUrl.isEmpty) {
+      return _buildPlaceholder(aspectRatio);
     }
 
-    // No images available - show placeholder
-    return _buildPlaceholder();
+    // USE CLOUDINARY THUMBNAIL - significantly faster loading
+    final thumbnailUrl = CloudinaryService.getThumbnailUrl(imageUrl, size: size);
+    final placeholderUrl = CloudinaryService.getPlaceholderUrl(imageUrl);
+
+    return AspectRatio(
+      aspectRatio: aspectRatio,
+      child: CachedNetworkImage(
+        imageUrl: thumbnailUrl,
+        fit: BoxFit.cover,
+
+        // Memory cache optimization - reduce memory usage
+        memCacheWidth: size,
+        memCacheHeight: size,
+        maxWidthDiskCache: size,
+        maxHeightDiskCache: size,
+
+        // Instant blur placeholder
+        placeholder: (context, url) => Image.network(
+          placeholderUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildShimmer(),
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) return child;
+            return AnimatedOpacity(
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(milliseconds: 100),
+              child: child,
+            );
+          },
+        ),
+
+        errorWidget: (context, url, error) => _buildErrorWidget(),
+
+        // Fast fade animation
+        fadeInDuration: const Duration(milliseconds: 200),
+        fadeOutDuration: const Duration(milliseconds: 100),
+      ),
+    );
   }
 
-  // Placeholder widget for missing/failed images
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(double aspectRatio) {
+    return AspectRatio(
+      aspectRatio: aspectRatio,
+      child: Container(
+        color: Colors.grey[100],
+        child: Icon(
+          Icons.image,
+          size: 48,
+          color: Colors.grey[400],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
     return Container(
-      color: AppColors.divider,
+      color: Colors.grey[100],
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.image_not_supported_outlined,
-              color: Colors.grey[400],
-              size: 40,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'No Image',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[500],
-              ),
-            ),
+        child: Icon(
+          Icons.broken_image,
+          size: 48,
+          color: Colors.grey[400],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmer() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey[100]!,
+            Colors.grey[200]!,
+            Colors.grey[100]!,
           ],
+          stops: const [0.0, 0.5, 1.0],
         ),
       ),
     );

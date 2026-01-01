@@ -1,6 +1,7 @@
+import 'package:cinnamon_marketplace_app/presentation/screens/tools/tools_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
@@ -16,7 +17,7 @@ import '../profile/profile_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super. key});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -26,10 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeContent(),
     const MarketplaceScreen(),
     const ChatListScreen(),
-    const ProfileScreen(),
+    const HomeContent(), // AI screen
+    const ToolsScreen(),
   ];
 
   @override
@@ -52,16 +53,16 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.storefront),
-            label: 'Marketplace',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons. chat),
+            icon: Icon(Icons.chat),
             label: 'Chat',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: FaIcon(FontAwesomeIcons.brain, size: 20),
+            label: 'Predictions',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.apps),
+            label: 'Tools',
           ),
         ],
       ),
@@ -74,133 +75,57 @@ class HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Predictions'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                onPressed: () {
+                  // TODO: Navigate to notifications
+                },
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: AppColors.accentRed,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text(
+                    '3',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) {
-                                if (state is AuthAuthenticated) {
-                                  return Text(
-                                    state.user. location ??  'Sri Lanka',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  );
-                                }
-                                return const Text(
-                                  'Sri Lanka',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications, color: Colors.white),
-                              onPressed: () {
-                                // TODO: Navigate to notifications
-                              },
-                            ),
-                            Positioned(
-                              right: 8,
-                              top: 8,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.accentRed,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Text(
-                                  '3',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        if (state is AuthAuthenticated) {
-                          final hour = DateTime.now().hour;
-                          String greeting = 'Good Morning';
-                          if (hour >= 12 && hour < 17) {
-                            greeting = 'Good Afternoon';
-                          } else if (hour >= 17) {
-                            greeting = 'Good Evening';
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$greeting!  👋',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                state.user.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                        return const SizedBox. shrink();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             const SizedBox(height: 24),
 
             // AI Features Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment. start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'AI Features',
@@ -329,7 +254,7 @@ class HomeContent extends StatelessWidget {
 
             // Recent ads stream
             StreamBuilder<List<Advertisement>>(
-              stream: context. read<FirestoreService>().getAdvertisements(limit: 5),
+              stream: context.read<FirestoreService>().getAdvertisements(limit: 5),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -340,7 +265,7 @@ class HomeContent extends StatelessWidget {
                   );
                 }
 
-                if (! snapshot.hasData || snapshot.data!.isEmpty) {
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.all(32.0),
                     child: Center(
@@ -351,10 +276,10 @@ class HomeContent extends StatelessWidget {
 
                 return SizedBox(
                   height: 280,
-                  child: ListView. builder(
+                  child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: snapshot. data!.length,
+                    itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.only(right: 16),
@@ -387,7 +312,7 @@ class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
     required this.icon,
     required this.title,
-    required this. subtitle,
+    required this.subtitle,
     required this.gradient,
     required this.onTap,
   });

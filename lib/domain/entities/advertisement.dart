@@ -97,4 +97,5 @@ class Advertisement extends Equatable {
     location,
     createdAt,
   ];
+
 }
