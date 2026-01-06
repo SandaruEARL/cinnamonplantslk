@@ -62,7 +62,7 @@ class TFLiteService {
       debugPrint('✅ Price model loaded from assets');
 
     } catch (e) {
-      debugPrint('⚠️  Price model not available: $e');
+      debugPrint('  Price model not available: $e');
     }
   }
 
@@ -100,7 +100,7 @@ class TFLiteService {
     final dataSuccess = await _modelUpdateService.downloadRecentData();
 
     if (!preprocessingSuccess || !dataSuccess) {
-      debugPrint('⚠️  Failed to download preprocessing artifacts');
+      debugPrint('  Failed to download preprocessing artifacts');
       return false;
     }
 
@@ -124,16 +124,16 @@ class TFLiteService {
       // Handle null or "All" filters
       if (district == null || district == 'All Districts' ||
           grade == null || grade == 'All Grades') {
-        debugPrint('⚠️  Filters not specific enough, using mock data');
+        debugPrint('  Filters not specific enough, using mock data');
         return _generateMockPredictions(district, grade);
       }
 
       if (!_isPriceModelLoaded || !_preprocessingService.isLoaded) {
-        debugPrint('⚠️  Model or preprocessing not loaded, using mock data');
+        debugPrint('  Model or preprocessing not loaded, using mock data');
         return _generateMockPredictions(district, grade);
       }
 
-      // ✅ Get actual current price from recent data BEFORE preparing input
+      // Get actual current price from recent data BEFORE preparing input
       final currentPrice = _preprocessingService.getCurrentPrice(
         district: district,
         grade: grade,
