@@ -8,6 +8,7 @@ import 'package:cinnamon_marketplace_app/presentation/screens/auth/register_scre
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_theme.dart';
 import 'data/services/ai/tflite_service.dart';
@@ -30,10 +31,14 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
+
   // Initialize services
   final preprocessingService = MLPreprocessingService();
   final modelUpdateService = ModelUpdateService(prefs);
   final tfliteService = TFLiteService(modelUpdateService, preprocessingService);
+
+  // Load credentials
+  await dotenv.load(fileName: ".env");
 
   // Initialize TFLite models
   await tfliteService.initialize();

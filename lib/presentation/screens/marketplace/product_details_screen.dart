@@ -23,87 +23,112 @@ class ProductDetailsScreen extends StatefulWidget {
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   int _currentImageIndex = 0;
   bool _isFavorite = false;
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Image Gallery App Bar - OPTIMIZED
-          SliverAppBar(
-            expandedHeight: 400,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  PageView.builder(
-                    itemCount: widget.ad.imageUrls.length,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentImageIndex = index;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      return _buildOptimizedImage(widget.ad.imageUrls[index]);
-                    },
-                  ),
-                  // Image indicator
-                  if (widget.ad.imageUrls.length > 1)
-                    Positioned(
-                      bottom: 16,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          widget.ad.imageUrls.length,
-                              (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _currentImageIndex == index
-                                  ? Colors.white
-                                  : Colors.white.withOpacity(0.5),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Product Details'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.primaryGradient,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
+            color: _isFavorite ? Colors.red : Colors.white,
+            onPressed: _toggleFavorite,
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            color: Colors.white,
+            onPressed: _shareProduct,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Gallery
+            Container(
+              height: 300,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[200],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      itemCount: widget.ad.imageUrls.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentImageIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return _buildOptimizedImage(widget.ad.imageUrls[index]);
+                      },
+                    ),
+                    // Image indicator
+                    if (widget.ad.imageUrls.length > 1)
+                      Positioned(
+                        bottom: 12,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            widget.ad.imageUrls.length,
+                                (index) => Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _currentImageIndex == index
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.5),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
-                color: _isFavorite ? Colors.red : Colors.white,
-                onPressed: _toggleFavorite,
-              ),
-              IconButton(
-                icon: const Icon(Icons.share),
-                color: Colors.white,
-                onPressed: _shareProduct,
-              ),
-            ],
-          ),
 
-          // Product Details
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+            // Product Details
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title and Price
+                  // Title and Verified Badge
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
                           widget.ad.title,
-                          style: Theme.of(context).textTheme.displayMedium,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       if (widget.ad.sellerVerified)
@@ -140,10 +165,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                   const SizedBox(height: 8),
 
+                  // Price
                   Text(
                     'Rs. ${widget.ad.price.toStringAsFixed(2)}${widget.ad.category.contains('Bales') ? '/kg' : ''}',
                     style: const TextStyle(
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primaryBrown,
                     ),
@@ -154,6 +180,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   // Category and Grade
                   Wrap(
                     spacing: 8,
+                    runSpacing: 8,
                     children: [
                       Chip(
                         label: Text(widget.ad.category),
@@ -178,16 +205,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   const Text(
                     'Description',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     widget.ad.description,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       height: 1.5,
+                      color: AppColors.textPrimary,
                     ),
                   ),
 
@@ -199,11 +228,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       const Icon(
                         Icons.location_on,
                         color: AppColors.primaryBrown,
+                        size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        widget.ad.location,
-                        style: const TextStyle(fontSize: 16),
+                      Expanded(
+                        child: Text(
+                          widget.ad.location,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -216,8 +251,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   const Text(
                     'Seller Information',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -265,52 +301,71 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ],
                       ],
                     ),
-                    subtitle: Text(widget.ad.sellerPhone),
+                    subtitle: Text(
+                      widget.ad.sellerPhone,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 100), // Space for bottom buttons
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
 
       // Bottom Action Buttons
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
+          color: AppColors.background,
         ),
         child: SafeArea(
           child: Row(
             children: [
+              // Call Button
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _callSeller,
                   icon: const Icon(Icons.phone),
                   label: const Text('Call'),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: AppColors.primaryBrown),
+                    foregroundColor: AppColors.primaryBrown,
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
+
+              // WhatsApp Button
               Expanded(
-                flex: 2,
+                child: OutlinedButton.icon(
+                  onPressed: _openWhatsApp,
+                  icon: const Icon(Icons.whatshot),
+                  label: const Text('WhatsApp'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Color(0xFF25D366)),
+                    foregroundColor: const Color(0xFF25D366),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Chat Button
+              Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _chatWithSeller,
                   icon: const Icon(Icons.chat),
-                  label: const Text('Chat with Seller'),
+                  label: const Text('Chat'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: AppColors.primaryBrown,
+                    foregroundColor: Colors.white,
                   ),
                 ),
               ),
@@ -328,7 +383,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
     return CachedNetworkImage(
       imageUrl: detailUrl,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
 
       // Memory optimization
       memCacheWidth: 1200,
@@ -337,15 +392,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       // Progressive loading: blur placeholder → full image
       placeholder: (context, url) => Image.network(
         placeholderUrl,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) => Container(
-          color: AppColors.divider,
+          color: Colors.grey[200],
           child: const Center(child: CircularProgressIndicator()),
         ),
       ),
 
       errorWidget: (context, url, error) => Container(
-        color: AppColors.divider,
+        color: Colors.grey[200],
         child: const Icon(Icons.error),
       ),
 
@@ -367,15 +422,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       if (_isFavorite) {
         await firestoreService.addToFavorites(authState.user.id, widget.ad.id);
       } else {
-        await firestoreService.removeFromFavorites(authState.user.id, widget.ad.id);
+        await firestoreService.removeFromFavorites(
+            authState.user.id, widget.ad.id);
       }
     } catch (e) {
       setState(() {
         _isFavorite = !_isFavorite;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 
@@ -390,9 +448,28 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not launch phone dialer')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch phone dialer')),
+        );
+      }
+    }
+  }
+
+  void _openWhatsApp() async {
+    final phone = widget.ad.sellerPhone.replaceAll(RegExp(r'[^\d+]'), '');
+    final message = Uri.encodeComponent(
+        'Hi, I\'m interested in your product: ${widget.ad.title}');
+    final uri = Uri.parse('https://wa.me/$phone?text=$message');
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open WhatsApp')),
+        );
+      }
     }
   }
 
@@ -405,7 +482,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       return;
     }
 
-    // Update: Prevent chatting with yourself
+    // Prevent chatting with yourself
     if (widget.ad.sellerId == authState.user.id) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You cannot chat with yourself')),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../ai/price_prediction_screen.dart';
 import '../ai/quality_grading_screen.dart';

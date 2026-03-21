@@ -1,26 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/utils/constants.dart';
 
+enum MessageStatus { sending, sent, delivered, read }
+
 class Message {
   final String id;
   final String senderId;
   final String receiverId;
   final String text;
-  final String?  imageUrl;
+  final String? imageUrl;
   final DateTime timestamp;
   final bool isRead;
+  final MessageStatus status;
 
   Message({
     required this.id,
     required this.senderId,
     required this.receiverId,
     required this.text,
-    this. imageUrl,
-    required this. timestamp,
+    this.imageUrl,
+    required this.timestamp,
     this.isRead = false,
+    this.status = MessageStatus.sent,
   });
 
-  factory Message. fromJson(Map<String, dynamic> json) {
+  factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['id'] as String,
       senderId: json['senderId'] as String,
@@ -28,8 +32,21 @@ class Message {
       text: json['text'] as String,
       imageUrl: json['imageUrl'] as String?,
       timestamp: DateTime.parse(json['timestamp'] as String),
-      isRead: json['isRead'] as bool? ??  false,
+      isRead: json['isRead'] as bool? ?? false,
+      status: _parseStatus(json['status'] as String?),
     );
+  }
+
+  static MessageStatus _parseStatus(String? status) {
+    if (status == null) return MessageStatus.sent;
+    try {
+      return MessageStatus.values.firstWhere(
+            (e) => e.toString() == 'MessageStatus.$status',
+        orElse: () => MessageStatus.sent,
+      );
+    } catch (e) {
+      return MessageStatus.sent;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -41,7 +58,30 @@ class Message {
       'imageUrl': imageUrl,
       'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
+      'status': status.toString().split('.').last,
     };
+  }
+
+  Message copyWith({
+    String? id,
+    String? senderId,
+    String? receiverId,
+    String? text,
+    String? imageUrl,
+    DateTime? timestamp,
+    bool? isRead,
+    MessageStatus? status,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      senderId: senderId ?? this.senderId,
+      receiverId: receiverId ?? this.receiverId,
+      text: text ?? this.text,
+      imageUrl: imageUrl ?? this.imageUrl,
+      timestamp: timestamp ?? this.timestamp,
+      isRead: isRead ?? this.isRead,
+      status: status ?? this.status,
+    );
   }
 }
 
@@ -50,7 +90,7 @@ class MessagingService {
 
   // Get chat ID between two users
   String getChatId(String userId1, String userId2) {
-    final ids = [userId1, userId2].. sort();
+    final ids = [userId1, userId2]..sort();
     return '${ids[0]}_${ids[1]}';
   }
 
@@ -70,14 +110,15 @@ class MessagingService {
         text: text,
         imageUrl: imageUrl,
         timestamp: DateTime.now(),
+        status: MessageStatus.sent,
       );
 
       // Add message
       await _firestore
           .collection(AppConstants.chatsCollection)
-          . doc(chatId)
+          .doc(chatId)
           .collection(AppConstants.messagesCollection)
-          . doc(message.id)
+          .doc(message.id)
           .set(message.toJson());
 
       // Update chat metadata
@@ -101,14 +142,14 @@ class MessagingService {
       final chatId = getChatId(userId1, userId2);
 
       return _firestore
-          . collection(AppConstants.chatsCollection)
-          . doc(chatId)
+          .collection(AppConstants.chatsCollection)
+          .doc(chatId)
           .collection(AppConstants.messagesCollection)
           .orderBy('timestamp', descending: true)
           .snapshots()
           .map((snapshot) {
         return snapshot.docs.map((doc) {
-          final data = doc. data();
+          final data = doc.data();
           data['id'] = doc.id;
           return Message.fromJson(data);
         }).toList();
@@ -126,15 +167,31 @@ class MessagingService {
           .where('participants', arrayContains: userId)
           .orderBy('lastMessageTime', descending: true)
           .snapshots()
-          . map((snapshot) {
+          .map((snapshot) {
         return snapshot.docs.map((doc) {
-          final data = doc. data();
+          final data = doc.data();
           data['chatId'] = doc.id;
           return data;
         }).toList();
       });
     } catch (e) {
       throw Exception('Failed to get chats: $e');
+    }
+  }
+
+  // Mark message as delivered
+  Future<void> markAsDelivered(String chatId, String messageId) async {
+    try {
+      await _firestore
+          .collection(AppConstants.chatsCollection)
+          .doc(chatId)
+          .collection(AppConstants.messagesCollection)
+          .doc(messageId)
+          .update({
+        'status': 'delivered',
+      });
+    } catch (e) {
+      throw Exception('Failed to mark as delivered: $e');
     }
   }
 
@@ -151,11 +208,37 @@ class MessagingService {
 
       final batch = _firestore.batch();
       for (var doc in messages.docs) {
-        batch.update(doc.reference, {'isRead': true});
+        batch.update(doc.reference, {
+          'isRead': true,
+          'status': 'read',
+        });
       }
       await batch.commit();
     } catch (e) {
       throw Exception('Failed to mark as read: $e');
+    }
+  }
+
+  // Mark all unread messages as delivered for a user
+  Future<void> markUnreadAsDelivered(String chatId, String userId) async {
+    try {
+      final messages = await _firestore
+          .collection(AppConstants.chatsCollection)
+          .doc(chatId)
+          .collection(AppConstants.messagesCollection)
+          .where('receiverId', isEqualTo: userId)
+          .where('status', isEqualTo: 'sent')
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in messages.docs) {
+        batch.update(doc.reference, {
+          'status': 'delivered',
+        });
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to mark as delivered: $e');
     }
   }
 

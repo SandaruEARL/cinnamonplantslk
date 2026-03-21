@@ -5,11 +5,38 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Handles ML preprocessing (scaling, encoding, feature engineering)
+/// ✅ UPDATED: Supports both WEEKLY and DAILY models
 class MLPreprocessingService {
   Map<String, dynamic>? _preprocessing;
   List<Map<String, dynamic>>? _recentData;
 
   bool get isLoaded => _preprocessing != null && _recentData != null;
+
+  /// ✅ NEW: Check if model is weekly or daily
+  bool get isWeeklyModel {
+    if (_preprocessing == null) return false;
+    return _preprocessing!['data_frequency'] == 'weekly';
+  }
+
+  /// ✅ NEW: Get lookback period (weeks or days)
+  int get lookbackPeriods {
+    if (_preprocessing == null) return 30;
+    if (isWeeklyModel) {
+      return _preprocessing!['lookback_weeks'] ?? 12;
+    } else {
+      return _preprocessing!['lookback_days'] ?? 30;
+    }
+  }
+
+  /// ✅ NEW: Get forecast period (weeks or days)
+  int get forecastPeriods {
+    if (_preprocessing == null) return 7;
+    if (isWeeklyModel) {
+      return _preprocessing!['forecast_weeks'] ?? 4;
+    } else {
+      return _preprocessing!['forecast_days'] ?? 7;
+    }
+  }
 
   /// Normalize grade names to match CSV format
   String _normalizeGrade(String grade) {
@@ -22,7 +49,6 @@ class MLPreprocessingService {
       'H1': 'H-1',
       'H2': 'H-2',
       'Alba': 'Alba',
-      // Add any other variations if needed
     };
 
     return mapping[grade] ?? grade;
@@ -46,6 +72,14 @@ class MLPreprocessingService {
       debugPrint('   Features: ${_preprocessing!['num_features']}');
       debugPrint('   Districts: ${_preprocessing!['district_encoder']['classes'].length}');
       debugPrint('   Grades: ${_preprocessing!['grade_encoder']['classes'].length}');
+      debugPrint('   Model type: ${isWeeklyModel ? 'WEEKLY' : 'DAILY'}'); // ✅ NEW
+      if (isWeeklyModel) {
+        debugPrint('   Lookback: ${lookbackPeriods} weeks');
+        debugPrint('   Forecast: ${forecastPeriods} weeks');
+      } else {
+        debugPrint('   Lookback: ${lookbackPeriods} days');
+        debugPrint('   Forecast: ${forecastPeriods} days');
+      }
 
       return true;
     } catch (e) {
@@ -73,7 +107,6 @@ class MLPreprocessingService {
         return false;
       }
 
-      // Parse CSV - handle both comma and tab separators
       final firstLine = lines[0];
       final separator = firstLine.contains('\t') ? '\t' : ',';
 
@@ -105,11 +138,11 @@ class MLPreprocessingService {
 
       debugPrint('✅ Loaded recent_data.csv');
       debugPrint('   Records: ${_recentData!.length}');
+      debugPrint('   Expected: ${lookbackPeriods} ${isWeeklyModel ? 'weeks' : 'days'} per district/grade'); // ✅ NEW
 
       if (_recentData!.isNotEmpty) {
         debugPrint('   Sample row: ${_recentData![0]}');
 
-        // Check unique districts and grades
         final districts = _recentData!.map((r) => r['district']).toSet();
         final grades = _recentData!.map((r) => r['grade']).toSet();
         debugPrint('   Unique districts: $districts');
@@ -133,10 +166,8 @@ class MLPreprocessingService {
       throw Exception('Preprocessing not loaded');
     }
 
-    // Normalize grade to match CSV format
     final normalizedGrade = _normalizeGrade(grade);
 
-    // Filter data for specific district + grade
     final filtered = _recentData!.where((row) {
       return row['district'] == district && row['grade'] == normalizedGrade;
     }).toList();
@@ -145,14 +176,12 @@ class MLPreprocessingService {
       throw Exception('No data found for $district + $normalizedGrade');
     }
 
-    // Sort by date to get the most recent
     filtered.sort((a, b) {
       final dateA = DateTime.parse(a['date']);
       final dateB = DateTime.parse(b['date']);
       return dateA.compareTo(dateB);
     });
 
-    // Get the last (most recent) price
     final lastRecord = filtered.last;
     final currentPrice = double.parse(lastRecord['average_price_rs_kg'].toString());
 
@@ -170,7 +199,6 @@ class MLPreprocessingService {
       throw Exception('Preprocessing not loaded');
     }
 
-    // Find the feature index for the price column
     final featureColumns = List<String>.from(_preprocessing!['feature_columns']);
     final priceIndex = featureColumns.indexOf(priceColumn);
 
@@ -197,7 +225,8 @@ class MLPreprocessingService {
     }).toList();
   }
 
-  /// Prepare input for model (30 days x 30 features)
+  /// Prepare input for model
+  /// ✅ UPDATED: Works with both weekly (12 weeks) and daily (30 days) models
   List<List<List<double>>> prepareInput({
     required String district,
     required String grade,
@@ -206,13 +235,14 @@ class MLPreprocessingService {
       throw Exception('Preprocessing not loaded');
     }
 
-    // Normalize grade to match CSV format
     final normalizedGrade = _normalizeGrade(grade);
+    final requiredRecords = lookbackPeriods; // 12 weeks or 30 days
 
-    debugPrint('🔍 Filtering data:');
+    debugPrint('🔍 Filtering data for ${isWeeklyModel ? 'WEEKLY' : 'DAILY'} model:');
     debugPrint('   District: $district');
     debugPrint('   Grade (input): $grade');
     debugPrint('   Grade (normalized): $normalizedGrade');
+    debugPrint('   Required records: $requiredRecords ${isWeeklyModel ? 'weeks' : 'days'}');
 
     // Filter data for specific district + grade
     final filtered = _recentData!.where((row) {
@@ -221,8 +251,7 @@ class MLPreprocessingService {
 
     debugPrint('   Filtered records: ${filtered.length}');
 
-    if (filtered.length < 30) {
-      // Show available data for debugging
+    if (filtered.length < requiredRecords) {
       if (filtered.isEmpty) {
         debugPrint('❌ No data found for $district + $normalizedGrade');
         debugPrint('   Available combinations:');
@@ -234,7 +263,7 @@ class MLPreprocessingService {
           debugPrint('   - $combo');
         }
       }
-      throw Exception('Not enough historical data (need 30 days, have ${filtered.length})');
+      throw Exception('Not enough historical data (need $requiredRecords, have ${filtered.length})');
     }
 
     // Sort by date to ensure chronological order
@@ -244,38 +273,39 @@ class MLPreprocessingService {
       return dateA.compareTo(dateB);
     });
 
-    // Take last 30 days
-    final last30 = filtered.sublist(math.max(0, filtered.length - 30));
+    // Take last N records (weeks or days)
+    final lastN = filtered.sublist(math.max(0, filtered.length - requiredRecords));
 
-    debugPrint('✅ Using last 30 records from ${last30.first['date']} to ${last30.last['date']}');
+    debugPrint('✅ Using last $requiredRecords records from ${lastN.first['date']} to ${lastN.last['date']}');
 
-    // Encode district and grade (use normalized grade)
+    // Encode district and grade
     final districtEncoded = _encodeDistrict(district);
     final gradeEncoded = _encodeGrade(normalizedGrade);
 
-    // Build features for each day
+    // Build features for each period
     final inputSequence = <List<double>>[];
 
-    for (int i = 0; i < 30; i++) {
-      final row = last30[i];
-      final features = _extractFeatures(row, districtEncoded, gradeEncoded, i, last30);
+    for (int i = 0; i < requiredRecords; i++) {
+      final row = lastN[i];
+      final features = _extractFeatures(row, districtEncoded, gradeEncoded, i, lastN);
       inputSequence.add(features);
     }
 
     // Normalize using scaler
     final normalized = _normalizeFeatures(inputSequence);
 
-    // Shape: [1, 30, 30] for TFLite
+    // Shape: [1, lookbackPeriods, features] for TFLite
     return [normalized];
   }
 
-  /// Extract features from a row (30 features - matching training exactly)
+  /// Extract features from a row
+  /// ✅ This works for BOTH weekly and daily models (same feature structure)
   List<double> _extractFeatures(
       Map<String, dynamic> row,
       int districtEncoded,
       int gradeEncoded,
       int index,
-      List<Map<String, dynamic>> last30,
+      List<Map<String, dynamic>> historicalData,
       ) {
     final features = <double>[];
 
@@ -290,19 +320,32 @@ class MLPreprocessingService {
     features.add(districtEncoded.toDouble());
     features.add(gradeEncoded.toDouble());
 
-    // 3-8: Time features
+    // 3-8: Time features (same for weekly and daily)
     features.add(year.toDouble());
     features.add(month.toDouble());
-    features.add(day.toDouble());
-    features.add(date.weekday.toDouble());
-    features.add(_weekOfYear(date).toDouble());
+    if (isWeeklyModel) {
+      // For weekly model: use week_of_year (no day field)
+      features.add(_weekOfYear(date).toDouble());
+    } else {
+      // For daily model: use day and day_of_week
+      features.add(day.toDouble());
+      features.add(date.weekday.toDouble());
+      features.add(_weekOfYear(date).toDouble());
+    }
     features.add(((month - 1) ~/ 3 + 1).toDouble()); // quarter
 
     // 9-12: Cyclical encodings
     features.add(math.sin(2 * math.pi * month / 12));
     features.add(math.cos(2 * math.pi * month / 12));
-    features.add(math.sin(2 * math.pi * date.weekday / 7));
-    features.add(math.cos(2 * math.pi * date.weekday / 7));
+    if (isWeeklyModel) {
+      // For weekly model: week cyclical encoding
+      features.add(math.sin(2 * math.pi * _weekOfYear(date) / 52));
+      features.add(math.cos(2 * math.pi * _weekOfYear(date) / 52));
+    } else {
+      // For daily model: day cyclical encoding
+      features.add(math.sin(2 * math.pi * date.weekday / 7));
+      features.add(math.cos(2 * math.pi * date.weekday / 7));
+    }
 
     // 13-14: Current prices
     final avgPrice = double.parse(row['average_price_rs_kg'].toString());
@@ -310,31 +353,64 @@ class MLPreprocessingService {
     features.add(avgPrice);
     features.add(highPrice);
 
-    // 15-22: Lag features - MUST match training order exactly
-    features.add(_getLag(last30, index, 1, 'average_price_rs_kg'));
-    features.add(_getLag(last30, index, 1, 'highest_price_rs_kg'));
-    features.add(_getLag(last30, index, 7, 'average_price_rs_kg'));
-    features.add(_getLag(last30, index, 7, 'highest_price_rs_kg'));
-    features.add(_getLag(last30, index, 14, 'average_price_rs_kg'));
-    features.add(_getLag(last30, index, 14, 'highest_price_rs_kg'));
-    features.add(_getLag(last30, index, 30, 'average_price_rs_kg'));
-    features.add(_getLag(last30, index, 30, 'highest_price_rs_kg'));
+    // 15-22: Lag features (adapted for weekly/daily)
+    if (isWeeklyModel) {
+      // Weekly lags: 1, 4, 8, 12 weeks
+      features.add(_getLag(historicalData, index, 1, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 1, 'highest_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 4, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 4, 'highest_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 8, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 8, 'highest_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 12, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 12, 'highest_price_rs_kg'));
+    } else {
+      // Daily lags: 1, 7, 14, 30 days
+      features.add(_getLag(historicalData, index, 1, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 1, 'highest_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 7, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 7, 'highest_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 14, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 14, 'highest_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 30, 'average_price_rs_kg'));
+      features.add(_getLag(historicalData, index, 30, 'highest_price_rs_kg'));
+    }
 
-    // 23-28: Rolling statistics (7, 14, 30 day windows)
-    features.add(_rollingMean(last30, index, 7, 'average_price_rs_kg'));
-    features.add(_rollingStd(last30, index, 7, 'average_price_rs_kg'));
-    features.add(_rollingMean(last30, index, 14, 'average_price_rs_kg'));
-    features.add(_rollingStd(last30, index, 14, 'average_price_rs_kg'));
-    features.add(_rollingMean(last30, index, 30, 'average_price_rs_kg'));
-    features.add(_rollingStd(last30, index, 30, 'average_price_rs_kg'));
+    // 23-28: Rolling statistics (adapted for weekly/daily)
+    if (isWeeklyModel) {
+      // Weekly windows: 4, 8, 12 weeks
+      features.add(_rollingMean(historicalData, index, 4, 'average_price_rs_kg'));
+      features.add(_rollingStd(historicalData, index, 4, 'average_price_rs_kg'));
+      features.add(_rollingMean(historicalData, index, 8, 'average_price_rs_kg'));
+      features.add(_rollingStd(historicalData, index, 8, 'average_price_rs_kg'));
+      features.add(_rollingMean(historicalData, index, 12, 'average_price_rs_kg'));
+      features.add(_rollingStd(historicalData, index, 12, 'average_price_rs_kg'));
+    } else {
+      // Daily windows: 7, 14, 30 days
+      features.add(_rollingMean(historicalData, index, 7, 'average_price_rs_kg'));
+      features.add(_rollingStd(historicalData, index, 7, 'average_price_rs_kg'));
+      features.add(_rollingMean(historicalData, index, 14, 'average_price_rs_kg'));
+      features.add(_rollingStd(historicalData, index, 14, 'average_price_rs_kg'));
+      features.add(_rollingMean(historicalData, index, 30, 'average_price_rs_kg'));
+      features.add(_rollingStd(historicalData, index, 30, 'average_price_rs_kg'));
+    }
 
-    // 29-30: Price momentum (7 and 30 day changes)
-    features.add(_priceChange(last30, index, 7, 'average_price_rs_kg'));
-    features.add(_priceChange(last30, index, 30, 'average_price_rs_kg'));
+    // 29-30: Price momentum (adapted for weekly/daily)
+    if (isWeeklyModel) {
+      // Weekly momentum: 4 weeks, 12 weeks
+      features.add(_priceChange(historicalData, index, 4, 'average_price_rs_kg'));
+      features.add(_priceChange(historicalData, index, 12, 'average_price_rs_kg'));
+    } else {
+      // Daily momentum: 7 days, 30 days
+      features.add(_priceChange(historicalData, index, 7, 'average_price_rs_kg'));
+      features.add(_priceChange(historicalData, index, 30, 'average_price_rs_kg'));
+    }
 
-    // Verify exactly 30 features
-    if (features.length != 30) {
-      debugPrint('⚠️ Feature count mismatch: ${features.length} != 30');
+    // Verify feature count (should match num_features in preprocessing.json)
+    final expectedFeatures = _preprocessing!['num_features'] as int;
+    if (features.length != expectedFeatures) {
+      debugPrint('⚠️ Feature count mismatch: ${features.length} != $expectedFeatures');
+      throw Exception('Feature extraction error: expected $expectedFeatures features, got ${features.length}');
     }
 
     return features;
@@ -417,12 +493,12 @@ class MLPreprocessingService {
   }
 
   /// Calculate price change percentage
-  double _priceChange(List<Map<String, dynamic>> data, int index, int days, String column) {
-    if (index - days < 0 || index >= data.length) return 0.0;
+  double _priceChange(List<Map<String, dynamic>> data, int index, int periods, String column) {
+    if (index - periods < 0 || index >= data.length) return 0.0;
 
     try {
       final current = double.parse(data[index][column].toString());
-      final past = double.parse(data[index - days][column].toString());
+      final past = double.parse(data[index - periods][column].toString());
 
       if (past == 0) return 0.0;
       return (current - past) / past;

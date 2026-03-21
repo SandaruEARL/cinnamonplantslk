@@ -62,7 +62,7 @@ class TFLiteService {
       debugPrint('✅ Price model loaded from assets');
 
     } catch (e) {
-      debugPrint('  Price model not available: $e');
+      debugPrint('⚠️  Price model not available: $e');
     }
   }
 
@@ -100,7 +100,7 @@ class TFLiteService {
     final dataSuccess = await _modelUpdateService.downloadRecentData();
 
     if (!preprocessingSuccess || !dataSuccess) {
-      debugPrint('  Failed to download preprocessing artifacts');
+      debugPrint('⚠️  Failed to download preprocessing artifacts');
       return false;
     }
 
@@ -115,21 +115,27 @@ class TFLiteService {
     return await _modelUpdateService.getCurrentVersion();
   }
 
-  /// Predict prices with district and grade
+  /// Predict prices with district and grade (WEEKLY MODEL - 4 WEEKS)
   Future<Map<String, dynamic>> predictPrices({
     String? district,
     String? grade,
   }) async {
     try {
+      // ✅ Block National predictions - it's a reference, not a target
+      if (district == 'National') {
+        debugPrint('⚠️  National is a benchmark district, cannot predict');
+        return _generateMockPredictions(district, grade);
+      }
+
       // Handle null or "All" filters
       if (district == null || district == 'All Districts' ||
           grade == null || grade == 'All Grades') {
-        debugPrint('  Filters not specific enough, using mock data');
+        debugPrint('ℹ️  Filters not specific enough, using mock data');
         return _generateMockPredictions(district, grade);
       }
 
       if (!_isPriceModelLoaded || !_preprocessingService.isLoaded) {
-        debugPrint('  Model or preprocessing not loaded, using mock data');
+        debugPrint('ℹ️  Model or preprocessing not loaded, using mock data');
         return _generateMockPredictions(district, grade);
       }
 
@@ -141,19 +147,42 @@ class TFLiteService {
 
       debugPrint('📊 Current market price (from data): Rs. ${currentPrice.toStringAsFixed(2)}');
 
-      // Prepare input (30 days x 30 features)
+      // ✅ Fetch National benchmark separately (not predicted)
+      double? nationalPrice;
+      try {
+        nationalPrice = _preprocessingService.getCurrentPrice(
+          district: 'National',
+          grade: grade,
+        );
+        debugPrint('📊 National benchmark price: Rs. ${nationalPrice.toStringAsFixed(2)}');
+      } catch (e) {
+        debugPrint('⚠️  National benchmark not available: $e');
+        nationalPrice = null;
+      }
+
+      // ✅ Check if model is weekly or daily
+      final isWeekly = _preprocessingService.isWeeklyModel;
+      final lookbackPeriods = isWeekly ? 12 : 30; // 12 weeks or 30 days
+      final forecastPeriods = isWeekly ? 4 : 7;   // 4 weeks or 7 days
+
+      debugPrint('📅 Model type: ${isWeekly ? 'WEEKLY' : 'DAILY'}');
+      debugPrint('   Lookback: $lookbackPeriods ${isWeekly ? 'weeks' : 'days'}');
+      debugPrint('   Forecast: $forecastPeriods ${isWeekly ? 'weeks' : 'days'}');
+
+      // Prepare input
       final input = _preprocessingService.prepareInput(
         district: district,
         grade: grade,
       );
 
       // Run inference
-      final output = List.filled(14, 0.0).reshape([1, 14]);
+      final outputSize = forecastPeriods * 2; // avg + high prices
+      final output = List.filled(outputSize, 0.0).reshape([1, outputSize]);
       _pricePredictionInterpreter!.run(input, output);
 
-      // Parse output: first 7 = avg prices, last 7 = high prices (NORMALIZED)
-      final avgPricesNormalized = output[0].sublist(0, 7);
-      final highPricesNormalized = output[0].sublist(7, 14);
+      // Parse output: first half = avg prices, second half = high prices (NORMALIZED)
+      final avgPricesNormalized = output[0].sublist(0, forecastPeriods);
+      final highPricesNormalized = output[0].sublist(forecastPeriods, outputSize);
 
       debugPrint('📊 Model output (normalized):');
       debugPrint('   Avg: $avgPricesNormalized');
@@ -173,39 +202,59 @@ class TFLiteService {
       debugPrint('   Avg: $avgPrices');
       debugPrint('   High: $highPrices');
 
-      // Create predictions for next 7 days
+      // ✅ Calculate projected national benchmark (simple trend projection)
+      List<double>? nationalProjections;
+      if (nationalPrice != null) {
+        final districtGrowthRate = (avgPrices[forecastPeriods - 1] - currentPrice) / currentPrice;
+        nationalProjections = List.generate(forecastPeriods, (i) {
+          final t = (i + 1) / forecastPeriods.toDouble();
+          return nationalPrice! * (1 + (districtGrowthRate * t));
+        });
+        debugPrint('📊 National projections: $nationalProjections');
+      }
+
+      // Create predictions
       final now = DateTime.now();
       final predictions = <Map<String, dynamic>>[];
 
-      for (int i = 0; i < 7; i++) {
+      for (int i = 0; i < forecastPeriods; i++) {
+        // ✅ For weekly model: add 7 days per week, for daily: add 1 day per prediction
+        final daysToAdd = isWeekly ? (i + 1) * 7 : (i + 1);
+
         predictions.add({
-          'date': DateTime(now.year, now.month, now.day + i + 1),
+          'date': DateTime(now.year, now.month, now.day + daysToAdd),
           'average_price': avgPrices[i],
           'high_price': highPrices[i],
           'confidence': 85.0 - (i * 5), // Decreases over time
+          'national_average': nationalProjections?[i],
         });
       }
 
       // Calculate trend (compare last prediction with current actual price)
-      final lastPrice = avgPrices[6];
+      final lastPrice = avgPrices[forecastPeriods - 1];
       final trend = lastPrice > currentPrice ? 'upward' : 'downward';
 
-      // Calculate weekly change (from current to last prediction)
-      final weeklyChange = ((lastPrice - currentPrice) / currentPrice) * 100;
+      // Calculate change over forecast period
+      final periodChange = ((lastPrice - currentPrice) / currentPrice) * 100;
 
       return {
         'success': true,
-        'currentPrice': currentPrice, // ✅ Actual current market price
-        'predictions': predictions,   // ✅ Future predictions (Day 1-7)
-        'weeklyChange': weeklyChange,
+        'currentPrice': currentPrice,
+        'nationalPrice': nationalPrice,
+        'predictions': predictions,
+        'monthlyChange': periodChange, // ✅ For weekly model, this is 4-week change
+        'weeklyChange': periodChange,  // Keep for backward compatibility
         'trend': trend,
         'district': district,
         'grade': grade,
+        'isWeekly': isWeekly, // ✅ NEW: Flag to indicate model type
+        'forecastPeriods': forecastPeriods,
         'model_version': await _modelUpdateService.getCurrentVersion(),
       };
 
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Price prediction error: $e');
+      debugPrint('Stack trace: $stackTrace');
       return _generateMockPredictions(district, grade);
     }
   }
@@ -247,35 +296,47 @@ class TFLiteService {
     }
   }
 
-  /// Generate mock predictions
+  /// Generate mock predictions (for testing or when model not available)
   Map<String, dynamic> _generateMockPredictions(String? district, String? grade) {
     final random = Random();
     final basePrice = 1850.0 + (random.nextDouble() * 100 - 50);
+
+    // ✅ Check if we should generate weekly or daily mock data
+    final isWeekly = _preprocessingService.isWeeklyModel;
+    final forecastPeriods = isWeekly ? 4 : 7;
 
     final now = DateTime.now();
     final predictions = <Map<String, dynamic>>[];
 
     double price = basePrice;
-    for (int i = 1; i <= 7; i++) {
+    for (int i = 1; i <= forecastPeriods; i++) {
       price += (random.nextDouble() * 80 - 30);
 
+      // ✅ For weekly: add 7 days per period, for daily: add 1 day
+      final daysToAdd = isWeekly ? i * 7 : i;
+
       predictions.add({
-        'date': DateTime(now.year, now.month, now.day + i),
+        'date': DateTime(now.year, now.month, now.day + daysToAdd),
         'average_price': price,
         'high_price': price * 1.05,
         'confidence': 85.0 - (i * 5),
       });
     }
 
+    final periodChange = (random.nextDouble() * 10 - 5);
+
     return {
       'success': false,
       'mock': true,
       'currentPrice': basePrice,
       'predictions': predictions,
-      'weeklyChange': (random.nextDouble() * 10 - 5),
+      'monthlyChange': periodChange, // For weekly model
+      'weeklyChange': periodChange,  // For backward compatibility
       'trend': random.nextBool() ? 'upward' : 'downward',
       'district': district ?? 'Unknown',
       'grade': grade ?? 'Unknown',
+      'isWeekly': isWeekly,
+      'forecastPeriods': forecastPeriods,
     };
   }
 

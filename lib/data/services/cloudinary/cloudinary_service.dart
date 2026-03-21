@@ -1,14 +1,15 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class CloudinaryService {
-  static const String cloudName = 'dffpwcb7b';
-  static const String apiKey = '837666793599892';
-  static const String apiSecret = 'rWBNndQN82SoM5vLUxxLzRzwRZ4';
+  static String get cloudName => dotenv.env['CLOUDINARY_CLOUD_NAME']!;
+  static String get apiKey    => dotenv.env['CLOUDINARY_API_KEY']!;
+  static String get apiSecret => dotenv.env['CLOUDINARY_API_SECRET']!;
 
   /// Compress image before upload
   Future<File> _compressImage(File file, {int quality = 85}) async {

@@ -139,22 +139,6 @@ class HomeContent extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _FeatureCard(
-                          icon: Icons.psychology,
-                          title: 'AI Grading',
-                          subtitle: 'Quality Check',
-                          gradient: AppColors.primaryGradient,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const QualityGradingScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _FeatureCard(
                           icon: Icons.trending_up,
                           title: 'Price Predict',
                           subtitle: 'Forecast',
