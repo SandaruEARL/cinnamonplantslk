@@ -51,6 +51,8 @@ class AppConstants {
     'C3',
   ];
 
+  static const String locationsCollection = 'locations';
+
   // Pagination
   static const int pageSize = 20;
 

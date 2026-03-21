@@ -5,19 +5,23 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
+import '../../../domain/entities/location.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../widgets/product_card.dart';
 import '../ai/price_prediction_screen.dart';
-import '../ai/quality_grading_screen.dart';
 import '../chat/chat_list_screen.dart';
 import '../expense/expense_dashboard_screen.dart';
+import '../map/ads_map_screen.dart';
+import '../map/my_locations_screen.dart';
 import '../marketplace/marketplace_screen.dart';
 import '../profile/profile_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  // ✅ Static key so any child screen can open the drawer
+  static final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -29,43 +33,201 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const MarketplaceScreen(),
     const ChatListScreen(),
-    const HomeContent(), // AI screen
+    const HomeContent(),
     const ToolsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: HomeScreen.scaffoldKey, // ✅ attach the key
+      drawer: Drawer(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20, vertical: 24),
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.map,
+                          color: Colors.white, size: 28),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Explore Map',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Find nurseries and bale buyers near you',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.85),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              _DrawerTile(
+                icon: Icons.park,
+                iconColor: Colors.green,
+                title: 'Nursery Plantations',
+                subtitle: 'Find cinnamon nurseries near you',
+                onTap: () {
+                  HomeScreen.scaffoldKey.currentState?.closeDrawer();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const AdsMapScreen(
+                      title: 'Nursery Plantations',
+                      locationType: LocationType.nursery,
+                      pinColor: Colors.green,
+                    ),
+                  ));
+                },
+              ),
+
+              _DrawerTile(
+                icon: Icons.store,
+                iconColor: AppColors.primaryBrown,
+                title: 'Bale Buying Shops',
+                subtitle: 'Find shops that buy cinnamon bales',
+                onTap: () {
+                  HomeScreen.scaffoldKey.currentState?.closeDrawer();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => AdsMapScreen(
+                      title: 'Bale Buying Shops',
+                      locationType: LocationType.shop,
+                      pinColor: AppColors.primaryBrown,
+                    ),
+                  ));
+                },
+              ),
+
+              const Divider(indent: 16, endIndent: 16),
+
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state is! AuthAuthenticated) {
+                    return _DrawerTile(
+                      icon: Icons.add_location_alt,
+                      iconColor: Colors.blueGrey,
+                      title: 'Register Your Location',
+                      subtitle: 'Login to add your nursery or shop',
+                      onTap: () {
+                        HomeScreen.scaffoldKey.currentState?.closeDrawer();
+                        Navigator.pushNamed(context, '/login');
+                      },
+                    );
+                  }
+                  return _DrawerTile(
+                    icon: Icons.add_location_alt,
+                    iconColor: AppColors.primaryBrown,
+                    title: 'My Registered Locations',
+                    subtitle: 'Manage your nursery or shop pin',
+                    onTap: () {
+                      HomeScreen.scaffoldKey.currentState?.closeDrawer();
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) =>
+                            MyLocationsScreen(userId: state.user.id),
+                      ));
+                    },
+                  );
+                },
+              ),
+
+              const Spacer(),
+
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Cinnamon Marketplace v1.0.0',
+                  style: TextStyle(
+                      fontSize: 12, color: Colors.grey.shade400),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
       body: _screens[_selectedIndex],
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColors.primaryBrown,
         unselectedItemColor: AppColors.textSecondary,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+              icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
+              icon: Icon(Icons.chat), label: 'Chat'),
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.brain, size: 20),
-            label: 'Predictions',
-          ),
+              icon: FaIcon(FontAwesomeIcons.brain, size: 20),
+              label: 'Predictions'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.apps),
-            label: 'Tools',
-          ),
+              icon: Icon(Icons.apps), label: 'Tools'),
         ],
       ),
+    );
+  }
+}
+
+// ── Drawer tile ─────────────────────────────────────────────
+
+class _DrawerTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _DrawerTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: iconColor, size: 22),
+      ),
+      title: Text(title,
+          style: const TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 14)),
+      subtitle: Text(subtitle,
+          style: const TextStyle(
+              fontSize: 12, color: AppColors.textSecondary)),
+      onTap: onTap,
     );
   }
 }
@@ -77,38 +239,36 @@ class HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: const Text('Predictions'),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient,
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         actions: [
           Stack(
             children: [
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.white),
-                onPressed: () {
-                  // TODO: Navigate to notifications
-                },
+                onPressed: () {},
               ),
               Positioned(
-                right: 8,
-                top: 8,
+                right: 8, top: 8,
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: const BoxDecoration(
                     color: AppColors.accentRed,
                     shape: BoxShape.circle,
                   ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Text('3',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

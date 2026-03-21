@@ -6,6 +6,7 @@ import '../../../data/services/firebase/auth_service.dart';
 import '../../../data/services/firebase/messaging_service.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../home/home_screen.dart';
 import 'chat_detail_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -15,11 +16,13 @@ class ChatListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => HomeScreen.scaffoldKey.currentState?.openDrawer(),
+        ),
         title: const Text('Messages'),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient,
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
       ),
       body: BlocBuilder<AuthBloc, AuthState>(

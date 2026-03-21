@@ -3,6 +3,7 @@ import '../../../core/app_colors.dart';
 import '../ai/price_prediction_screen.dart';
 import '../ai/quality_grading_screen.dart';
 import '../expense/expense_dashboard_screen.dart';
+import '../home/home_screen.dart';
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
@@ -11,11 +12,13 @@ class ToolsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => HomeScreen.scaffoldKey.currentState?.openDrawer(),
+        ),
         title: const Text('Tools'),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient,
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
       ),
       body: SingleChildScrollView(

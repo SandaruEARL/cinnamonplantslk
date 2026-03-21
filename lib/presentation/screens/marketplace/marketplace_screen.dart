@@ -10,6 +10,7 @@ import '../../../core/utils/constants.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
 import '../../widgets/product_card.dart';
+import '../home/home_screen.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -21,12 +22,17 @@ class MarketplaceScreen extends StatefulWidget {
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   String? _selectedCategory;
   String _sortBy = 'Latest';
-  bool _isGridView = true;
+  final bool _isGridView = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () =>
+          HomeScreen.scaffoldKey.currentState?.openDrawer(),
+        ),
         title: const Text('Marketplace'),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
