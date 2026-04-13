@@ -128,7 +128,7 @@ class _ExpenseHistoryScreenState extends State<ExpenseHistoryScreen> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryBrown,
+                                color: AppColors.primaryGreen,
                               ),
                             ),
                           ],
@@ -200,7 +200,7 @@ class _ExpenseHistoryScreenState extends State<ExpenseHistoryScreen> {
       'Pesticides': const Color(0xFFec4899),
       'Other': const Color(0xFF6b7280),
     };
-    return colors[category] ?? AppColors.primaryBrown;
+    return colors[category] ?? AppColors.primaryGreen;
   }
 
   IconData _getCategoryIcon(String category) {

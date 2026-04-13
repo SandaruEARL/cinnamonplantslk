@@ -7,12 +7,12 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    primaryColor: AppColors.primaryBrown,
+    primaryColor: AppColors.primaryGreen,
     scaffoldBackgroundColor: AppColors. background,
 
     colorScheme: const ColorScheme.light(
-      primary: AppColors. primaryBrown,
-      secondary: AppColors.secondaryBrown,
+      primary: AppColors. primaryGreen,
+      secondary: AppColors.secondaryGreen,
       surface: AppColors.cardBackground,
       error: AppColors.accentRed,
     ),
@@ -61,7 +61,7 @@ class AppTheme {
 
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryBrown,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(
@@ -95,7 +95,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primaryBrown, width: 2),
+        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
@@ -104,12 +104,12 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    primaryColor: AppColors.primaryBrown,
+    primaryColor: AppColors.primaryGreen,
     scaffoldBackgroundColor: AppColors. darkBackground,
 
     colorScheme: const ColorScheme. dark(
-      primary: AppColors.primaryBrown,
-      secondary: AppColors.secondaryBrown,
+      primary: AppColors.primaryGreen,
+      secondary: AppColors.secondaryGreen,
       surface: AppColors. darkCard,
       error: AppColors.accentRed,
     ),

@@ -34,35 +34,47 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
+
+      // ── AppBar ────────────────────────────────────────────────────────
       appBar: AppBar(
-        title: const Text('Product Details'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Product Details',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.primaryGradient,
           ),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
-            color: _isFavorite ? Colors.red : Colors.white,
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : Colors.white,
+            ),
             onPressed: _toggleFavorite,
           ),
           IconButton(
-            icon: const Icon(Icons.share),
-            color: Colors.white,
+            icon: const Icon(Icons.share, color: Colors.white),
             onPressed: _shareProduct,
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Gallery
+
+            // ── Image Gallery  ────────────────────────────────
             Container(
-              height: 300,
-              margin: const EdgeInsets.all(16),
+              height: 260,
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0), // ← padding around image
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: Colors.grey[200],
@@ -73,20 +85,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   children: [
                     PageView.builder(
                       controller: _pageController,
-                      itemCount: widget.ad.imageUrls.length,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentImageIndex = index;
-                        });
-                      },
+                      itemCount: widget.ad.imageUrls.isEmpty ? 1 : widget.ad.imageUrls.length,
+                      onPageChanged: (index) =>
+                          setState(() => _currentImageIndex = index),
                       itemBuilder: (context, index) {
+                        if (widget.ad.imageUrls.isEmpty) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.image_not_supported,
+                                size: 60, color: Colors.grey),
+                          );
+                        }
                         return _buildOptimizedImage(widget.ad.imageUrls[index]);
                       },
                     ),
-                    // Image indicator
+
+                    // Dot indicator
                     if (widget.ad.imageUrls.length > 1)
                       Positioned(
-                        bottom: 12,
+                        bottom: 10,
                         left: 0,
                         right: 0,
                         child: Row(
@@ -94,9 +111,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           children: List.generate(
                             widget.ad.imageUrls.length,
                                 (index) => Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              width: 8,
-                              height: 8,
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: 7,
+                              height: 7,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: _currentImageIndex == index
@@ -112,204 +129,139 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               ),
             ),
 
-            // Product Details
+            // ── Content ───────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title and Verified Badge
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.ad.title,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      if (widget.ad.sellerVerified)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentGreen.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(
-                                Icons.verified,
-                                color: AppColors.accentGreen,
-                                size: 16,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                'Verified',
-                                style: TextStyle(
-                                  color: AppColors.accentGreen,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
 
-                  const SizedBox(height: 8),
-
-                  // Price
+                  // Title
                   Text(
-                    'Rs. ${widget.ad.price.toStringAsFixed(2)}${widget.ad.category.contains('Bales') ? '/kg' : ''}',
+                    widget.ad.title,
                     style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryBrown,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Category and Grade
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      Chip(
-                        label: Text(widget.ad.category),
-                        backgroundColor: AppColors.primaryBrown.withOpacity(0.1),
-                      ),
-                      if (widget.ad.grade != null)
-                        Chip(
-                          label: Text('Grade: ${widget.ad.grade}'),
-                          backgroundColor: AppColors.accentGreen.withOpacity(0.1),
-                        ),
-                      if (widget.ad.quantity != null)
-                        Chip(
-                          label: Text('Qty: ${widget.ad.quantity}'),
-                          backgroundColor: AppColors.accentYellow.withOpacity(0.1),
-                        ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Description
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+
+                  const SizedBox(height: 6),
+
+                  // Price
+                  Text(
+                    'Rs.${widget.ad.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,  // ← black, not green
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // ── Chips: only Qty and Grade ─────────────────────
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (widget.ad.quantity != null)
+                        Chip(
+                          label: Text(
+                            'Qty ${widget.ad.quantity}',
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,   // ← black text
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          backgroundColor: const Color(0xFFB8E98D), // ← light green
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                          shape: const StadiumBorder(),
+                          side: BorderSide.none,
+                        ),
+                      if (widget.ad.grade != null)
+                        Chip(
+                          label: Text(
+                            'Grade: ${widget.ad.grade}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          backgroundColor: AppColors.primaryGreen,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 0),
+                          shape: const StadiumBorder(),
+                          side: BorderSide.none,
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ── Description ───────────────────────────────────
+                  const Text(
+                    'Description',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
                   Text(
                     widget.ad.description,
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       height: 1.5,
                       color: AppColors.textPrimary,
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Location
+                  // ── Location ──────────────────────────────────────
                   Row(
                     children: [
                       const Icon(
                         Icons.location_on,
-                        color: AppColors.primaryBrown,
-                        size: 20,
+                        color: Color(0xFFB8E98D),
+                        size: 18,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          widget.ad.location,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: AppColors.textPrimary,
-                          ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.ad.location,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Seller Info
+                  // ── Seller Information ────────────────────────────
                   const Text(
                     'Seller Information',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: AppColors.primaryBrown,
-                      backgroundImage: widget.ad.sellerProfilePic != null
-                          ? CachedNetworkImageProvider(
-                        CloudinaryService.getThumbnailUrl(
-                          widget.ad.sellerProfilePic!,
-                          size: 200,
-                        ),
-                      )
-                          : null,
-                      child: widget.ad.sellerProfilePic == null
-                          ? Text(
-                        widget.ad.sellerName[0].toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                          : null,
-                    ),
-                    title: Row(
-                      children: [
-                        Text(
-                          widget.ad.sellerName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        if (widget.ad.sellerVerified) ...[
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.verified,
-                            color: AppColors.accentGreen,
-                            size: 20,
-                          ),
-                        ],
-                      ],
-                    ),
-                    subtitle: Text(
-                      widget.ad.sellerPhone,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                      ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${widget.ad.sellerName} - ${widget.ad.sellerPhone}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
                     ),
                   ),
 
-                  const SizedBox(height: 100), // Space for bottom buttons
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -317,93 +269,99 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
       ),
 
-      // Bottom Action Buttons
+      // ── Bottom Action Buttons ───────────────────────────────────────
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              // Call Button
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _callSeller,
-                  icon: const Icon(Icons.phone),
-                  label: const Text('Call'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: AppColors.primaryBrown),
-                    foregroundColor: AppColors.primaryBrown,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        color: Colors.white,
+        child: Row(
+          children: [
+            // Call — outlined black, light green icon
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _callSeller,
+                icon: const Icon(Icons.phone, size: 18, color: Color(0xFFB8E98D)),
+                label: const Text('Call'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: Colors.black, width: 1.5),
+                  foregroundColor: AppColors.textPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+            ),
 
-              // WhatsApp Button
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _openWhatsApp,
-                  icon: const Icon(Icons.whatshot),
-                  label: const Text('WhatsApp'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: Color(0xFF25D366)),
-                    foregroundColor: const Color(0xFF25D366),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
+            const SizedBox(width: 10),
 
-              // Chat Button
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _chatWithSeller,
-                  icon: const Icon(Icons.chat),
-                  label: const Text('Chat'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: AppColors.primaryBrown,
-                    foregroundColor: Colors.white,
+            // WhatsApp — filled #B8E98D
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: _openWhatsApp,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB8E98D),
+                  foregroundColor: AppColors.textPrimary,  // ← black text
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  side: const BorderSide(color: Colors.black, width: 1.5),
+                ),
+                child: const Text(
+                  'Whatsapp',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // Chat — outlined black, light green icon
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _chatWithSeller,
+                icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Color(0xFFB8E98D)),
+                label: const Text('Chat'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: Colors.black, width: 1.5),
+                  foregroundColor: AppColors.textPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ✅ OPTIMIZED: Progressive image loading with placeholders
   Widget _buildOptimizedImage(String imageUrl) {
     final detailUrl = CloudinaryService.getDetailUrl(imageUrl, maxWidth: 1200);
     final placeholderUrl = CloudinaryService.getPlaceholderUrl(imageUrl);
 
     return CachedNetworkImage(
       imageUrl: detailUrl,
-      fit: BoxFit.contain,
-
-      // Memory optimization
+      fit: BoxFit.cover,
+      width: double.infinity,
       memCacheWidth: 1200,
       maxWidthDiskCache: 1200,
-
-      // Progressive loading: blur placeholder → full image
       placeholder: (context, url) => Image.network(
         placeholderUrl,
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: Colors.grey[200],
           child: const Center(child: CircularProgressIndicator()),
         ),
       ),
-
       errorWidget: (context, url, error) => Container(
         color: Colors.grey[200],
         child: const Icon(Icons.error),
       ),
-
       fadeInDuration: const Duration(milliseconds: 300),
       fadeOutDuration: const Duration(milliseconds: 100),
     );
@@ -412,11 +370,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void _toggleFavorite() async {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
-
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-
+    setState(() => _isFavorite = !_isFavorite);
     try {
       final firestoreService = context.read<FirestoreService>();
       if (_isFavorite) {
@@ -426,13 +380,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             authState.user.id, widget.ad.id);
       }
     } catch (e) {
-      setState(() {
-        _isFavorite = !_isFavorite;
-      });
+      setState(() => _isFavorite = !_isFavorite);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -461,7 +412,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     final message = Uri.encodeComponent(
         'Hi, I\'m interested in your product: ${widget.ad.title}');
     final uri = Uri.parse('https://wa.me/$phone?text=$message');
-
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
@@ -481,15 +431,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       );
       return;
     }
-
-    // Prevent chatting with yourself
     if (widget.ad.sellerId == authState.user.id) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You cannot chat with yourself')),
       );
       return;
     }
-
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ChatDetailScreen(

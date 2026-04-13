@@ -10,10 +10,9 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import 'location_picker_screen.dart';
 
-
 class RegisterLocationScreen extends StatefulWidget {
   final LocationType type;
-  final BusinessLocation? existing; // pass if editing
+  final BusinessLocation? existing;
 
   const RegisterLocationScreen({
     super.key,
@@ -22,21 +21,22 @@ class RegisterLocationScreen extends StatefulWidget {
   });
 
   @override
-  State<RegisterLocationScreen> createState() => _RegisterLocationScreenState();
+  State<RegisterLocationScreen> createState() =>
+      _RegisterLocationScreenState();
 }
 
 class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController        = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _phoneController       = TextEditingController();
-  final _hoursController       = TextEditingController();
-  final _addressController     = TextEditingController();
+  final _formKey                = GlobalKey<FormState>();
+  final _nameController         = TextEditingController();
+  final _descriptionController  = TextEditingController();
+  final _phoneController        = TextEditingController();
+  final _hoursController        = TextEditingController();
+  final _addressController      = TextEditingController();
 
   double? _lat;
   double? _lng;
-  final List<File> _newPhotos   = [];
-  List<String> _existingPhotos  = [];
+  final List<File> _newPhotos  = [];
+  List<String> _existingPhotos = [];
   bool _isLoading = false;
 
   @override
@@ -55,8 +55,42 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
     }
   }
 
-  String get _typeLabel =>
-      widget.type == LocationType.nursery ? 'Nursery / Plantation' : 'Bale Buying Shop';
+  String get _typeLabel => widget.type == LocationType.nursery
+      ? 'Nursery / Plantation'
+      : 'Bale Buying Shop';
+
+  // ── Shared input decoration ──────────────────────────────────────────
+  InputDecoration _inputDecoration({String? hint, int? maxLines}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
+      filled: true,
+      fillColor: const Color(0xFFF0F0F0),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide:
+        BorderSide(color: AppColors.primaryGreen, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
 
   Future<void> _pickPhotos() async {
     final picker = ImagePicker();
@@ -69,14 +103,13 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
   }
 
   Future<void> _pickLocation() async {
-    final result = await Navigator.of(context).push<LocationResult>(
-      MaterialPageRoute(
-        builder: (_) => LocationPickerScreen(
-          initialLat: _lat,
-          initialLng: _lng,
-        ),
+    final result = await Navigator.of(context)
+        .push<LocationResult>(MaterialPageRoute(
+      builder: (_) => LocationPickerScreen(
+        initialLat: _lat,
+        initialLng: _lng,
       ),
-    );
+    ));
     if (result != null) {
       setState(() {
         _lat = result.latitude;
@@ -90,7 +123,8 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_lat == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please pick a location on the map')),
+        const SnackBar(
+            content: Text('Please pick a location on the map')),
       );
       return;
     }
@@ -101,7 +135,6 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Upload new photos
       List<String> uploadedUrls = [];
       if (_newPhotos.isNotEmpty) {
         final cloudinary = CloudinaryService();
@@ -112,34 +145,32 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
       final now = DateTime.now();
 
       final location = BusinessLocation(
-        id:             widget.existing?.id ?? '',
-        userId:         authState.user.id,
-        ownerName:      authState.user.name,
-        ownerPhone:     _phoneController.text.trim(),
+        id:              widget.existing?.id ?? '',
+        userId:          authState.user.id,
+        ownerName:       authState.user.name,
+        ownerPhone:      _phoneController.text.trim(),
         ownerProfilePic: authState.user.profilePicUrl,
-        type:           widget.type,
-        businessName:   _nameController.text.trim(),
-        description:    _descriptionController.text.trim(),
-        address:        _addressController.text.trim(),
-        latitude:       _lat!,
-        longitude:      _lng!,
-        openingHours:   _hoursController.text.trim().isEmpty
+        type:            widget.type,
+        businessName:    _nameController.text.trim(),
+        description:     _descriptionController.text.trim(),
+        address:         _addressController.text.trim(),
+        latitude:        _lat!,
+        longitude:       _lng!,
+        openingHours: _hoursController.text.trim().isEmpty
             ? null
             : _hoursController.text.trim(),
-        photoUrls:      allPhotos,
-        createdAt:      widget.existing?.createdAt ?? now,
-        updatedAt:      now,
+        photoUrls: allPhotos,
+        createdAt: widget.existing?.createdAt ?? now,
+        updatedAt: now,
       );
 
       await context.read<FirestoreService>().saveLocation(location);
-
-      if (mounted) {
-        _showSuccessDialog();
-      }
+      if (mounted) _showSuccessDialog();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'),
+          SnackBar(
+              content: Text('Error: $e'),
               backgroundColor: AppColors.accentRed),
         );
       }
@@ -169,14 +200,17 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
             ),
             const SizedBox(height: 20),
             const Text('Location Submitted',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
             const SizedBox(height: 12),
             Text(
               'Your $_typeLabel location is pending approval. '
-                  "It will appear on the map once approved.",
-              style: TextStyle(fontSize: 14,
-                  color: Colors.grey.shade600, height: 1.5),
+                  'It will appear on the map once approved.',
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.5),
               textAlign: TextAlign.center,
             ),
           ],
@@ -190,7 +224,7 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBrown,
+                backgroundColor: AppColors.primaryGreen,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -205,98 +239,93 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
+      // ── AppBar ─────────────────────────────────────────────────────
       appBar: AppBar(
-        title: Text(widget.existing == null
-            ? 'Register $_typeLabel'
-            : 'Update $_typeLabel'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-              gradient: AppColors.primaryGradient),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          widget.existing == null
+              ? 'Register ${_typeLabel} location'
+              : 'Update $_typeLabel',
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600),
         ),
+        flexibleSpace: Container(
+          decoration:
+          const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
+
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const SizedBox(height: 8),
 
-            // Business name
+            // ── Business Name ─────────────────────────────────────────
             TextFormField(
               controller: _nameController,
-              validator: (v) => v == null || v.isEmpty
-                  ? 'Business name is required' : null,
-              decoration: InputDecoration(
-                labelText: '$_typeLabel name',
-                prefixIcon: const Icon(Icons.store),
+              validator: (v) =>
+              v == null || v.isEmpty ? 'Required' : null,
+              decoration: _inputDecoration(
+                hint: widget.type == LocationType.nursery
+                    ? 'Nursery / Plantation Name'
+                    : 'Bale Buying Shop Name',
               ),
             ),
             const SizedBox(height: 16),
 
-            // Phone
+            // ── Contact Number ────────────────────────────────────────
             TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
-              validator: (v) => v == null || v.isEmpty
-                  ? 'Phone number is required' : null,
-              decoration: const InputDecoration(
-                labelText: 'Contact number',
-                prefixIcon: Icon(Icons.phone),
-              ),
+              validator: (v) =>
+              v == null || v.isEmpty ? 'Required' : null,
+              decoration: _inputDecoration(hint: 'Contact Number'),
             ),
             const SizedBox(height: 16),
 
-            // Description
+            // ── Description ───────────────────────────────────────────
             TextFormField(
               controller: _descriptionController,
-              maxLines: 3,
-              validator: (v) => v == null || v.isEmpty
-                  ? 'Description is required' : null,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                alignLabelWithHint: true,
-                hintText: 'Describe your nursery or shop...',
-              ),
+              maxLines: 4,
+              validator: (v) =>
+              v == null || v.isEmpty ? 'Required' : null,
+              decoration: _inputDecoration(hint: 'Description'),
             ),
             const SizedBox(height: 16),
 
-            // Opening hours
+            // ── Opening Hours ─────────────────────────────────────────
             TextFormField(
               controller: _hoursController,
-              decoration: const InputDecoration(
-                labelText: 'Opening hours (optional)',
-                prefixIcon: Icon(Icons.access_time),
-                hintText: 'e.g. Mon–Sat 8am–6pm',
-              ),
+              decoration: _inputDecoration(hint: 'Opening Hours'),
             ),
             const SizedBox(height: 16),
 
-            // Location picker
-            const Text('Location',
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            // ── Location Picker ───────────────────────────────────────
             GestureDetector(
               onTap: _pickLocation,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.divider),
+                  color: const Color(0xFFF0F0F0),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on,
-                        color: AppColors.primaryBrown),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _addressController.text.isEmpty
-                            ? 'Tap to pick location on map'
+                            ? 'Pick your location from the map'
                             : _addressController.text,
                         style: TextStyle(
                           color: _addressController.text.isEmpty
-                              ? Colors.grey
+                              ? const Color(0xFFAAAAAA)
                               : AppColors.textPrimary,
                           fontSize: 15,
                         ),
@@ -304,51 +333,52 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                     ),
                     if (_lat != null)
                       const Icon(Icons.check_circle,
-                          color: AppColors.accentGreen, size: 20),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
+                          color: AppColors.accentGreen, size: 18),
+                    const Icon(Icons.chevron_right,
+                        color: Color(0xFFAAAAAA)),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // Photos
-            const Text('Photos',
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            // ── Image Picker ──────────────────────────────────────────
             SizedBox(
-              height: 110,
+              height: 100,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
+                  // Add button
                   GestureDetector(
                     onTap: _pickPhotos,
                     child: Container(
-                      width: 110,
+                      width: 100,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                            color: AppColors.divider, width: 2),
+                        color: const Color(0xFFF0F0F0),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_photo_alternate, size: 36),
+                          Icon(Icons.add_photo_alternate_outlined,
+                              size: 32, color: Color(0xFFAAAAAA)),
                           SizedBox(height: 6),
-                          Text('Add Photos',
-                              style: TextStyle(fontSize: 12)),
+                          Text('Add image',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFAAAAAA))),
                         ],
                       ),
                     ),
                   ),
+
                   // Existing photos
                   ..._existingPhotos.map((url) => Stack(
                     children: [
                       Container(
-                        width: 110,
+                        width: 100,
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -359,16 +389,16 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 4, right: 12,
+                        top: 4,
+                        right: 12,
                         child: GestureDetector(
                           onTap: () => setState(
                                   () => _existingPhotos.remove(url)),
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
+                                color: Colors.red,
+                                shape: BoxShape.circle),
                             child: const Icon(Icons.close,
                                 color: Colors.white, size: 14),
                           ),
@@ -376,11 +406,12 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                       ),
                     ],
                   )),
+
                   // New photos
                   ..._newPhotos.map((file) => Stack(
                     children: [
                       Container(
-                        width: 110,
+                        width: 100,
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -391,16 +422,16 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 4, right: 12,
+                        top: 4,
+                        right: 12,
                         child: GestureDetector(
-                          onTap: () =>
-                              setState(() => _newPhotos.remove(file)),
+                          onTap: () => setState(
+                                  () => _newPhotos.remove(file)),
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
+                                color: Colors.red,
+                                shape: BoxShape.circle),
                             child: const Icon(Icons.close,
                                 color: Colors.white, size: 14),
                           ),
@@ -414,24 +445,50 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
 
             const SizedBox(height: 32),
 
-            // Submit
-            ElevatedButton(
-              onPressed: _isLoading ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBrown,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            // ── Submit Button ─────────────────────────────────────────
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen,
+                borderRadius: BorderRadius.circular(30),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                  height: 20, width: 20,
-                  child: CircularProgressIndicator(
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: _isLoading ? null : _submit,
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(Colors.white)))
-                  : Text(widget.existing == null
-                  ? 'Submit for Review'
-                  : 'Update Location'),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white),
+                    ),
+                  )
+                      : Text(
+                    widget.existing == null
+                        ? 'Submit for Review'
+                        : 'Update Location',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ),
             ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),

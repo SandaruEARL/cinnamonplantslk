@@ -20,7 +20,6 @@ import '../profile/profile_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // ✅ Static key so any child screen can open the drawer
   static final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -33,66 +32,80 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const MarketplaceScreen(),
     const ChatListScreen(),
-    const HomeContent(),
+    const PricePredictionScreen(),
     const ToolsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: HomeScreen.scaffoldKey, // ✅ attach the key
+      key: HomeScreen.scaffoldKey,
+
+      // ── Drawer ───────────────────────────────────────────────────────
       drawer: Drawer(
         child: SafeArea(
           child: Column(
             children: [
-              // Header
+              // ── Header ────────────────────────────────────────────
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 24),
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                    horizontal: 20, vertical: 20),
+                child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.map,
-                          color: Colors.white, size: 28),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Explore Map',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    // Icon box
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: Image.asset(
+                        'assets/images/explore_map.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.primaryGreen,
+                          size: 30,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Find nurseries and bale buyers near you',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
-                        fontSize: 13,
-                      ),
+
+                    const SizedBox(width: 14),
+
+                    // Title + subtitle
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Explore Map',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Find nurseries and bale\nbuyers near you',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
 
+              const Divider(height: 1),
+
               const SizedBox(height: 8),
 
+              // ── Nursery Plantations ───────────────────────────────
               _DrawerTile(
-                icon: Icons.park,
-                iconColor: Colors.green,
+                iconPath: 'assets/images/nursery.png',
                 title: 'Nursery Plantations',
-                subtitle: 'Find cinnamon nurseries near you',
                 onTap: () {
                   HomeScreen.scaffoldKey.currentState?.closeDrawer();
                   Navigator.of(context).push(MaterialPageRoute(
@@ -105,50 +118,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
+              // ── Bale Buyers ───────────────────────────────────────
               _DrawerTile(
-                icon: Icons.store,
-                iconColor: AppColors.primaryBrown,
-                title: 'Bale Buying Shops',
-                subtitle: 'Find shops that buy cinnamon bales',
+                iconPath: 'assets/images/bale_buyers.png',
+                title: 'Bale Buyers',
                 onTap: () {
                   HomeScreen.scaffoldKey.currentState?.closeDrawer();
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => AdsMapScreen(
+                    builder: (_) => const AdsMapScreen(
                       title: 'Bale Buying Shops',
                       locationType: LocationType.shop,
-                      pinColor: AppColors.primaryBrown,
+                      pinColor: AppColors.primaryGreen,
                     ),
                   ));
                 },
               ),
 
-              const Divider(indent: 16, endIndent: 16),
-
+              // ── Register / My Locations ───────────────────────────
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
-                  if (state is! AuthAuthenticated) {
-                    return _DrawerTile(
-                      icon: Icons.add_location_alt,
-                      iconColor: Colors.blueGrey,
-                      title: 'Register Your Location',
-                      subtitle: 'Login to add your nursery or shop',
-                      onTap: () {
-                        HomeScreen.scaffoldKey.currentState?.closeDrawer();
-                        Navigator.pushNamed(context, '/login');
-                      },
-                    );
-                  }
                   return _DrawerTile(
-                    icon: Icons.add_location_alt,
-                    iconColor: AppColors.primaryBrown,
-                    title: 'My Registered Locations',
-                    subtitle: 'Manage your nursery or shop pin',
+                    iconPath: 'assets/images/location.png',
+                    title: state is AuthAuthenticated
+                        ? 'My Registered Locations'
+                        : 'Register your locations',
                     onTap: () {
                       HomeScreen.scaffoldKey.currentState?.closeDrawer();
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) =>
-                            MyLocationsScreen(userId: state.user.id),
-                      ));
+                      if (state is AuthAuthenticated) {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) =>
+                              MyLocationsScreen(userId: state.user.id),
+                        ));
+                      } else {
+                        Navigator.pushNamed(context, '/login');
+                      }
                     },
                   );
                 },
@@ -156,12 +159,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Spacer(),
 
+              // ── Footer ────────────────────────────────────────────
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  'Cinnamon Marketplace v1.0.0',
+                  'v.1.0.0 by EarlixLabs',
                   style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade400),
+                    fontSize: 12,
+                    color: Colors.grey.shade400,
+                  ),
                 ),
               ),
             ],
@@ -171,11 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
       body: _screens[_selectedIndex],
 
+      // ── Bottom Navigation ────────────────────────────────────────────
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primaryBrown,
+        selectedItemColor: AppColors.primaryGreen,
         unselectedItemColor: AppColors.textSecondary,
         items: const [
           BottomNavigationBarItem(
@@ -193,44 +200,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Drawer tile ─────────────────────────────────────────────
+// ── Drawer Tile ──────────────────────────────────────────────────────────────
 
 class _DrawerTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
+  final String iconPath;
   final String title;
-  final String subtitle;
   final VoidCallback onTap;
 
   const _DrawerTile({
-    required this.icon,
-    required this.iconColor,
+    required this.iconPath,
     required this.title,
-    required this.subtitle,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
+      leading: Image.asset(
+        iconPath,
+        width: 26,
+        height: 26,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.image_outlined,
+          size: 24,
+          color: AppColors.textSecondary,
         ),
-        child: Icon(icon, color: iconColor, size: 22),
       ),
-      title: Text(title,
-          style: const TextStyle(
-              fontWeight: FontWeight.w600, fontSize: 14)),
-      subtitle: Text(subtitle,
-          style: const TextStyle(
-              fontSize: 12, color: AppColors.textSecondary)),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+          color: AppColors.textPrimary,
+        ),
+      ),
       onTap: onTap,
     );
   }
 }
+
+// ── Home Content ─────────────────────────────────────────────────────────────
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
@@ -247,7 +257,8 @@ class HomeContent extends StatelessWidget {
         ),
         title: const Text('Predictions'),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+          decoration:
+          const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         actions: [
           Stack(
@@ -257,18 +268,22 @@ class HomeContent extends StatelessWidget {
                 onPressed: () {},
               ),
               Positioned(
-                right: 8, top: 8,
+                right: 8,
+                top: 8,
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: const BoxDecoration(
                     color: AppColors.accentRed,
                     shape: BoxShape.circle,
                   ),
-                  child: const Text('3',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    '3',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -281,7 +296,7 @@ class HomeContent extends StatelessWidget {
           children: [
             const SizedBox(height: 24),
 
-            // AI Features Section
+            // AI Features
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
@@ -290,9 +305,7 @@ class HomeContent extends StatelessWidget {
                   const Text(
                     'AI Features',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -303,16 +316,18 @@ class HomeContent extends StatelessWidget {
                           title: 'Price Predict',
                           subtitle: 'Forecast',
                           gradient: const LinearGradient(
-                            colors: [AppColors.accentGreen, Color(0xFF059669)],
+                            colors: [
+                              AppColors.accentGreen,
+                              Color(0xFF059669)
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const PricePredictionScreen(),
-                              ),
-                            );
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                              const PricePredictionScreen(),
+                            ));
                           },
                         ),
                       ),
@@ -333,9 +348,7 @@ class HomeContent extends StatelessWidget {
                   const Text(
                     'Quick Actions',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -344,9 +357,7 @@ class HomeContent extends StatelessWidget {
                         child: _ActionCard(
                           icon: Icons.eco,
                           title: 'Buy Plants',
-                          onTap: () {
-                            // Navigate to marketplace with plants filter
-                          },
+                          onTap: () {},
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -355,11 +366,10 @@ class HomeContent extends StatelessWidget {
                           icon: Icons.attach_money,
                           title: 'Expenses',
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const ExpenseDashboardScreen(),
-                              ),
-                            );
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                              const ExpenseDashboardScreen(),
+                            ));
                           },
                         ),
                       ),
@@ -380,14 +390,10 @@ class HomeContent extends StatelessWidget {
                   const Text(
                     'Recent Ads',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Navigate to marketplace
-                    },
+                    onPressed: () {},
                     child: const Text('View All'),
                   ),
                 ],
@@ -396,9 +402,10 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // Recent ads stream
             StreamBuilder<List<Advertisement>>(
-              stream: context.read<FirestoreService>().getAdvertisements(limit: 5),
+              stream: context
+                  .read<FirestoreService>()
+                  .getAdvertisements(limit: 5),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -408,28 +415,26 @@ class HomeContent extends StatelessWidget {
                     ),
                   );
                 }
-
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.all(32.0),
-                    child: Center(
-                      child: Text('No ads yet'),
-                    ),
+                    child: Center(child: Text('No ads yet')),
                   );
                 }
-
                 return SizedBox(
                   height: 280,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.only(right: 16),
                         child: SizedBox(
                           width: 200,
-                          child: ProductCard(ad: snapshot.data![index]),
+                          child:
+                          ProductCard(ad: snapshot.data![index]),
                         ),
                       );
                     },
@@ -445,6 +450,8 @@ class HomeContent extends StatelessWidget {
     );
   }
 }
+
+// ── Feature Card ─────────────────────────────────────────────────────────────
 
 class _FeatureCard extends StatelessWidget {
   final IconData icon;
@@ -472,7 +479,7 @@ class _FeatureCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBrown.withValues(alpha: 0.3),
+              color: AppColors.primaryGreen.withOpacity(0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -484,11 +491,7 @@ class _FeatureCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                icon,
-                color: Colors.white,
-                size: 32,
-              ),
+              Icon(icon, color: Colors.white, size: 32),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -503,7 +506,7 @@ class _FeatureCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Colors.white.withOpacity(0.9),
                       fontSize: 12,
                     ),
                   ),
@@ -516,6 +519,8 @@ class _FeatureCard extends StatelessWidget {
     );
   }
 }
+
+// ── Action Card ──────────────────────────────────────────────────────────────
 
 class _ActionCard extends StatelessWidget {
   final IconData icon;
@@ -540,14 +545,11 @@ class _ActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBrown.withValues(alpha: 0.1),
+                  color: AppColors.primaryGreen.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: AppColors.primaryBrown,
-                  size: 32,
-                ),
+                child: Icon(icon,
+                    color: AppColors.primaryGreen, size: 32),
               ),
               const SizedBox(height: 12),
               Text(

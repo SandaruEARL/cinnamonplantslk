@@ -20,6 +20,10 @@ class TFLiteService {
   /// Check if models are loaded
   bool get _isPriceModelLoaded => _pricePredictionInterpreter != null;
 
+  String? getModelUpdatedAt() {
+    return _modelUpdateService.getUpdatedAt();
+  }
+
   /// Initialize models
   Future<void> initialize() async {
     await loadQualityGradingModel();

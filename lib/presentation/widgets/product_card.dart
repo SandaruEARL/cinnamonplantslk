@@ -65,7 +65,7 @@ class ProductCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryBrown,
+                    color: AppColors.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -143,7 +143,7 @@ class ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primaryBrown,
+                      color: AppColors.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 4),

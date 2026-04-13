@@ -270,7 +270,7 @@ class _LocationDetailSheet extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: (isNursery
                             ? Colors.green
-                            : AppColors.primaryBrown)
+                            : AppColors.primaryGreen)
                             .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -282,7 +282,7 @@ class _LocationDetailSheet extends StatelessWidget {
                             size: 14,
                             color: isNursery
                                 ? Colors.green
-                                : AppColors.primaryBrown,
+                                : AppColors.primaryGreen,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -291,7 +291,7 @@ class _LocationDetailSheet extends StatelessWidget {
                               fontSize: 12,
                               color: isNursery
                                   ? Colors.green
-                                  : AppColors.primaryBrown,
+                                  : AppColors.primaryGreen,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -358,9 +358,9 @@ class _LocationDetailSheet extends StatelessWidget {
                         icon: const Icon(Icons.phone, size: 18),
                         label: const Text('Call'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primaryBrown,
+                          foregroundColor: AppColors.primaryGreen,
                           side: const BorderSide(
-                              color: AppColors.primaryBrown),
+                              color: AppColors.primaryGreen),
                           padding:
                           const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -374,7 +374,7 @@ class _LocationDetailSheet extends StatelessWidget {
                         icon: const Icon(Icons.directions, size: 18),
                         label: const Text('Directions'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryBrown,
+                          backgroundColor: AppColors.primaryGreen,
                           foregroundColor: Colors.white,
                           padding:
                           const EdgeInsets.symmetric(vertical: 12),

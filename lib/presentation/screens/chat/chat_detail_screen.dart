@@ -54,7 +54,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppColors.primaryBrown,
+              backgroundColor: AppColors.primaryGreen,
               backgroundImage: widget.otherUserImage != null
                   ? CachedNetworkImageProvider(widget.otherUserImage!)
                   : null,
@@ -211,7 +211,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   padding: const EdgeInsets.only(right: 4),
                                   child: IconButton(
                                     icon: const Icon(Icons.send),
-                                    color: AppColors.primaryBrown,
+                                    color: AppColors.primaryGreen,
                                     onPressed: _sendMessage,
                                     padding: const EdgeInsets.all(8),
                                     constraints: const BoxConstraints(
@@ -230,13 +230,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.camera_alt_outlined),
-                          color: AppColors.primaryBrown,
+                          color: AppColors.primaryGreen,
                           onPressed: _pickImageFromCamera,
                           padding: const EdgeInsets.all(8),
                         ),
                         IconButton(
                           icon: const Icon(Icons.image_outlined),
-                          color: AppColors.primaryBrown,
+                          color: AppColors.primaryGreen,
                           onPressed: _pickImageFromGallery,
                           padding: const EdgeInsets.all(8),
                         ),

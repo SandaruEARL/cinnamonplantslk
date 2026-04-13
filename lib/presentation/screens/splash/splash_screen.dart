@@ -1,4 +1,3 @@
-// splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,7 +5,6 @@ import '../../../core/app_colors.dart';
 import '../../../data/services/ai/tflite_service.dart';
 import '../../bloc/splash/splash_bloc.dart';
 import '../../bloc/splash/splash_event.dart';
-
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -30,296 +28,271 @@ class SplashView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<SplashBloc, SplashState>(
       listener: (context, state) {
-        // Navigate to onboarding (first time user)
         if (state.status == SplashStatus.navigateToOnboarding) {
           Navigator.pushReplacementNamed(context, '/onboarding');
         }
-
-        // Navigate to home (returning user)
         if (state.status == SplashStatus.navigateToHome) {
           Navigator.pushReplacementNamed(context, '/home');
         }
-
-        // Show update dialog when available
+        // ✅ Silent auto-update — no dialog
         if (state.status == SplashStatus.updateAvailable &&
             state.updateInfo != null) {
-          _showUpdateDialog(context, state.updateInfo!);
-        }
-
-        // Show error (but continue)
-        if (state.status == SplashStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${state.errorMessage ?? "Unknown error"}'),
-              backgroundColor: AppColors.accentRed,
-            ),
+          context.read<SplashBloc>().add(
+            SplashModelUpdateDownloaded(state.updateInfo!),
           );
-          // Still navigate after error
+        }
+        if (state.status == SplashStatus.error) {
           Future.delayed(const Duration(seconds: 1), () {
             if (context.mounted) {
               context.read<SplashBloc>().add(const SplashNavigationRequested());
             }
           });
         }
-
-        // Show success snackbar
-        if (state.status == SplashStatus.updateComplete) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('AI model updated successfully!'),
-                ],
-              ),
-              backgroundColor: AppColors.accentGreen,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
       },
-      child: BlocBuilder<SplashBloc, SplashState>(
-        builder: (context, state) {
-          return Scaffold(
-            body: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // App Logo
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.eco,
-                        size: 64,
-                        color: AppColors.primaryBrown,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // App Name
-                    Text(
-                      'Cinnamon Marketplace',
-                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Tagline
-                    Text(
-                      'Sri Lanka\'s Cinnamon Trading Hub',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-
-                    // Loading indicator with progress
-                    if (state.status == SplashStatus.downloadingUpdate &&
-                        state.downloadProgress != null)
-                      Column(
-                        children: [
-                          SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: CircularProgressIndicator(
-                              value: state.downloadProgress,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                              backgroundColor: Colors.white.withOpacity(0.3),
-                              strokeWidth: 4,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${(state.downloadProgress! * 100).toInt()}%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        strokeWidth: 4,
-                      ),
-                    const SizedBox(height: 16),
-
-                    // Status message
-                    Text(
-                      state.message,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showUpdateDialog(BuildContext context, updateInfo) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryBrown.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.system_update,
-                color: AppColors.primaryBrown,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(child: Text('AI Model Update')),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('A new AI model is available with improved predictions.'),
-            const SizedBox(height: 16),
-            _InfoRow(
-              icon: Icons.new_releases,
-              label: 'Version',
-              value: updateInfo.newVersion,
-            ),
-            _InfoRow(
-              icon: Icons.storage,
-              label: 'Size',
-              value: updateInfo.sizeFormatted,
-            ),
-            _InfoRow(
-              icon: Icons.dataset,
-              label: 'Training Data',
-              value: '${updateInfo.recordsCount} records',
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.accentGreen.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: AppColors.accentGreen,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Update now for the most accurate predictions',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              // Continue without updating
-              context.read<SplashBloc>().add(const SplashNavigationRequested());
-            },
-            child: const Text('Later'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              // Download and install update
-              context.read<SplashBloc>().add(
-                SplashModelUpdateDownloaded(updateInfo),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryBrown,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Update Now'),
-          ),
-        ],
+      child: const Scaffold(
+        body: _SplashBody(),
       ),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
+class _SplashBody extends StatefulWidget {
+  const _SplashBody();
 
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+  @override
+  State<_SplashBody> createState() => _SplashBodyState();
+}
+
+class _SplashBodyState extends State<_SplashBody>
+    with TickerProviderStateMixin {
+
+  late final AnimationController _logoController;
+  late final AnimationController _taglineController;
+  late final AnimationController _loaderController;
+
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoFade;
+  late final Animation<double> _taglineFade;
+  late final Animation<double> _taglineSlide;
+  late final Animation<double> _loaderFade;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _logoScale = CurvedAnimation(
+        parent: _logoController, curve: Curves.elasticOut);
+    _logoFade = CurvedAnimation(
+        parent: _logoController, curve: Curves.easeIn);
+
+    _taglineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _taglineFade = CurvedAnimation(
+        parent: _taglineController, curve: Curves.easeIn);
+    _taglineSlide = Tween<double>(begin: 12, end: 0).animate(
+      CurvedAnimation(
+          parent: _taglineController, curve: Curves.easeOut),
+    );
+
+    _loaderController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _loaderFade = CurvedAnimation(
+        parent: _loaderController, curve: Curves.easeIn);
+
+    _runSequence();
+  }
+
+  Future<void> _runSequence() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _logoController.forward();
+    await Future.delayed(const Duration(milliseconds: 500));
+    _taglineController.forward();
+    await Future.delayed(const Duration(milliseconds: 300));
+    _loaderController.forward();
+  }
+
+  @override
+  void dispose() {
+    _logoController.dispose();
+    _taglineController.dispose();
+    _loaderController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Colors.grey),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+    return Container(
+      decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            // ── Logo pop-in ────────────────────────────────────
+            ScaleTransition(
+              scale: _logoScale,
+              child: FadeTransition(
+                opacity: _logoFade,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.25),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.eco,
+                    size: 64,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+              ),
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+
+            const SizedBox(height: 32),
+
+            // ── App name fade + slide ──────────────────────────
+            AnimatedBuilder(
+              animation: _taglineController,
+              builder: (_, __) => Opacity(
+                opacity: _taglineFade.value,
+                child: Transform.translate(
+                  offset: Offset(0, _taglineSlide.value),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Cinnamon',
+                        style: Theme.of(context)
+                            .textTheme
+                            .displaySmall
+                            ?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Marketplace',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                          color: Colors.white.withOpacity(0.92),
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 3.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            // ── Tagline ────────────────────────────────────────
+            AnimatedBuilder(
+              animation: _taglineController,
+              builder: (_, __) => Opacity(
+                opacity: _taglineFade.value,
+                child: Transform.translate(
+                  offset: Offset(0, _taglineSlide.value),
+                  child: Text(
+                    "Sri Lanka's Cinnamon Trading Hub",
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white.withOpacity(0.75),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 56),
+
+            // ── Loader + silent status ─────────────────────────
+            BlocBuilder<SplashBloc, SplashState>(
+              builder: (context, state) {
+                return FadeTransition(
+                  opacity: _loaderFade,
+                  child: Column(
+                    children: [
+                      if (state.status == SplashStatus.downloadingUpdate &&
+                          state.downloadProgress != null)
+                        SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: CircularProgressIndicator(
+                            value: state.downloadProgress,
+                            valueColor: const AlwaysStoppedAnimation(
+                                Colors.white),
+                            backgroundColor:
+                            Colors.white.withOpacity(0.25),
+                            strokeWidth: 3,
+                          ),
+                        )
+                      else
+                        const SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            valueColor:
+                            AlwaysStoppedAnimation(Colors.white),
+                            strokeWidth: 3,
+                          ),
+                        ),
+
+                      const SizedBox(height: 16),
+
+                      Text(
+                        _statusMessage(state.status, state.downloadProgress),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  String _statusMessage(SplashStatus status, double? progress) {
+    switch (status) {
+      case SplashStatus.checkingUpdate:
+        return 'Checking for updates...';
+      case SplashStatus.downloadingUpdate:
+        return progress != null
+            ? 'Updating AI model ${(progress * 100).toInt()}%'
+            : 'Updating AI model...';
+      case SplashStatus.updateComplete:
+        return 'Ready';
+      case SplashStatus.error:
+        return 'Starting with cached model...';
+      default:
+        return 'Loading...';
+    }
   }
 }

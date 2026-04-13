@@ -27,47 +27,6 @@ class ToolsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
-              const Text(
-                'AI Tools',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _ToolCard(
-                icon: Icons.psychology,
-                title: 'AI Quality Grading',
-                description: 'Grade the quality of your crops using AI',
-                gradient: AppColors.primaryGradient,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const QualityGradingScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              _ToolCard(
-                icon: Icons.trending_up,
-                title: 'Price Prediction',
-                description: 'Forecast market prices for your products',
-                gradient: const LinearGradient(
-                  colors: [AppColors.accentGreen, Color(0xFF059669)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const PricePredictionScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
               const Text(
                 'Management Tools',
                 style: TextStyle(
@@ -94,34 +53,34 @@ class ToolsScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 12),
+              // ── Crop Management ───────────────────────────────
               _ToolCard(
                 icon: Icons.eco,
                 title: 'Crop Management',
                 description: 'Manage your crops and harvest schedule',
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0EA5E9), Color(0xFF0369A1)],
+                  colors: [Color(0xFFB0B0B0), Color(0xFF9E9E9E)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 onTap: () {
-                  // TODO: Navigate to crop management
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Coming soon!')),
                   );
                 },
               ),
               const SizedBox(height: 12),
+              // ── Analytics ─────────────────────────────────────
               _ToolCard(
                 icon: Icons.analytics,
                 title: 'Analytics',
                 description: 'View insights and statistics about your farm',
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                  colors: [Color(0xFFB0B0B0), Color(0xFF9E9E9E)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 onTap: () {
-                  // TODO: Navigate to analytics
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Coming soon!')),
                   );

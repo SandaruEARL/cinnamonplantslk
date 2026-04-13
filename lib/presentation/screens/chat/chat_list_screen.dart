@@ -136,7 +136,7 @@ class ChatListScreen extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 28,
-                              backgroundColor: AppColors.primaryBrown,
+                              backgroundColor: AppColors.primaryGreen,
                               backgroundImage: otherUser.profilePicUrl != null
                                   ? CachedNetworkImageProvider(
                                 otherUser.profilePicUrl!,
@@ -206,7 +206,7 @@ class ChatListScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             color: isUnread
-                                ? AppColors.primaryBrown
+                                ? AppColors.primaryGreen
                                 : AppColors.textSecondary,
                             fontWeight: isUnread
                                 ? FontWeight.bold

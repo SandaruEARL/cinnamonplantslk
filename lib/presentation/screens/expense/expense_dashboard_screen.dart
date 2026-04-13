@@ -284,7 +284,7 @@ class _ExpenseDashboardScreenState extends State<ExpenseDashboardScreen> {
             ),
           );
         },
-        backgroundColor: AppColors.primaryBrown,
+        backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add),
         label: const Text('Add Expense'),
       ),
@@ -372,7 +372,7 @@ class _ExpenseDashboardScreenState extends State<ExpenseDashboardScreen> {
       'Pesticides': const Color(0xFFec4899),
       'Other': const Color(0xFF6b7280),
     };
-    return colors[category] ?? AppColors.primaryBrown;
+    return colors[category] ?? AppColors.primaryGreen;
   }
 
   IconData _getCategoryIcon(String category) {

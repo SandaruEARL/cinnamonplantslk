@@ -255,7 +255,7 @@ class _QualityGradingScreenState extends State<QualityGradingScreen> {
                             value: prob / 100,
                             backgroundColor: AppColors.divider,
                             valueColor: const AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryBrown,
+                              AppColors.primaryGreen,
                             ),
                           ),
                         ],
@@ -292,7 +292,7 @@ class _QualityGradingScreenState extends State<QualityGradingScreen> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryBrown.withOpacity(0.1),
+              color: AppColors.primaryGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(

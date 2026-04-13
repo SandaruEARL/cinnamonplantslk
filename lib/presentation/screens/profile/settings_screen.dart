@@ -43,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Language
           ListTile(
-            leading: const Icon(Icons.language, color: AppColors.primaryBrown),
+            leading: const Icon(Icons.language, color: AppColors.primaryGreen),
             title: const Text('Language'),
             subtitle: Text(_selectedLanguage),
             trailing: const Icon(Icons.chevron_right),
@@ -52,11 +52,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Theme
           SwitchListTile(
-            secondary: const Icon(Icons.dark_mode, color: AppColors. primaryBrown),
+            secondary: const Icon(Icons.dark_mode, color: AppColors. primaryGreen),
             title: const Text('Dark Mode'),
             subtitle: const Text('Switch between light and dark theme'),
             value: _darkModeEnabled,
-            activeColor: AppColors.primaryBrown,
+            activeColor: AppColors.primaryGreen,
             onChanged: (value) {
               setState(() {
                 _darkModeEnabled = value;
@@ -84,11 +84,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Notifications
           SwitchListTile(
-            secondary: const Icon(Icons.notifications, color: AppColors.primaryBrown),
+            secondary: const Icon(Icons.notifications, color: AppColors.primaryGreen),
             title: const Text('Push Notifications'),
             subtitle: const Text('Receive notifications for new messages and updates'),
             value: _notificationsEnabled,
-            activeColor: AppColors.primaryBrown,
+            activeColor: AppColors.primaryGreen,
             onChanged: (value) {
               setState(() {
                 _notificationsEnabled = value;
@@ -112,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Privacy Policy
           ListTile(
-            leading: const Icon(Icons.privacy_tip, color: AppColors.primaryBrown),
+            leading: const Icon(Icons.privacy_tip, color: AppColors.primaryGreen),
             title: const Text('Privacy Policy'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
@@ -122,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Terms of Service
           ListTile(
-            leading: const Icon(Icons.description, color: AppColors.primaryBrown),
+            leading: const Icon(Icons.description, color: AppColors.primaryGreen),
             title: const Text('Terms of Service'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
@@ -132,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // About
           ListTile(
-            leading: const Icon(Icons.info, color: AppColors.primaryBrown),
+            leading: const Icon(Icons.info, color: AppColors.primaryGreen),
             title: const Text('About'),
             subtitle: const Text('Version 1.0.0'),
             trailing: const Icon(Icons. chevron_right),

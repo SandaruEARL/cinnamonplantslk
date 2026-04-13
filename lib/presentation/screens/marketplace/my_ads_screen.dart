@@ -102,8 +102,8 @@ class _AdStatusCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Rs. ${ad.price.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: AppColors.primaryBrown,
+                    style: const TextStyle(
+                      color: AppColors.primaryGreen,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

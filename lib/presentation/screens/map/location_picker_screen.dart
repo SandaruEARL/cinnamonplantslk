@@ -70,18 +70,21 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   Future<void> _useGpsLocation() async {
     setState(() => _loadingGps = true);
+
     try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled');
+      }
+
       LocationPermission permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
+
       if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permission permanently denied')),
-          );
-        }
-        return;
+        throw Exception('Location permission permanently denied');
       }
 
       final position = await Geolocator.getCurrentPosition(
@@ -89,9 +92,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       );
 
       final newLocation = LatLng(position.latitude, position.longitude);
+
       setState(() => _pickedLocation = newLocation);
       _mapController.move(newLocation, 15);
+
       await _reverseGeocode(newLocation);
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -190,26 +196,50 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             left: 12,
             right: 12,
             child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(12),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search location...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () => _searchAddress(_searchController.text),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              elevation: 0,
+              borderRadius: BorderRadius.circular(30),
+              color: Colors.white,
+              shadowColor: Colors.black.withOpacity(0.07),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                onSubmitted: _searchAddress,
+                child: TextField(
+                  controller: _searchController,
+                  onSubmitted: _searchAddress,
+                  decoration: InputDecoration(
+                    hintText: 'Search for location',
+                    hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.search, color: Color(0xFFAAAAAA)),
+                      onPressed: () => _searchAddress(_searchController.text),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  ),
+                ),
               ),
             ),
           ),
@@ -227,7 +257,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 width: 20, height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-                  : const Icon(Icons.my_location, color: AppColors.primaryBrown),
+                  : const Icon(Icons.my_location, color: AppColors.primaryGreen),
             ),
           ),
 
