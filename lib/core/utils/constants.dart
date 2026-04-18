@@ -1,6 +1,6 @@
 class AppConstants {
   // App Info
-  static const String appName = 'Cinnamon Marketplace';
+  static const String appName = 'CinnamonPlants LK';
   static const String appVersion = '1.0.0';
 
   // Firebase Collections
@@ -17,10 +17,16 @@ class AppConstants {
   static const String chatImagesPath = 'chat_images';
 
   // User Types
-  static const String userTypeNursery = 'Nursery Owner';
-  static const String userTypeFarmer = 'Farmer/Landowner';
-  static const String userTypeBuyer = 'Buyer';
-  static const String userTypeSeller = 'Product Seller';
+  static const String userTypeNurseryOwner = 'nursery_owner';
+  static const String userTypeBuyer = 'buyer';
+  static const String userTypeBaleBuyer = 'bale_buyer';
+
+  // User Type Display Labels
+  static const Map<String, String> userTypeLabels = {
+    'nursery_owner': 'Nursery Owner',
+    'buyer': 'Buyer',
+    'bale_buyer': 'Bale Buyer',
+  };
 
   // Product Categories
   static const List<String> productCategories = [

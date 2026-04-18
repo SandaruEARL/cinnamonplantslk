@@ -7,6 +7,7 @@ import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../data/services/cloudinary/cloudinary_service.dart';
 import '../../../domain/entities/advertisement.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../chat/chat_detail_screen.dart';
@@ -33,15 +34,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
 
       // ── AppBar ────────────────────────────────────────────────────────
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Product Details',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          l10n.productDetails,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -74,7 +76,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             Container(
               height: 260,
               width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0), // ← padding around image
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: Colors.grey[200],
@@ -154,7 +156,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,  // ← black, not green
+                      color: AppColors.textPrimary,
                     ),
                   ),
 
@@ -168,14 +170,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       if (widget.ad.quantity != null)
                         Chip(
                           label: Text(
-                            'Qty ${widget.ad.quantity}',
+                            l10n.quantityLabel(widget.ad.quantity ?? 0),
                             style: const TextStyle(
-                              color: AppColors.textPrimary,   // ← black text
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
                           ),
-                          backgroundColor: const Color(0xFFB8E98D), // ← light green
+                          backgroundColor: const Color(0xFFB8E98D),
                           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                           shape: const StadiumBorder(),
                           side: BorderSide.none,
@@ -183,7 +185,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       if (widget.ad.grade != null)
                         Chip(
                           label: Text(
-                            'Grade: ${widget.ad.grade}',
+                            l10n.gradeLabel(widget.ad.grade ?? ''),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -202,9 +204,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   const SizedBox(height: 20),
 
                   // ── Description ───────────────────────────────────
-                  const Text(
-                    'Description',
-                    style: TextStyle(
+                  Text(
+                    l10n.descriptionLabel,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -244,9 +246,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   const SizedBox(height: 20),
 
                   // ── Seller Information ────────────────────────────
-                  const Text(
-                    'Seller Information',
-                    style: TextStyle(
+                  Text(
+                    l10n.sellerInformation,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -280,7 +282,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               child: OutlinedButton.icon(
                 onPressed: _callSeller,
                 icon: const Icon(Icons.phone, size: 18, color: Color(0xFFB8E98D)),
-                label: const Text('Call'),
+                label: Text(l10n.callButton),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   side: const BorderSide(color: Colors.black, width: 1.5),
@@ -301,7 +303,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 onPressed: _openWhatsApp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB8E98D),
-                  foregroundColor: AppColors.textPrimary,  // ← black text
+                  foregroundColor: AppColors.textPrimary,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -309,9 +311,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ),
                   side: const BorderSide(color: Colors.black, width: 1.5),
                 ),
-                child: const Text(
-                  'Whatsapp',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                child: Text(
+                  l10n.whatsappButton,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -323,7 +325,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               child: OutlinedButton.icon(
                 onPressed: _chatWithSeller,
                 icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Color(0xFFB8E98D)),
-                label: const Text('Chat'),
+                label: Text(l10n.chatButton),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   side: const BorderSide(color: Colors.black, width: 1.5),

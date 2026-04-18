@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 class LocationResult {
   final double latitude;
@@ -69,6 +70,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   Future<void> _useGpsLocation() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _loadingGps = true);
 
     try {
@@ -101,7 +103,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not get location: $e')),
+          SnackBar(content: Text(l10n.couldNotGetLocation(e.toString()))),
         );
       }
     } finally {
@@ -110,6 +112,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   Future<void> _searchAddress(String query) async {
+    final l10n = AppLocalizations.of(context)!;
     if (query.trim().isEmpty) return;
     try {
       final locations = await locationFromAddress('$query, Sri Lanka');
@@ -121,14 +124,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location not found')),
+            SnackBar(content: Text(l10n.locationNotFound)),
           );
         }
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not find that location')),
+          SnackBar(content: Text(l10n.couldNotFindLocation)),
         );
       }
     }
@@ -136,9 +139,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pick Location'),
+        title: Text(l10n.pickLocationTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
@@ -151,7 +156,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 address:   _address,
               ));
             },
-            child: const Text('Confirm', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              l10n.confirmLocation,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -216,7 +224,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   controller: _searchController,
                   onSubmitted: _searchAddress,
                   decoration: InputDecoration(
-                    hintText: 'Search for location',
+                    hintText: l10n.searchLocationHint,
                     hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.search, color: Color(0xFFAAAAAA)),
@@ -277,8 +285,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Selected Location',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(
+                    l10n.selectedLocation,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                   const SizedBox(height: 6),
                   _loadingAddress
                       ? const SizedBox(
@@ -286,7 +296,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     child: LinearProgressIndicator(),
                   )
                       : Text(
-                    _address.isEmpty ? 'Tap map to select location' : _address,
+                    _address.isEmpty ? l10n.tapMapToSelect : _address,
                     style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 4),

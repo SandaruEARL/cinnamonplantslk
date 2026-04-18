@@ -4,6 +4,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/ai/tflite_service.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PricePredictionScreen extends StatefulWidget {
   const PricePredictionScreen({super.key});
@@ -14,12 +15,12 @@ class PricePredictionScreen extends StatefulWidget {
 
 class _PricePredictionScreenState extends State<PricePredictionScreen> {
   final List<String> _districts = [
-    'All Districts', 'Badulla', 'Colombo', 'Galle', 'Gampaha',
+    ' Badulla', 'Colombo', 'Galle', 'Gampaha',
     'Hambantota', 'Kalutara', 'Matara', 'Monaragala', 'Ratnapura',
   ];
 
   final List<String> _grades = [
-    'All Grades', 'Alba', 'C-4', 'C-5', 'C-5 Sp', 'M-4',
+    'Alba', 'C-4', 'C-5', 'C-5 Sp', 'M-4',
     'M-5', 'H-1', 'H-2', 'H-Faq', 'Heen', 'Gorosu',
   ];
 
@@ -45,8 +46,8 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
       }
 
       final data = await tfliteService.predictPrices(
-        district: _selectedDistrict == 'All Districts' ? null : _selectedDistrict,
-        grade: _selectedGrade == 'All Grades' ? null : _selectedGrade,
+        district: _selectedDistrict,
+        grade: _selectedGrade,
       );
       setState(() {
         _predictionData = data;
@@ -61,15 +62,16 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.grey[100],
 
       // ── AppBar ────────────────────────────────────────────────────
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Price Predictions',
-          style: TextStyle(
+        title: Text(
+          l10n.pricePredictionsTitle,
+          style: const TextStyle(
               color: Colors.white, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -105,16 +107,17 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.show_chart, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text('No predictions available',
+          Text(l10n.noPredictionsAvailable,
               style: TextStyle(fontSize: 18, color: Colors.grey[600])),
           const SizedBox(height: 8),
-          Text('Select a district and grade',
+          Text(l10n.selectDistrictAndGrade,
               style: TextStyle(fontSize: 14, color: Colors.grey[500])),
         ],
       ),
@@ -180,6 +183,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
 
   // ── Price Card ───────────────────────────────────────────────────
   Widget _buildPriceCard() {
+    final l10n = AppLocalizations.of(context)!;
     final currentPrice = _predictionData!['currentPrice'] as double;
     final monthlyChange = _predictionData!['monthlyChange'] as double;
     final isMock = _predictionData!['mock'] ?? false;
@@ -192,7 +196,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF4A4A4A),   // ← dark gray, matches screenshot
+        color: const Color(0xFF4A4A4A),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -203,7 +207,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isMock ? 'Sample Price' : 'Current Price',
+                isMock ? l10n.samplePrice : l10n.currentPrice,
                 style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
               if (isMock)
@@ -214,8 +218,8 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('DEMO',
-                      style: TextStyle(
+                  child: Text(l10n.demoLabel,
+                      style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold)),
@@ -241,7 +245,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -256,7 +260,9 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toStringAsFixed(1)} % (4 weeks)',
+                  l10n.monthlyChangeText(
+                    '${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toStringAsFixed(1)}',
+                  ),
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
@@ -267,9 +273,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
           ),
 
           // National comparison pill
-          if (nationalPrice != null &&
-              priceVsNational != null &&
-              _selectedDistrict != 'All Districts') ...[
+          if (nationalPrice != null && priceVsNational != null) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(
@@ -291,7 +295,10 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      '${priceVsNational >= 0 ? '+' : ''}${priceVsNational.toStringAsFixed(1)} vs National (Rs. ${nationalPrice.toStringAsFixed(0)})',
+                      l10n.vsNationalWithPrice(
+                        '${priceVsNational >= 0 ? '+' : ''}${priceVsNational.toStringAsFixed(1)}',
+                        nationalPrice.toStringAsFixed(0),
+                      ),
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -309,7 +316,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
               children: [
                 const SizedBox(width: 5),
                 Text(
-                  'Last updated: ${_formatUpdatedAt(_dataUpdatedAt!)}',
+                  l10n.lastUpdated(_formatUpdatedAt(_dataUpdatedAt!)),
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                 ),
               ],
@@ -334,7 +341,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
     ];
 
     List<_ChartData>? nationalData;
-    if (nationalPrice != null && _selectedDistrict != 'All Districts') {
+    if (nationalPrice != null) {
       nationalData = [
         _ChartData(DateTime.now(), nationalPrice),
         ...predictions
@@ -495,6 +502,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
   }
 
   Widget _buildTrendIndicator(String trend) {
+    final l10n = AppLocalizations.of(context)!;
     final isUpward = trend == 'upward';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -515,7 +523,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            '${trend.toUpperCase()} TREND',
+            isUpward ? l10n.upwardTrend : l10n.downwardTrend,
             style: TextStyle(
               color: isUpward
                   ? AppColors.accentGreen
@@ -531,35 +539,33 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
 
   // ── Weekly Breakdown ─────────────────────────────────────────────
   Widget _buildPredictionsList() {
+    final l10n = AppLocalizations.of(context)!;
     final currentPrice = _predictionData!['currentPrice'] as double;
     final predictions = _predictionData!['predictions'] as List;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Weekly Breakdown',
-            style:
-            TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+        Text(l10n.weeklyBreakdownTitle,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
 
         ...predictions.take(4).map((prediction) {
           final date = prediction['date'] as DateTime;
           final avgPrice = prediction['average_price'] as double;
           final highPrice = prediction['high_price'] as double;
-          final change =
-          ((avgPrice - currentPrice) / currentPrice * 100);
-          final nationalAvg =
-          prediction['national_average'] as double?;
-          final weeksDiff =
-          (date.difference(DateTime.now()).inDays / 7).round();
-          final weekLabel =
-          weeksDiff == 1 ? 'Next Week' : 'Week $weeksDiff';
+          final change = ((avgPrice - currentPrice) / currentPrice * 100);
+          final nationalAvg = prediction['national_average'] as double?;
+          final weeksDiff = (date.difference(DateTime.now()).inDays / 7).round();
+          final weekLabel = weeksDiff == 1
+              ? l10n.nextWeekLabel
+              : l10n.weekLabel(weeksDiff);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF358841),    // ← green filled
+              color: const Color(0xFF358841),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -587,7 +593,7 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Highest: Rs. ${highPrice.toStringAsFixed(0)}',
+                            l10n.highestPrice(highPrice.toStringAsFixed(0)),
                             style: const TextStyle(
                                 color: Colors.white70, fontSize: 12),
                           ),
@@ -633,16 +639,14 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
                 ),
 
                 // National row
-                if (nationalAvg != null &&
-                    _selectedDistrict != 'All Districts') ...[
+                if (nationalAvg != null) ...[
                   const SizedBox(height: 10),
-                  const Divider(
-                      height: 1, color: Colors.white24),
+                  const Divider(height: 1, color: Colors.white24),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Text('National: ',
-                          style: TextStyle(
+                      Text(l10n.nationalLabel,
+                          style: const TextStyle(
                               color: Colors.white70, fontSize: 12)),
                       Text('Rs. ${nationalAvg.toStringAsFixed(0)}',
                           style: const TextStyle(
@@ -678,14 +682,12 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.info_outline,
-                size: 14, color: Colors.grey[500]),
+            Icon(Icons.info_outline, size: 14, color: Colors.grey[500]),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Weekly predictions based on 3 months of historical data and national benchmarks. Actual prices may vary.',
-                style:
-                TextStyle(fontSize: 11, color: Colors.grey[600]),
+                l10n.predictionDisclaimer,
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               ),
             ),
           ],

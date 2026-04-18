@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/auth_service.dart';
 import '../../../data/services/firebase/messaging_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../home/home_screen.dart';
@@ -14,13 +15,14 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => HomeScreen.scaffoldKey.currentState?.openDrawer(),
+          onPressed: () => Scaffold.of(context).openDrawer(),
         ),
-        title: const Text('Messages'),
+        title: Text(l10n.messagesTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
@@ -28,8 +30,8 @@ class ChatListScreen extends StatelessWidget {
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is! AuthAuthenticated) {
-            return const Center(
-              child: Text('Please login to view messages'),
+            return Center(
+              child: Text(l10n.pleaseLoginToViewMessages),
             );
           }
 
@@ -66,17 +68,17 @@ class ChatListScreen extends StatelessWidget {
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'No messages yet',
-                        style: TextStyle(
+                      Text(
+                        l10n.noMessagesYet,
+                        style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Start chatting with sellers',
-                        style: TextStyle(
+                      Text(
+                        l10n.startTheConversation,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),

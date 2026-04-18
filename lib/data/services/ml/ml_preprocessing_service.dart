@@ -5,20 +5,20 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Handles ML preprocessing (scaling, encoding, feature engineering)
-/// ✅ UPDATED: Supports both WEEKLY and DAILY models
+/// Supports both WEEKLY and DAILY models
 class MLPreprocessingService {
   Map<String, dynamic>? _preprocessing;
   List<Map<String, dynamic>>? _recentData;
 
   bool get isLoaded => _preprocessing != null && _recentData != null;
 
-  /// ✅ NEW: Check if model is weekly or daily
+  ///  Check if model is weekly or daily
   bool get isWeeklyModel {
     if (_preprocessing == null) return false;
     return _preprocessing!['data_frequency'] == 'weekly';
   }
 
-  /// ✅ NEW: Get lookback period (weeks or days)
+  ///  Get lookback period (weeks or days)
   int get lookbackPeriods {
     if (_preprocessing == null) return 30;
     if (isWeeklyModel) {
@@ -28,7 +28,7 @@ class MLPreprocessingService {
     }
   }
 
-  /// ✅ NEW: Get forecast period (weeks or days)
+  ///  Get forecast period (weeks or days)
   int get forecastPeriods {
     if (_preprocessing == null) return 7;
     if (isWeeklyModel) {
@@ -226,7 +226,7 @@ class MLPreprocessingService {
   }
 
   /// Prepare input for model
-  /// ✅ UPDATED: Works with both weekly (12 weeks) and daily (30 days) models
+  ///  Works with both weekly (12 weeks) and daily (30 days) models
   List<List<List<double>>> prepareInput({
     required String district,
     required String grade,

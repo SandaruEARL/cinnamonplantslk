@@ -1,8 +1,10 @@
 import 'package:cinnamon_marketplace_app/presentation/screens/auth/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -38,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -55,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -69,11 +72,12 @@ class _LoginScreenState extends State<LoginScreen> {
               MaterialPageRoute(builder: (context) => const HomeScreen()),
             );
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.accentRed,
-              ),
+            Fluttertoast.showToast(
+              msg: state.message,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red.shade400,
+              textColor: Colors.white,
             );
           }
         },
@@ -138,7 +142,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: Validators.validateEmail,
+                    validator: (val) => Validators.validateEmail(
+                      val,
+                      requiredMessage: l10n.validationEmailRequired,
+                      invalidMessage: l10n.validationEmailInvalid,
+                    ),
                     decoration: _inputDecoration(hint: 'Email'),
                   ),
 
@@ -148,7 +156,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    validator: Validators.validatePassword,
+                    validator: (val) => Validators.validatePassword(
+                      val,
+                      requiredMessage: l10n.validationPasswordRequired,
+                      tooShortMessage: l10n.validationPasswordTooShort,
+                    ),
                     decoration: _inputDecoration(
                       hint: 'Password',
                       suffixIcon: IconButton(

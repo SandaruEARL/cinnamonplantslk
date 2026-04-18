@@ -1,13 +1,10 @@
 import 'dart:io';
+import 'package:cinnamon_marketplace_app/presentation/screens/marketplace/my_ads_screen.dart';
 import 'package:cinnamon_marketplace_app/presentation/screens/profile/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../core/app_colors.dart';
-import '../../../data/services/firebase/auth_service.dart';
-import '../../../data/services/firebase/firestore_service.dart';
-import '../../../data/services/firebase/storage_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -18,11 +15,18 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is! AuthAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              '/home',
+                  (route) => false,
+            );
+          });
           return const Scaffold(
-            body: Center(child: Text('Please login')),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -30,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Account'),
+            title: Text(l10n.accountTitle),
             flexibleSpace: Container(
               decoration: const BoxDecoration(
                 gradient: AppColors.primaryGradient,
@@ -67,13 +71,17 @@ class ProfileScreen extends StatelessWidget {
               // My Ads
               _ProfileMenuItem(
                 icon: Icons.local_offer,
-                title: 'My Ads',
+                title: l10n.myAdsLabel,
                 onTap: () {
-                  // Navigate to my ads
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => MyAdsScreen(userId: user.id),
+                    ),
+                  );
                 },
               ),
 
-              // My membership
+              /** My membership
               _ProfileMenuItem(
                 icon: Icons.store,
                 title: 'My membership',
@@ -81,8 +89,9 @@ class ProfileScreen extends StatelessWidget {
                   // Navigate to membership
                 },
               ),
+               **/
 
-              // Favorites
+              /** Favorites
               _ProfileMenuItem(
                 icon: Icons.star_border,
                 title: 'Favorites',
@@ -90,17 +99,18 @@ class ProfileScreen extends StatelessWidget {
                   // Navigate to favorites
                 },
               ),
+               **/
 
               // Saved searches
               _ProfileMenuItem(
                 icon: Icons.bookmark_border,
-                title: 'Saved searches',
+                title: l10n.savedSearchesLabel,
                 onTap: () {
                   // Navigate to saved searches
                 },
               ),
 
-              // Phone Numbers
+              /** Phone Numbers
               _ProfileMenuItem(
                 icon: Icons.phone,
                 title: 'Phone Numbers',
@@ -108,13 +118,14 @@ class ProfileScreen extends StatelessWidget {
                   // Navigate to phone numbers
                 },
               ),
+               **/
 
               const Divider(height: 1),
 
               // My Profile
               _ProfileMenuItem(
                 icon: Icons.description,
-                title: 'My Profile',
+                title: l10n.myProfileLabel,
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -124,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
                 },
               ),
 
-              // Stay safe
+              /** Stay safe
               _ProfileMenuItem(
                 icon: Icons.shield,
                 title: 'Stay safe',
@@ -132,17 +143,20 @@ class ProfileScreen extends StatelessWidget {
                   // Navigate to safety tips
                 },
               ),
+               **/
 
+             /**
               // FAQ
               _ProfileMenuItem(
                 icon: Icons.help_outline,
-                title: 'FAQ',
+                title: l10n.faqLabel,
                 onTap: () {
                   // Navigate to FAQ
                 },
               ),
+            **/
 
-              // How to sell fast?
+              /** How to sell fast?
               _ProfileMenuItem(
                 icon: Icons.trending_up,
                 title: 'How to sell fast?',
@@ -150,8 +164,9 @@ class ProfileScreen extends StatelessWidget {
                   // Navigate to selling tips
                 },
               ),
+               **/
 
-              // More
+              /** More
               _ProfileMenuItem(
                 icon: Icons.more_horiz,
                 title: 'More',
@@ -159,13 +174,14 @@ class ProfileScreen extends StatelessWidget {
                   // Navigate to more options
                 },
               ),
+                  **/
 
-              const Divider(height: 1),
+              const Divider(height: 1,),
 
               // Log out
               _ProfileMenuItem(
                 icon: Icons.power_settings_new,
-                title: 'Log out',
+                title: l10n.logoutLabel,
                 onTap: () => _logout(context),
               ),
             ],
@@ -176,19 +192,21 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _logout(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(l10n.logoutLabel),
+        content: Text(l10n.areYouSureLogout),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout', style: TextStyle(color: AppColors.accentRed)),
+            child: Text(l10n.logoutLabel,
+                style: const TextStyle(color: AppColors.accentRed)),
           ),
         ],
       ),
@@ -196,6 +214,12 @@ class ProfileScreen extends StatelessWidget {
 
     if (confirm == true && context.mounted) {
       context.read<AuthBloc>().add(AuthSignOutRequested());
+
+      // Replace entire stack with HomeScreen — marketplace is shown to guests too
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/home',
+            (route) => false,
+      );
     }
   }
 }

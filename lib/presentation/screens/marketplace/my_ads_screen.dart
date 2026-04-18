@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
+import '../../../l10n/app_localizations.dart';
 
 class MyAdsScreen extends StatelessWidget {
   final String userId;
@@ -11,9 +12,10 @@ class MyAdsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Advertisements'),
+        title: Text(l10n.myAdvertisements),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
@@ -26,13 +28,13 @@ class MyAdsScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.store_outlined, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text("You haven't posted any ads yet"),
+                  const Icon(Icons.store_outlined, size: 80, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(l10n.noAdsPosted),
                 ],
               ),
             );

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/messaging_service.dart';
 import '../../../data/services/firebase/storage_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 
@@ -48,6 +49,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Row(

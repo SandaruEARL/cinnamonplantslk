@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
@@ -23,7 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  String _selectedUserType = AppConstants.userTypeFarmer;
+  String _selectedUserType = AppConstants.userTypeNurseryOwner;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -62,6 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -76,11 +79,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               MaterialPageRoute(builder: (context) => const HomeScreen()),
             );
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.accentRed,
-              ),
+            Fluttertoast.showToast(
+              msg: state.message,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red.shade400,
+              textColor: Colors.white,
             );
           }
         },
@@ -116,8 +120,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // ── Full Name ──────────────────────────────────
                   TextFormField(
                     controller: _nameController,
-                    validator: (value) =>
-                        Validators.validateRequired(value, 'Name'),
+                    validator: (val) => Validators.validateRequired(
+                      val,
+                      requiredMessage: l10n.validationFieldRequired(l10n.hintNurseryName),
+                    ),
                     decoration: _inputDecoration(hint: 'Full Name'),
                   ),
 
@@ -127,7 +133,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: Validators.validateEmail,
+                    validator: (val) => Validators.validateEmail(
+                      val,
+                      requiredMessage: l10n.validationEmailRequired,
+                      invalidMessage: l10n.validationEmailInvalid,
+                    ),
                     decoration: _inputDecoration(hint: 'Email'),
                   ),
 
@@ -137,7 +147,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    validator: Validators.validatePhone,
+                    validator: (val) => Validators.validatePhone(
+                      val,
+                      requiredMessage: l10n.validationPhoneRequired,
+                      invalidMessage: l10n.validationPhoneInvalid,
+                    ),
                     decoration: _inputDecoration(hint: 'Phone Number'),
                   ),
 
@@ -149,20 +163,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: _inputDecoration(hint: 'I am a'),
                     items: const [
                       DropdownMenuItem(
-                        value: AppConstants.userTypeNursery,
-                        child: Text(AppConstants.userTypeNursery),
-                      ),
-                      DropdownMenuItem(
-                        value: AppConstants.userTypeFarmer,
-                        child: Text(AppConstants.userTypeFarmer),
+                        value: AppConstants.userTypeNurseryOwner,
+                        child: Text('Nursery Owner'),
                       ),
                       DropdownMenuItem(
                         value: AppConstants.userTypeBuyer,
-                        child: Text(AppConstants.userTypeBuyer),
+                        child: Text('Buyer'),
                       ),
                       DropdownMenuItem(
-                        value: AppConstants.userTypeSeller,
-                        child: Text(AppConstants.userTypeSeller),
+                        value: AppConstants.userTypeBaleBuyer,
+                        child: Text('Bale Buyer'),
                       ),
                     ],
                     onChanged: (value) =>
@@ -175,7 +185,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    validator: Validators.validatePassword,
+                    validator: (val) => Validators.validatePassword(
+                      val,
+                      requiredMessage: l10n.validationPasswordRequired,
+                      tooShortMessage: l10n.validationPasswordTooShort,
+                    ),
                     decoration: _inputDecoration(
                       hint: 'Password',
                       suffixIcon: IconButton(
@@ -199,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     obscureText: _obscureConfirmPassword,
                     validator: (value) {
                       if (value != _passwordController.text) {
-                        return 'Passwords do not match';
+                        return l10n.validationPasswordsDoNotMatch;
                       }
                       return null;
                     },

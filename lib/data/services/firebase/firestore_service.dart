@@ -217,8 +217,6 @@ class FirestoreService {
     }
   }
 
-  // EXPENSES
-
   // Create expense
   Future<String> createExpense(Expense expense) async {
     try {
@@ -257,24 +255,20 @@ class FirestoreService {
       DateTime startDate,
       DateTime endDate,
       ) {
-    try {
-      return _firestore
-          .collection(AppConstants.expensesCollection)
-          .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
-          .where('date', isLessThanOrEqualTo: endDate.toIso8601String())
-          .orderBy('date', descending: true)
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          final data = doc.data();
-          data['id'] = doc.id;
-          return Expense.fromJson(data);
-        }).toList();
-      });
-    } catch (e) {
-      throw Exception('Failed to get expenses by date: $e');
-    }
+    return _firestore
+        .collection(AppConstants.expensesCollection)
+        .where('userId', isEqualTo: userId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return Expense.fromJson(data);
+      }).toList();
+    });
   }
 
   // Update expense

@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/app_colors.dart';
+import '../../../core/utils/category_localizer.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/services/cloudinary/cloudinary_service.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 
@@ -65,13 +68,14 @@ class _PostAdScreenState extends State<PostAdScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       // ── AppBar ─────────────────────────────────────────────────────
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Post Advertisement',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          l10n.postAd,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -104,22 +108,23 @@ class _PostAdScreenState extends State<PostAdScreen> {
                         color: const Color(0xFFF0F0F0),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Column(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.add_photo_alternate_outlined,
                             size: 32,
                             color: Color(0xFFAAAAAA),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
-                            'Add image',
-                            style: TextStyle(
+                            l10n.addImage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFFAAAAAA),
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),
@@ -173,10 +178,10 @@ class _PostAdScreenState extends State<PostAdScreen> {
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: _inputDecoration(),
-              items: AppConstants.productCategories.map((category) {
+              items: l10n.localizedCategories.map((entry) {
                 return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
+                  value: entry.value,
+                  child: Text(entry.label),
                 );
               }).toList(),
               onChanged: (value) => setState(() => _selectedCategory = value!),
@@ -187,10 +192,12 @@ class _PostAdScreenState extends State<PostAdScreen> {
             // ── Title ─────────────────────────────────────────────────
             TextFormField(
               controller: _titleController,
-              validator: (value) =>
-                  Validators.validateRequired(value, 'Title'),
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.titleHint),
+              ),
               decoration:
-              _inputDecoration(hint: 'Title ( nursery / plantation name )'),
+              _inputDecoration(hint: l10n.titleHint),
             ),
 
             const SizedBox(height: 16),
@@ -198,10 +205,12 @@ class _PostAdScreenState extends State<PostAdScreen> {
             // ── Description ───────────────────────────────────────────
             TextFormField(
               controller: _descriptionController,
-              validator: (value) =>
-                  Validators.validateRequired(value, 'Description'),
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.descriptionHint),
+              ),
               maxLines: 4,
-              decoration: _inputDecoration(hint: 'Description').copyWith(
+              decoration: _inputDecoration(hint: l10n.descriptionHint).copyWith(
                 alignLabelWithHint: true,
               ),
             ),
@@ -214,9 +223,13 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _priceController,
-                    validator: Validators.validatePrice,
+                    validator: (val) => Validators.validatePrice(
+                      val,
+                      requiredMessage: l10n.validationPriceRequired,
+                      invalidMessage: l10n.validationPriceInvalid,
+                    ),
                     keyboardType: TextInputType.number,
-                    decoration: _inputDecoration(hint: 'Price (Rs)'),
+                    decoration: _inputDecoration(hint: l10n.priceHint),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -224,7 +237,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                   child: TextFormField(
                     controller: _quantityController,
                     keyboardType: TextInputType.number,
-                    decoration: _inputDecoration(hint: 'Qty'),
+                    decoration: _inputDecoration(hint: l10n.quantityHint),
                   ),
                 ),
               ],
@@ -236,7 +249,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
             if (_selectedCategory.contains('Bales')) ...[
               DropdownButtonFormField<String>(
                 value: _selectedGrade,
-                decoration: _inputDecoration(hint: 'Grade'),
+                decoration: _inputDecoration(hint: l10n.gradeHint),
                 items: AppConstants.cinnamonGrades.map((grade) {
                   return DropdownMenuItem(
                     value: grade,
@@ -251,10 +264,12 @@ class _PostAdScreenState extends State<PostAdScreen> {
             // ── Location ──────────────────────────────────────────────
             TextFormField(
               controller: _locationController,
-              validator: (value) =>
-                  Validators.validateRequired(value, 'Location'),
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.locationHint),
+              ),
               decoration: _inputDecoration(
-                  hint: 'Location (Ex. Galle, batapola, matara)'),
+                  hint: l10n.locationHint),
             ),
 
             const SizedBox(height: 32),
@@ -297,9 +312,9 @@ class _PostAdScreenState extends State<PostAdScreen> {
                       AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                      : const Text(
-                    'Submit for Review',
-                    style: TextStyle(
+                      : Text(
+                    l10n.submitForReview,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.4,
@@ -327,11 +342,17 @@ class _PostAdScreenState extends State<PostAdScreen> {
   }
 
   Future<void> _submitAd() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one image')),
+      Fluttertoast.showToast(
+        msg: l10n.pleaseAddImage,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black87,
+        textColor: Colors.white,
+        fontSize: 14.0,
       );
       return;
     }
@@ -370,20 +391,29 @@ class _PostAdScreenState extends State<PostAdScreen> {
       await firestoreService.createAdvertisement(ad);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Advertisement posted successfully!'),
-            backgroundColor: AppColors.accentGreen,
-          ),
+        final l10n = AppLocalizations.of(context)!;
+
+        Fluttertoast.showToast(
+          msg: l10n.adPostedSuccess,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: AppColors.accentGreen,
+          textColor: Colors.white,
+          fontSize: 14.0,
         );
+
         Navigator.of(context).pop();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: AppColors.accentRed,
-        ),
+      final l10n = AppLocalizations.of(context)!;
+
+      Fluttertoast.showToast(
+        msg: l10n.errorPrefix(e.toString()),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: AppColors.accentRed,
+        textColor: Colors.white,
+        fontSize: 14.0,
       );
     } finally {
       setState(() => _isLoading = false);

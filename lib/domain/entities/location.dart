@@ -132,4 +132,5 @@ class BusinessLocation extends Equatable {
 
   @override
   List<Object?> get props => [id, userId, type, status, updatedAt];
+
 }

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_colors.dart';
-import '../ai/price_prediction_screen.dart';
-import '../ai/quality_grading_screen.dart';
+import '../../../l10n/app_localizations.dart';
 import '../expense/expense_dashboard_screen.dart';
-import '../home/home_screen.dart';
+
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => HomeScreen.scaffoldKey.currentState?.openDrawer(),
+          onPressed: () => Scaffold.of(context).openDrawer(),
         ),
-        title: const Text('Tools'),
+        title: Text(l10n.toolsTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
@@ -27,64 +27,37 @@ class ToolsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Management Tools',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(l10n.managementTools,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               _ToolCard(
-                icon: Icons.attach_money,
-                title: 'Expense Tracker',
-                description: 'Track and manage your farm expenses',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF5B21B6)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                icon: null,
+                title: l10n.expenseTracker,
+                color: const Color(0xFF358841),
+                description: l10n.expenseTrackerDescription,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const ExpenseDashboardScreen()),
                 ),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const ExpenseDashboardScreen(),
-                    ),
-                  );
-                },
               ),
               const SizedBox(height: 12),
-              // ── Crop Management ───────────────────────────────
               _ToolCard(
-                icon: Icons.eco,
-                title: 'Crop Management',
-                description: 'Manage your crops and harvest schedule',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFB0B0B0), Color(0xFF9E9E9E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                icon: null,
+                title: l10n.cropManagement,
+                description: l10n.cropManagementDescription,
+                color: const Color(0xFF9E9E9E),
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.comingSoon)),
                 ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Coming soon!')),
-                  );
-                },
               ),
               const SizedBox(height: 12),
-              // ── Analytics ─────────────────────────────────────
               _ToolCard(
-                icon: Icons.analytics,
-                title: 'Analytics',
-                description: 'View insights and statistics about your farm',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFB0B0B0), Color(0xFF9E9E9E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                icon: null,
+                title: l10n.analytics,
+                description: l10n.analyticsDescription,
+                color: const Color(0xFF9E9E9E),
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.comingSoon)),
                 ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Coming soon!')),
-                  );
-                },
               ),
             ],
           ),
@@ -95,17 +68,17 @@ class ToolsScreen extends StatelessWidget {
 }
 
 class _ToolCard extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final String description;
-  final Gradient gradient;
+  final Color color;
   final VoidCallback onTap;
 
   const _ToolCard({
     required this.icon,
     required this.title,
     required this.description,
-    required this.gradient,
+    required this.color,
     required this.onTap,
   });
 
@@ -115,7 +88,7 @@ class _ToolCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          gradient: gradient,
+          color: color,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -129,18 +102,6 @@ class _ToolCard extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

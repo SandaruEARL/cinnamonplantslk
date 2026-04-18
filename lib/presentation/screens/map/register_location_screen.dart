@@ -6,6 +6,7 @@ import '../../../core/app_colors.dart';
 import '../../../data/services/cloudinary/cloudinary_service.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/location.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import 'location_picker_screen.dart';
@@ -55,12 +56,25 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
     }
   }
 
-  String get _typeLabel => widget.type == LocationType.nursery
-      ? 'Nursery / Plantation'
-      : 'Bale Buying Shop';
+  String _appBarTitle(AppLocalizations l10n) {
+    if (widget.type == LocationType.nursery) {
+      return widget.existing == null
+          ? l10n.registerNurseryTitle
+          : l10n.updateNurseryTitle;
+    } else {
+      return widget.existing == null
+          ? l10n.registerShopTitle
+          : l10n.updateShopTitle;
+    }
+  }
+
+  String _typeLabel(AppLocalizations l10n) =>
+      widget.type == LocationType.nursery
+          ? l10n.nurseryPlantations
+          : l10n.baleBuyingShops;
 
   // ── Shared input decoration ──────────────────────────────────────────
-  InputDecoration _inputDecoration({String? hint, int? maxLines}) {
+  InputDecoration _inputDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
@@ -120,11 +134,11 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (_lat == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please pick a location on the map')),
+        SnackBar(content: Text(l10n.snackPickLocation)),
       );
       return;
     }
@@ -170,7 +184,7 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'),
+              content: Text(l10n.errorPrefix(e.toString())),
               backgroundColor: AppColors.accentRed),
         );
       }
@@ -180,6 +194,7 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
   }
 
   void _showSuccessDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -199,14 +214,13 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                   size: 48, color: Colors.orange.shade700),
             ),
             const SizedBox(height: 20),
-            const Text('Location Submitted',
-                style: TextStyle(
+            Text(l10n.locationSubmittedTitle,
+                style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
             const SizedBox(height: 12),
             Text(
-              'Your $_typeLabel location is pending approval. '
-                  'It will appear on the map once approved.',
+              l10n.locationSubmittedBody(_typeLabel(l10n)),
               style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -228,7 +242,7 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text('Got it'),
+              child: Text(l10n.gotIt),
             ),
           ),
         ],
@@ -238,6 +252,8 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -245,9 +261,7 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          widget.existing == null
-              ? 'Register ${_typeLabel} location'
-              : 'Update $_typeLabel',
+          _appBarTitle(l10n),
           style: const TextStyle(
               color: Colors.white, fontWeight: FontWeight.w600),
         ),
@@ -270,11 +284,11 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
             TextFormField(
               controller: _nameController,
               validator: (v) =>
-              v == null || v.isEmpty ? 'Required' : null,
+              v == null || v.isEmpty ? l10n.validationRequired : null,
               decoration: _inputDecoration(
                 hint: widget.type == LocationType.nursery
-                    ? 'Nursery / Plantation Name'
-                    : 'Bale Buying Shop Name',
+                    ? l10n.hintNurseryName
+                    : l10n.hintShopName,
               ),
             ),
             const SizedBox(height: 16),
@@ -284,8 +298,8 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               validator: (v) =>
-              v == null || v.isEmpty ? 'Required' : null,
-              decoration: _inputDecoration(hint: 'Contact Number'),
+              v == null || v.isEmpty ? l10n.validationRequired : null,
+              decoration: _inputDecoration(hint: l10n.hintContactNumber),
             ),
             const SizedBox(height: 16),
 
@@ -294,15 +308,15 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
               controller: _descriptionController,
               maxLines: 4,
               validator: (v) =>
-              v == null || v.isEmpty ? 'Required' : null,
-              decoration: _inputDecoration(hint: 'Description'),
+              v == null || v.isEmpty ? l10n.validationRequired : null,
+              decoration: _inputDecoration(hint: l10n.hintDescription),
             ),
             const SizedBox(height: 16),
 
             // ── Opening Hours ─────────────────────────────────────────
             TextFormField(
               controller: _hoursController,
-              decoration: _inputDecoration(hint: 'Opening Hours'),
+              decoration: _inputDecoration(hint: l10n.hintOpeningHours),
             ),
             const SizedBox(height: 16),
 
@@ -321,7 +335,7 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                     Expanded(
                       child: Text(
                         _addressController.text.isEmpty
-                            ? 'Pick your location from the map'
+                            ? l10n.pickLocationHint
                             : _addressController.text,
                         style: TextStyle(
                           color: _addressController.text.isEmpty
@@ -476,8 +490,8 @@ class _RegisterLocationScreenState extends State<RegisterLocationScreen> {
                   )
                       : Text(
                     widget.existing == null
-                        ? 'Submit for Review'
-                        : 'Update Location',
+                        ? l10n.submitForReview
+                        : l10n.updateLocation,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

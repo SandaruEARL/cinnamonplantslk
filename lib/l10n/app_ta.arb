@@ -1,0 +1,373 @@
+{
+  "@@locale": "ta",
+
+  "selectLanguage": "மொழியை தேர்ந்தெடுக்கவும்",
+
+  "categoryAllLabel": "அனைத்தும்",
+  "categoryCinnamonPlants": "இலவங்கப்பட்டை செடிகள்",
+  "categoryCinnamonBales": "இலவங்கப்பட்டை கட்டுகள்",
+  "categoryCinnamonOil": "இலவங்கப்பட்டை எண்ணெய்",
+  "categoryCinnamonSoap": "இலவங்கப்பட்டை சோப்பு",
+  "categoryCinnamonScents": "இலவங்கப்பட்டை வாசனை",
+  "categoryOtherProducts": "மற்ற பொருட்கள்",
+
+  "loginTitle": "உள்நுழைவு",
+  "loginSubtitle": "Cinnamon Marketplace-க்கு மீண்டும் வரவேற்கிறோம்",
+  "emailHint": "மின்னஞ்சல்",
+  "passwordHint": "கடவுச்சொல்",
+  "loginButton": "உள்நுழைக",
+  "noAccount": "கணக்கு இல்லையா?",
+  "registerNow": "இப்போது பதிவு செய்யவும்",
+  "forgotPassword": "கடவுச்சொல் மறந்துவிட்டதா?",
+  "loginSuccess": "உள்நுழைவு வெற்றிகரமாகியது",
+  "loginFailed": "உள்நுழைவு தோல்வியடைந்தது",
+
+  "exploreMap": "வரைபடத்தை ஆராயுங்கள்",
+  "exploreMapSubtitle": "உங்களுக்கு அருகில் நர்சரிகள் மற்றும்\nகட்டு வாங்குவோரை கண்டறியுங்கள்",
+  "nurseryPlantations": "நர்சரி தோட்டங்கள்",
+  "baleBuyers": "கட்டு வாங்குவோர்",
+  "baleBuyingShops": "கட்டு வாங்கும் கடைகள்",
+  "myRegisteredLocations": "என் பதிவு செய்யப்பட்ட இடங்கள்",
+  "registerYourLocations": "உங்கள் இடங்களை பதிவு செய்யுங்கள்",
+
+  "navHome": "முகப்பு",
+  "navChat": "அரட்டை",
+  "navPredictions": "கணிப்புகள்",
+  "navTools": "கருவிகள்",
+
+  "aiFeatures": "AI அம்சங்கள்",
+  "pricePredict": "விலை கணிப்பு",
+  "pricePredictSubtitle": "முன்னறிவிப்பு",
+  "quickActions": "விரைவு செயல்கள்",
+  "buyPlants": "செடிகள் வாங்கு",
+  "expenses": "செலவுகள்",
+  "recentAds": "சமீபத்திய விளம்பரங்கள்",
+  "viewAll": "அனைத்தையும் காண்க",
+  "noAdsYet": "இன்னும் விளம்பரங்கள் இல்லை",
+
+  "toastLoginRequired": "நர்சரி உரிமையாளர் அல்லது கட்டு வாங்குவோர் கணக்கில் உள்நுழையவும்.",
+  "toastLocationRestricted": "நர்சரி உரிமையாளர்களும் கட்டு வாங்குவோரும் மட்டுமே இடங்களை பதிவு செய்யலாம்.",
+
+  "appVersion": "v.1.0.10 by EarlixLabs",
+
+  "registerNurseryTitle": "நர்சரி / தோட்ட இடத்தை பதிவு செய்யுங்கள்",
+  "registerShopTitle": "கட்டு வாங்கும் கடை இடத்தை பதிவு செய்யுங்கள்",
+  "updateNurseryTitle": "நர்சரி / தோட்டத்தை புதுப்பிக்கவும்",
+  "updateShopTitle": "கட்டு வாங்கும் கடையை புதுப்பிக்கவும்",
+
+  "hintNurseryName": "நர்சரி / தோட்டம் பெயர்",
+  "hintShopName": "கட்டு வாங்கும் கடை பெயர்",
+  "hintContactNumber": "தொடர்பு எண்",
+  "hintDescription": "விளக்கம்",
+  "hintOpeningHours": "திறக்கும் நேரங்கள்",
+
+  "validationRequired": "தேவை",
+
+  "pickLocationHint": "வரைபடத்திலிருந்து உங்கள் இடத்தை தேர்ந்தெடுக்கவும்",
+  "submitForReview": "மதிப்பாய்வுக்கு சமர்ப்பிக்கவும்",
+  "updateLocation": "இடத்தை புதுப்பிக்கவும்",
+
+  "locationSubmittedTitle": "இடம் சமர்ப்பிக்கப்பட்டது",
+  "locationSubmittedBody": "உங்கள் {typeLabel} இடம் அனுமதிக்காக காத்திருக்கிறது. அனுமதிக்கப்பட்டதும் வரைபடத்தில் தெரியும்.",
+  "@locationSubmittedBody": {
+    "placeholders": {
+      "typeLabel": { "type": "String" }
+    }
+  },
+  "gotIt": "சரி",
+
+  "errorPrefix": "பிழை: {message}",
+  "@errorPrefix": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "snackPickLocation": "தயவுசெய்து வரைபடத்திலிருந்து ஒரு இடத்தை தேர்ந்தெடுக்கவும்",
+
+  "myLocationsTitle": "என் பதிவு செய்யப்பட்ட இடங்கள்",
+  "plantationsLabel": "தோட்டங்கள்",
+  "baleBuyersLabel": "கட்டு வாங்குவோர்",
+  "plantationsDescription": "உங்கள் நர்சரியை பதிவு செய்யுங்கள், வாங்குவோர் வரைபடத்தில் உங்களை கண்டறியலாம்.",
+  "baleBuyersDescription": "உங்கள் கடையை பட்டியலிடுங்கள், அருகில் உள்ள விற்பனையாளர்கள் உங்களை எளிதாக கண்டறியலாம்.",
+  "locationsReviewNotice": "இடங்கள் வரைபடத்தில் தோன்றுவதற்கு முன் மதிப்பாய்வு செய்யப்படும்.",
+  "noLocationsYet": "நீங்கள் இன்னும் எந்த இடங்களையும் பதிவு செய்யவில்லை",
+
+  "addLocation": "இடத்தை சேர்க்கவும்",
+  "editLocation": "திருத்து",
+
+  "statusVisibleOnMap": "வரைபடத்தில் தெரியும்",
+  "statusPendingReview": "மதிப்பாய்வு நிலுவையில்",
+  "statusRejected": "நிராகரிக்கப்பட்டது",
+
+  "removeLocationTitle": "இடத்தை அகற்றவுமா?",
+  "removeNurseryBody": "உங்கள் நர்சரி இடம் வரைபடத்திலிருந்து அகற்றப்படும்.",
+  "removeShopBody": "உங்கள் கடை இடம் வரைபடத்திலிருந்து அகற்றப்படும்.",
+  "cancel": "ரத்து செய்",
+  "remove": "அகற்று",
+
+  "pickLocationTitle": "இடத்தை தேர்ந்தெடுக்கவும்",
+  "searchLocationHint": "இடத்தை தேடுங்கள்",
+  "confirmLocation": "உறுதிப்படுத்து",
+  "selectedLocation": "தேர்ந்தெடுக்கப்பட்ட இடம்",
+  "tapMapToSelect": "இடத்தை தேர்ந்தெடுக்க வரைபடத்தை தொடவும்",
+  "locationNotFound": "இடம் கண்டறியப்படவில்லை",
+  "couldNotFindLocation": "அந்த இடத்தை கண்டறிய முடியவில்லை",
+  "couldNotGetLocation": "இடத்தை பெற முடியவில்லை: {error}",
+  "@couldNotGetLocation": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "loadingLocations": "இடங்கள் ஏற்றுகிறது...",
+  "locationCount": "{count} இடங்கள்",
+  "@locationCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noLocationsRegistered": "இன்னும் {typeName} பதிவு செய்யவில்லை",
+  "@noLocationsRegistered": {
+    "placeholders": {
+      "typeName": { "type": "String" }
+    }
+  },
+
+  "callButton": "அழைக்கவும்",
+  "directionsButton": "திசைகள்",
+  "nurseryBadge": "நர்சரி",
+  "baleBuyerBadge": "கட்டு வாங்குவோர்",
+  "addedBadge": "சேர்க்கப்பட்டது",
+  "marketplaceTitle": "சந்தை",
+  "searchProducts": "பொருட்களை தேடுங்கள்...",
+  "sortBy": "வரிசைப்படுத்து",
+  "latest": "சமீபத்தியது",
+  "priceLowToHigh": "விலை: குறைவிலிருந்து அதிகம்",
+  "priceHighToLow": "விலை: அதிகத்திலிருந்து குறைவு",
+  "noProductsFound": "பொருட்கள் எதுவும் இல்லை",
+  "categoryAll": "அனைத்தும்",
+  "postAd": "விளம்பரம் இடுக",
+  "submitForAdReview": "மதிப்பாய்வுக்கு சமர்ப்பிக்கவும்",
+  "adPostedSuccess": "விளம்பரம் வெற்றிகரமாக பதிவிடப்பட்டது!",
+  "addImage": "படம் சேர்க்கவும்",
+  "titleHint": "தலைப்பு ( நர்சரி / தோட்டம் பெயர் )",
+  "descriptionHint": "விளக்கம்",
+  "priceHint": "விலை (ரூ)",
+  "quantityHint": "அளவு",
+  "gradeHint": "தரம்",
+  "locationHint": "இடம் (எ.கா. காலி, பட்டபோல, மாத்தரை)",
+  "pleaseAddImage": "குறைந்தது ஒரு படத்தை சேர்க்கவும்",
+  "myAdvertisements": "என் விளம்பரங்கள்",
+  "noAdsPosted": "நீங்கள் இன்னும் எந்த விளம்பரமும் இடவில்லை",
+  "adStatusLive": "நேரடி",
+  "adStatusPending": "மதிப்பாய்வு நிலுவையில்",
+  "adStatusRejected": "நிராகரிக்கப்பட்டது",
+  "rejectionReason": "காரணம்: {reason}",
+  "@rejectionReason": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
+  "productDetails": "பொருள் விவரங்கள்",
+  "descriptionLabel": "விளக்கம்",
+  "sellerInformation": "விற்பனையாளர் தகவல்",
+  "callButton": "அழைக்கவும்",
+  "whatsappButton": "வாட்ஸ்அப்",
+  "chatButton": "அரட்டை",
+  "shareFunctionSoon": "பகிர்வு செயல்பாடு விரைவில் வரும்!",
+  "couldNotLaunchDialer": "தொலைபேசி அழைப்பை தொடங்க முடியவில்லை",
+  "couldNotOpenWhatsapp": "வாட்ஸ்அப்பை திறக்க முடியவில்லை",
+  "pleaseLoginToChat": "அரட்டையிட உள்நுழையவும்",
+  "cannotChatWithSelf": "நீங்கள் உங்களுடனே அரட்டையிட முடியாது",
+  "quantityLabel": "அளவு {qty}",
+  "@quantityLabel": {
+    "placeholders": {
+      "qty": { "type": "int" }
+    }
+  },
+  "gradeLabel": "தரம்: {grade}",
+  "@gradeLabel": {
+    "placeholders": {
+      "grade": { "type": "String" }
+    }
+  },
+  "messagesTitle": "செய்திகள்",
+  "pleaseLoginToViewMessages": "செய்திகளை பார்க்க உள்நுழையவும்",
+  "errorLoadingChats": "அரட்டைகளை ஏற்றுவதில் பிழை: {error}",
+  "@errorLoadingChats": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "noMessagesYet": "இன்னும் செய்திகள் இல்லை",
+  "startChattingWithSellers": "விற்பனையாளர்களுடன் அரட்டையை தொடங்குங்கள்",
+  "startTheConversation": "உரையாடலை தொடங்குங்கள்!",
+  "writeAMessage": "செய்தி எழுதுங்கள்...",
+  "failedToSendMessage": "செய்தி அனுப்புவதில் தோல்வி: {error}",
+  "@failedToSendMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "failedToSendImage": "படம் அனுப்புவதில் தோல்வி: {error}",
+  "@failedToSendImage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "photoLabel": "📷 புகைப்படம்",
+
+  "validationEmailRequired": "மின்னஞ்சல் தேவை",
+  "validationEmailInvalid": "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்",
+  "validationPasswordRequired": "கடவுச்சொல் தேவை",
+  "validationPasswordTooShort": "கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்",
+  "validationPhoneRequired": "தொலைபேசி எண் தேவை",
+  "validationPhoneInvalid": "சரியான தொலைபேசி எண்ணை உள்ளிடவும் (10 இலக்கங்கள்)",
+  "validationFieldRequired": "{fieldName} தேவை",
+  "@validationFieldRequired": {
+    "placeholders": { "fieldName": { "type": "String" } }
+  },
+  "validationPriceRequired": "விலை தேவை",
+  "validationPriceInvalid": "சரியான விலையை உள்ளிடவும்",
+  "validationPasswordsDoNotMatch": "கடவுச்சொற்கள் பொருந்தவில்லை",
+  "pricePredictionsTitle": "விலை கணிப்புகள்",
+  "samplePrice": "மாதிரி விலை",
+  "currentPrice": "தற்போதைய விலை",
+  "demoLabel": "DEMO",
+  "monthlyChangeSuffix": "(4 வாரங்கள்)",
+  "monthlyChangeText": "{change} % (4 வாரங்கள்)",
+  "@monthlyChangeText": {
+    "placeholders": {
+      "change": { "type": "String" }
+    }
+  },
+  "vsNationalLabel": "தேசிய சராசரிக்கு எதிராக",
+  "vsNationalWithPrice": "{change} தேசிய விலையுடன் ஒப்பிடுகையில் (ரூ. {price})",
+  "@vsNationalWithPrice": {
+    "placeholders": {
+      "change": { "type": "String" },
+      "price": { "type": "String" }
+    }
+  },
+  "lastUpdated": "கடைசியாக புதுப்பிக்கப்பட்டது: {date}",
+  "@lastUpdated": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "weekForecastTitle": "4 - வார முன்னறிவிப்பு",
+  "districtLegend": "மாவட்டம்",
+  "nationalLegend": "தேசிய",
+  "weeklyBreakdownTitle": "வாராந்திர விவரம்",
+  "nextWeekLabel": "அடுத்த வாரம்",
+  "weekLabel": "வாரம் {week}",
+  "@weekLabel": {
+    "placeholders": { "week": { "type": "int" } }
+  },
+  "highestPrice": "அதிகபட்சம்: ரூ. {price}",
+  "@highestPrice": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+  "upwardTrend": "ஏறுமுக போக்கு",
+  "downwardTrend": "இறங்குமுக போக்கு",
+  "nationalLabel": "தேசிய: ",
+  "predictionDisclaimer": "வாராந்திர கணிப்புகள் 3 மாத வரலாற்று தரவு மற்றும் தேசிய சராசரிகளை அடிப்படையாகக் கொண்டவை. உண்மையான விலைகள் மாறுபடலாம்.",
+  "noPredictionsAvailable": "கணிப்புகள் எதுவும் இல்லை",
+  "selectDistrictAndGrade": "மாவட்டம் மற்றும் தரத்தை தேர்ந்தெடுக்கவும்",
+  "allDistricts": "அனைத்து மாவட்டங்கள்",
+  "allGrades": "அனைத்து தரங்கள்",
+  "toolsTitle": "கருவிகள்",
+  "managementTools": "மேலாண்மை கருவிகள்",
+  "expenseTracker": "செலவு கண்காணிப்பு",
+  "expenseTrackerDescription": "உங்கள் பண்ணை செலவுகளை கண்காணிக்கவும்",
+  "cropManagement": "பயிர் மேலாண்மை",
+  "cropManagementDescription": "உங்கள் பயிர்கள் மற்றும் அறுவடை அட்டவணையை நிர்வகிக்கவும்",
+  "analytics": "பகுப்பாய்வு",
+  "analyticsDescription": "உங்கள் பண்ணையின் தகவல்கள் மற்றும் புள்ளிவிவரங்களை பாருங்கள்",
+  "comingSoon": "விரைவில் வருகிறது!",
+
+  "addExpenseTitle": "செலவு சேர்க்கவும் — {farmerType}",
+  "@addExpenseTitle": {
+    "placeholders": { "farmerType": { "type": "String" } }
+  },
+  "categoryLabel": "வகை",
+  "amountLabel": "தொகை (ரூ.)",
+  "dateLabel": "தேதி",
+  "saveExpense": "செலவை சேமிக்கவும்",
+  "expenseAddedSuccess": "செலவு வெற்றிகரமாக சேர்க்கப்பட்டது!",
+
+  "expenseTrackerTitle": "செலவு கண்காணிப்பு",
+  "switchFarmerType": "விவசாயி வகையை மாற்றவும்",
+  "landOwnerLabel": "நில உரிமையாளர்",
+  "nurseryOwnerLabel": "நர்சரி உரிமையாளர்",
+  "baleBuyerShopLabel": "கட்டு வாங்கும் கடை",
+  "trackingLabel": "கண்காணிப்பு: {term}",
+  "@trackingLabel": {
+    "placeholders": { "term": { "type": "String" } }
+  },
+  "totalExpensesLabel": "{farmerType} — மொத்த செலவுகள்",
+  "@totalExpensesLabel": {
+    "placeholders": { "farmerType": { "type": "String" } }
+  },
+  "transactionsThisMonth": "இந்த மாதம் {count} பரிவர்த்தனைகள்",
+  "@transactionsThisMonth": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "expenseBreakdown": "செலவு விவரம்",
+  "recentTransactions": "சமீபத்திய பரிவர்த்தனைகள்",
+  "noExpensesThisMonth": "இந்த மாதம் செலவுகள் இல்லை",
+  "startTrackingCosts": "{farmerType} செலவுகளை கண்காணிக்க தொடங்குங்கள்",
+  "@startTrackingCosts": {
+    "placeholders": { "farmerType": { "type": "String" } }
+  },
+  "revenueLabel": "வருவாய்",
+  "revenueRs": "வருவாய்: ரூ. {amount}",
+  "@revenueRs": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "netProfitLoss": "நிகர லாபம் / நஷ்டம்",
+  "enterRevenue": "இந்த காலகட்டத்திற்கான வருவாயை உள்ளிடவும்",
+  "tapToEnterRevenue": "வருவாயை உள்ளிட்டு லாபத்தை காண தொடவும்",
+  "peelerShareReminder": "நினைவில் வைக்கவும்: இலவங்கப்பட்டை உரிப்பவர்கள் பொதுவாக பதப்படுத்தப்பட்ட மதிப்பில் 1/3 முதல் 1/2 வரை எடுக்கிறார்கள். இதை \"பதப்படுத்தல் தொழிலாளர் பங்கு\" செலவில் சேர்த்துள்ளீர்களா என்று உறுதி செய்யவும்.",
+  "pleaseLogin": "தயவுசெய்து உள்நுழைக",
+
+  "historyTitle": "{emoji} வரலாறு",
+  "@historyTitle": {
+    "placeholders": { "emoji": { "type": "String" } }
+  },
+  "allCategories": "அனைத்து வகைகள்",
+  "noExpensesYet": "இன்னும் செலவுகள் இல்லை",
+
+  "farmerTypeTermLandOwner": "பருவம் (6 மாதங்கள்)",
+  "farmerTypeTermNurseryOwner": "தொகுதி / மாதம்",
+  "farmerTypeTermBaleBuyer": "மாதம்",
+  "farmerTypeProfitLabelLandOwner": "இலவங்கப்பட்டை விற்பனை வருவாய்",
+  "farmerTypeProfitLabelNurseryOwner": "நாற்று விற்பனை வருவாய்",
+  "farmerTypeProfitLabelBaleBuyer": "இலவங்கப்பட்டை விற்பனை வருவாய்",
+  "settingsTitle": "அமைப்புகள்",
+  "preferencesSection": "விருப்பத்தேர்வுகள்",
+  "languageLabel": "மொழி",
+  "darkModeLabel": "இருண்ட பயன்முறை",
+  "darkModeSubtitle": "ஒளி மற்றும் இருண்ட கருப்பொருள் இடையே மாறவும்",
+  "darkModeSoon": "இருண்ட பயன்முறை விரைவில் வருகிறது!",
+  "notificationsSection": "அறிவிப்புகள்",
+  "pushNotificationsLabel": "Push அறிவிப்புகள்",
+  "pushNotificationsSubtitle": "புதிய செய்திகள் மற்றும் புதுப்பிப்புகளுக்கான அறிவிப்புகளை பெறுங்கள்",
+  "accountSection": "கணக்கு",
+  "privacyPolicyLabel": "தனியுரிமைக் கொள்கை",
+  "termsOfServiceLabel": "சேவை விதிமுறைகள்",
+  "aboutLabel": "பற்றி",
+  "aboutVersion": "பதிப்பு 1.0.0",
+  "logoutLabel": "வெளியேறு",
+  "logoutConfirmTitle": "வெளியேறு",
+  "logoutConfirmBody": "நீங்கள் நிச்சயமாக வெளியேற விரும்புகிறீர்களா?",
+  "appDescription": "AI-இயங்கும் அம்சங்களுடன் இலவங்கப்பட்டை வர்த்தகத்திற்கான இலங்கையின் முன்னணி சந்தை.",
+
+  "accountTitle": "கணக்கு",
+  "areYouSureLogout": "நீங்கள் உண்மையிலேயே வெளியேற விரும்புகிறீர்களா?",
+  "myAdsLabel": "என் விளம்பரங்கள்",
+  "savedSearchesLabel": "சேமித்த தேடல்கள்",
+  "myProfileLabel": "என் சுயவிவரம்",
+  "faqLabel": "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+
+  "editProfileTitle": "சுயவிவரத்தை திருத்து",
+  "roleLabel": "பங்கு",
+  "fullNameLabel": "முழு பெயர்",
+  "phoneNumberLabel": "தொலைபேசி எண்",
+  "locationLabel": "இடம்",
+  "locationHintEdit": "எ.கா., மாத்தளை, மத்திய மாகாணம்",
+  "saveChanges": "மாற்றங்களை சேமிக்கவும்",
+  "profileUpdatedSuccess": "சுயவிவரம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!"
+}

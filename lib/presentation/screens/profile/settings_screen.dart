@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../bloc/locale/locale_bloc.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,9 +21,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settingsTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.primaryGradient,
@@ -29,11 +33,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Preferences',
-              style: TextStyle(
+              l10n.preferencesSection,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors. textSecondary,
@@ -43,8 +47,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Language
           ListTile(
-            leading: const Icon(Icons.language, color: AppColors.primaryGreen),
-            title: const Text('Language'),
+            leading: const Icon(Icons.language, color: Colors.grey),
+            title: Text(l10n.languageLabel),
             subtitle: Text(_selectedLanguage),
             trailing: const Icon(Icons.chevron_right),
             onTap: _showLanguageDialog,
@@ -52,29 +56,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Theme
           SwitchListTile(
-            secondary: const Icon(Icons.dark_mode, color: AppColors. primaryGreen),
-            title: const Text('Dark Mode'),
-            subtitle: const Text('Switch between light and dark theme'),
+            secondary: const Icon(Icons.dark_mode, color: Colors.grey),
+            title: Text(l10n.darkModeLabel),
+            subtitle: Text(l10n.darkModeSubtitle),
             value: _darkModeEnabled,
-            activeColor: AppColors.primaryGreen,
+            activeColor: Colors.grey,
             onChanged: (value) {
               setState(() {
                 _darkModeEnabled = value;
               });
               // TODO: Implement theme switching
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Dark mode coming soon!')),
+              Fluttertoast.showToast(
+                msg: 'Dark mode coming soon!',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.black87,
+                textColor: Colors.white,
               );
             },
           ),
 
-          const Divider(),
 
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Notifications',
-              style: TextStyle(
+            l10n.notificationsSection,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textSecondary,
@@ -84,11 +92,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Notifications
           SwitchListTile(
-            secondary: const Icon(Icons.notifications, color: AppColors.primaryGreen),
-            title: const Text('Push Notifications'),
-            subtitle: const Text('Receive notifications for new messages and updates'),
+            secondary: const Icon(Icons.notifications, color: Colors.grey),
+            title: Text(l10n.pushNotificationsLabel),
+            subtitle: Text(l10n.pushNotificationsSubtitle),
             value: _notificationsEnabled,
-            activeColor: AppColors.primaryGreen,
+            activeColor: Colors.grey,
             onChanged: (value) {
               setState(() {
                 _notificationsEnabled = value;
@@ -96,13 +104,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
-          const Divider(),
 
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Account',
-              style: TextStyle(
+              l10n.accountSection,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textSecondary,
@@ -112,8 +120,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Privacy Policy
           ListTile(
-            leading: const Icon(Icons.privacy_tip, color: AppColors.primaryGreen),
-            title: const Text('Privacy Policy'),
+            leading: const Icon(Icons.privacy_tip, color: Colors.grey),
+            title: Text(l10n.privacyPolicyLabel),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Show privacy policy
@@ -122,8 +130,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Terms of Service
           ListTile(
-            leading: const Icon(Icons.description, color: AppColors.primaryGreen),
-            title: const Text('Terms of Service'),
+            leading: const Icon(Icons.description, color: Colors.grey),
+            title: Text(l10n.termsOfServiceLabel),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Show terms of service
@@ -132,21 +140,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // About
           ListTile(
-            leading: const Icon(Icons.info, color: AppColors.primaryGreen),
-            title: const Text('About'),
-            subtitle: const Text('Version 1.0.0'),
+            leading: const Icon(Icons.info, color: Colors.grey),
+            title: Text(l10n.aboutLabel),
+            subtitle: Text(l10n.aboutVersion),
             trailing: const Icon(Icons. chevron_right),
             onTap: _showAboutDialog,
           ),
 
-          const Divider(),
 
           // Logout
           ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.accentRed),
-            title: const Text(
-              'Logout',
-              style: TextStyle(color: AppColors.accentRed),
+            leading: const Icon(Icons.power_settings_new, color: Colors.grey),
+            title: Text(
+              l10n.logoutLabel,
+              style: const TextStyle(color: Colors.black87),
             ),
             onTap: () => _logout(context),
           ),
@@ -160,48 +167,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showLanguageDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Language'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.selectLanguage),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
               title: const Text('English'),
-              value: 'English',
+              value: 'en',
               groupValue: _selectedLanguage,
               onChanged: (value) {
-                setState(() {
-                  _selectedLanguage = value! ;
-                });
-                Navigator.pop(context);
+                setState(() => _selectedLanguage = value!);
+                context.read<LocaleBloc>().add(LocaleChanged(const Locale('en')));
+                Navigator.pop(dialogContext);
               },
             ),
             RadioListTile<String>(
-              title: const Text('Sinhala'),
-              value: 'Sinhala',
+              title: const Text('සිංහල'),
+              value: 'si',
               groupValue: _selectedLanguage,
               onChanged: (value) {
-                setState(() {
-                  _selectedLanguage = value! ;
-                });
-                Navigator. pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sinhala language coming soon!')),
-                );
+                setState(() => _selectedLanguage = value!);
+                context.read<LocaleBloc>().add(LocaleChanged(const Locale('si')));
+                Navigator.pop(dialogContext);
               },
             ),
             RadioListTile<String>(
-              title: const Text('Tamil'),
-              value: 'Tamil',
+              title: const Text('தமிழ்'),
+              value: 'ta',
               groupValue: _selectedLanguage,
               onChanged: (value) {
-                setState(() {
-                  _selectedLanguage = value!;
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tamil language coming soon!')),
-                );
+                setState(() => _selectedLanguage = value!);
+                context.read<LocaleBloc>().add(LocaleChanged(const Locale('ta')));
+                Navigator.pop(dialogContext);
               },
             ),
           ],
@@ -215,15 +213,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       applicationName: 'Cinnamon Marketplace',
       applicationVersion: '1.0.0',
-      applicationIcon: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.eco, color: Colors.white, size: 32),
-      ),
       children: [
         const Text(
           'Sri Lanka\'s premier marketplace for cinnamon trading with AI-powered features.',
@@ -233,19 +222,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _logout(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(l10n.logoutConfirmTitle),
+        content: Text(l10n.logoutConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout', style: TextStyle(color: AppColors.accentRed)),
+            child: Text(l10n.logoutLabel, style: const TextStyle(color: AppColors.accentRed)),
           ),
         ],
       ),

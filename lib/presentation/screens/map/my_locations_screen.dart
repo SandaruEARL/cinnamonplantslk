@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/location.dart';
+import '../../../l10n/app_localizations.dart';
 import 'register_location_screen.dart';
 
 class MyLocationsScreen extends StatelessWidget {
@@ -11,13 +12,15 @@ class MyLocationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       // ── AppBar ───────────────────────────────────────────────────────
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'My Registered Locations',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          l10n.myLocationsTitle,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -43,9 +46,8 @@ class MyLocationsScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _RegisterCard(
-                        label: 'Plantations',
-                        description:
-                        'Register your nursery so buyers can find you on the map.',
+                        label: l10n.plantationsLabel,
+                        description: l10n.plantationsDescription,
                         type: LocationType.nursery,
                         existing: locations
                             .where((l) => l.type == LocationType.nursery)
@@ -55,9 +57,8 @@ class MyLocationsScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _RegisterCard(
-                        label: 'Bale Buyers',
-                        description:
-                        'List your shop so sellers nearby can locate you easily.',
+                        label: l10n.baleBuyersLabel,
+                        description: l10n.baleBuyersDescription,
                         type: LocationType.shop,
                         existing: locations
                             .where((l) => l.type == LocationType.shop)
@@ -72,7 +73,7 @@ class MyLocationsScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  'Locations are reviewed before appearing on the map.',
+                  l10n.locationsReviewNotice,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade500,
@@ -96,7 +97,7 @@ class MyLocationsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "You haven't registered any locations yet",
+                          l10n.noLocationsYet,
                           style: TextStyle(
                             color: Colors.grey.shade500,
                             fontSize: 14,
@@ -148,6 +149,7 @@ class _RegisterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasExisting = existing != null;
 
     return Container(
@@ -181,7 +183,7 @@ class _RegisterCard extends StatelessWidget {
                           size: 10, color: Colors.green.shade700),
                       const SizedBox(width: 3),
                       Text(
-                        'Added',
+                        l10n.addedBadge,
                         style: TextStyle(
                           fontSize: 10,
                           color: Colors.green.shade700,
@@ -220,7 +222,7 @@ class _RegisterCard extends StatelessWidget {
                 size: 14,
               ),
               label: Text(
-                hasExisting ? 'Edit' : 'Add location',
+                hasExisting ? l10n.editLocation : l10n.addLocation,
                 style: const TextStyle(fontSize: 12),
               ),
               style: OutlinedButton.styleFrom(
@@ -297,7 +299,7 @@ class _LocationCard extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.location_off_outlined,
                   color: Colors.red),
-              tooltip: 'Remove location',
+              tooltip: AppLocalizations.of(context)!.removeLocationTitle,
               onPressed: () => _confirmDelete(context),
             ),
           ],
@@ -307,18 +309,20 @@ class _LocationCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Remove location?'),
+        title: Text(l10n.removeLocationTitle),
         content: Text(
-          'Your ${location.type == LocationType.nursery ? "nursery" : "shop"} '
-              'location will be removed from the map.',
+          location.type == LocationType.nursery
+              ? l10n.removeNurseryBody
+              : l10n.removeShopBody,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -330,7 +334,7 @@ class _LocationCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white),
-            child: const Text('Remove'),
+            child: Text(l10n.remove),
           ),
         ],
       ),
@@ -346,6 +350,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final Color bg;
     final Color fg;
     final String label;
@@ -354,17 +359,17 @@ class _StatusBadge extends StatelessWidget {
     if (location.isApproved) {
       bg = Colors.green.shade50;
       fg = Colors.green.shade700;
-      label = 'Visible on map';
+      label = l10n.statusVisibleOnMap;
       icon = Icons.check_circle_outline;
     } else if (location.isPending) {
       bg = Colors.orange.shade50;
       fg = Colors.orange.shade700;
-      label = 'Pending review';
+      label = l10n.statusPendingReview;
       icon = Icons.hourglass_top_rounded;
     } else {
       bg = Colors.red.shade50;
       fg = Colors.red.shade700;
-      label = location.rejectionReason ?? 'Rejected';
+      label = location.rejectionReason ?? l10n.statusRejected;
       icon = Icons.cancel_outlined;
     }
 

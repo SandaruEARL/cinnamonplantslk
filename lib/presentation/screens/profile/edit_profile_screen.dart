@@ -4,8 +4,10 @@ import '../../../core/app_colors.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/services/firebase/auth_service.dart';
 import '../../../domain/entities/user.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -33,9 +35,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(l10n.editProfileTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.primaryGradient,
@@ -47,31 +50,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const SizedBox(height: 16),
+            TextFormField(
+              initialValue: widget.user.userType,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: l10n.roleLabel,
+                filled: true,
+                fillColor: Colors.grey[100],
+              ),
+            ),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
-              validator: (value) => Validators.validateRequired(value, 'Name'),
-              decoration: const InputDecoration(
-                labelText: 'Full Name',
-                prefixIcon: Icon(Icons.person),
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.hintNurseryName),
+              ),
+              decoration: InputDecoration(
+                  labelText: l10n.fullNameLabel,
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
-              validator: Validators.validatePhone,
+              validator: (val) => Validators.validatePhone(
+                val,
+                requiredMessage: l10n.validationPhoneRequired,
+                invalidMessage: l10n.validationPhoneInvalid,
+              ),
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                prefixIcon: Icon(Icons.phone),
+              decoration: InputDecoration(
+                  labelText: l10n.phoneNumberLabel,
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                prefixIcon: Icon(Icons.location_on),
-                hintText: 'e.g., Matale, Central Province',
+              decoration: InputDecoration(
+                labelText: l10n.locationLabel,
+                  hintText: l10n.locationHintEdit,
               ),
             ),
             const SizedBox(height: 32),
@@ -89,7 +107,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-                  : const Text('Save Changes'),
+                  : Text(l10n.saveChanges),
             ),
           ],
         ),
@@ -98,6 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    final l10n = AppLocalizations.of(context)!;
     if (! _formKey.currentState!. validate()) return;
 
     setState(() => _isLoading = true);
@@ -114,17 +133,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context.read<AuthBloc>().add(AuthCheckRequested());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully! '),
-            backgroundColor: AppColors.accentGreen,
-          ),
+        Fluttertoast.showToast(
+          msg: l10n.profileUpdatedSuccess,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.black45,
+          textColor: Colors.white,
         );
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+      Fluttertoast.showToast(
+        msg: 'Error: $e',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red.shade400,
+        textColor: Colors.white,
       );
     } finally {
       setState(() => _isLoading = false);

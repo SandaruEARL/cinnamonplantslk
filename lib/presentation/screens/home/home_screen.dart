@@ -1,11 +1,16 @@
+import 'dart:math';
+
 import 'package:cinnamon_marketplace_app/presentation/screens/tools/tools_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/app_colors.dart';
+import '../../../core/utils/constants.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
 import '../../../domain/entities/location.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../widgets/product_card.dart';
@@ -15,12 +20,12 @@ import '../expense/expense_dashboard_screen.dart';
 import '../map/ads_map_screen.dart';
 import '../map/my_locations_screen.dart';
 import '../marketplace/marketplace_screen.dart';
-import '../profile/profile_screen.dart';
+import '../profile/settings_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  static final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -38,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      key: HomeScreen.scaffoldKey,
 
       // ── Drawer ───────────────────────────────────────────────────────
       drawer: Drawer(
@@ -69,30 +74,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 5),
 
                     // Title + subtitle
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Explore Map',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.exploreMap,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Find nurseries and bale\nbuyers near you',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                            height: 1.4,
+                          const SizedBox(height: 4),
+                          Text(
+                            AppLocalizations.of(context)!.exploreMapSubtitle,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              height: 1.4,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -105,12 +112,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // ── Nursery Plantations ───────────────────────────────
               _DrawerTile(
                 iconPath: 'assets/images/nursery.png',
-                title: 'Nursery Plantations',
+                title: AppLocalizations.of(context)!.nurseryPlantations,
                 onTap: () {
-                  HomeScreen.scaffoldKey.currentState?.closeDrawer();
+                  Navigator.of(context).pop();
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const AdsMapScreen(
-                      title: 'Nursery Plantations',
+                    builder: (_) => AdsMapScreen(
+                      title: AppLocalizations.of(context)!.nurseryPlantations,
                       locationType: LocationType.nursery,
                       pinColor: Colors.green,
                     ),
@@ -121,12 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // ── Bale Buyers ───────────────────────────────────────
               _DrawerTile(
                 iconPath: 'assets/images/bale_buyers.png',
-                title: 'Bale Buyers',
+                title: AppLocalizations.of(context)!.baleBuyingShops,
                 onTap: () {
-                  HomeScreen.scaffoldKey.currentState?.closeDrawer();
+                  Navigator.of(context).pop();
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const AdsMapScreen(
-                      title: 'Bale Buying Shops',
+                    builder: (_) => AdsMapScreen(
+                      title: AppLocalizations.of(context)!.baleBuyingShops,
                       locationType: LocationType.shop,
                       pinColor: AppColors.primaryGreen,
                     ),
@@ -137,23 +144,56 @@ class _HomeScreenState extends State<HomeScreen> {
               // ── Register / My Locations ───────────────────────────
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
+                  final isAuthenticated = state is AuthAuthenticated;
+                  final isAllowedType = isAuthenticated &&
+                      (state.user.userType == AppConstants.userTypeNurseryOwner ||
+                          state.user.userType == AppConstants.userTypeBaleBuyer);
+
                   return _DrawerTile(
                     iconPath: 'assets/images/location.png',
-                    title: state is AuthAuthenticated
-                        ? 'My Registered Locations'
-                        : 'Register your locations',
+                    title: isAuthenticated
+                        ? AppLocalizations.of(context)!.myRegisteredLocations
+                        : AppLocalizations.of(context)!.registerYourLocations,
+                    disabled: !isAuthenticated || (isAuthenticated && !isAllowedType),
                     onTap: () {
-                      HomeScreen.scaffoldKey.currentState?.closeDrawer();
-                      if (state is AuthAuthenticated) {
+
+                      if (!isAuthenticated) {
+                        Fluttertoast.showToast(
+                          msg: AppLocalizations.of(context)!.toastLoginRequired,
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          backgroundColor: const Color(0xFF323232),
+                          textColor: Colors.white,
+                          fontSize: 13.0,
+                        );
+
+                      } else if (isAllowedType) {
                         Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) =>
-                              MyLocationsScreen(userId: state.user.id),
+                          builder: (_) => MyLocationsScreen(userId: state.user.id),
                         ));
                       } else {
-                        Navigator.pushNamed(context, '/login');
+                        Fluttertoast.showToast(
+                          msg: AppLocalizations.of(context)!.toastLocationRestricted,
+                          toastLength: Toast.LENGTH_LONG,
+                          gravity: ToastGravity.BOTTOM,
+                          backgroundColor: const Color(0xFF323232),
+                          textColor: Colors.white,
+                          fontSize: 13.0,
+                        );
                       }
                     },
                   );
+                },
+              ),
+
+              _DrawerTile(
+                iconData: Icons.settings,
+                title: AppLocalizations.of(context)!.settingsTitle,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
+                  ));
                 },
               ),
 
@@ -163,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  'v.1.0.0 by EarlixLabs',
+                  'v.1.0.10 by EarlixLabs',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade400,
@@ -184,16 +224,16 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColors.primaryGreen,
         unselectedItemColor: AppColors.textSecondary,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Home'),
+              icon: const Icon(Icons.feed), label: l10n.navHome),
           BottomNavigationBarItem(
-              icon: Icon(Icons.chat), label: 'Chat'),
+              icon: const Icon(Icons.chat), label: l10n.navChat),
           BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.brain, size: 20),
-              label: 'Predictions'),
+              icon: const FaIcon(FontAwesomeIcons.chartLine, size: 20),
+              label: l10n.navPredictions),
           BottomNavigationBarItem(
-              icon: Icon(Icons.apps), label: 'Tools'),
+              icon: const Icon(Icons.apps), label: l10n.navTools),
         ],
       ),
     );
@@ -203,39 +243,68 @@ class _HomeScreenState extends State<HomeScreen> {
 // ── Drawer Tile ──────────────────────────────────────────────────────────────
 
 class _DrawerTile extends StatelessWidget {
-  final String iconPath;
+  final String? iconPath;       // make nullable
+  final IconData? iconData;     // add this
   final String title;
   final VoidCallback onTap;
+  final bool disabled;
 
   const _DrawerTile({
-    required this.iconPath,
+    this.iconPath,
+    this.iconData,
     required this.title,
     required this.onTap,
+    this.disabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Image.asset(
-        iconPath,
+    final iconWidget = iconPath != null
+        ? ColorFiltered(
+      colorFilter: disabled
+          ? const ColorFilter.matrix([])
+          : const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+      child: Image.asset(
+        iconPath!,
         width: 26,
         height: 26,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Icon(
-          Icons.image_outlined,
+        errorBuilder: (_, __, ___) => Icon(
+          iconData ?? Icons.image_outlined,
           size: 24,
-          color: AppColors.textSecondary,
+          color: disabled ? Colors.grey.shade300 : AppColors.textSecondary,
         ),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 15,
-          color: AppColors.textPrimary,
-        ),
-      ),
+    )
+        : Icon(
+      iconData ?? Icons.settings,
+      size: 24,
+      color: disabled ? Colors.grey.shade300 : Colors.black,
+    );
+
+    return InkWell(
       onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            iconWidget,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                  color: disabled ? Colors.grey.shade400 : AppColors.textPrimary,
+                ),
+              ),
+            ),
+            if (disabled)
+              Icon(Icons.lock_outline, size: 16, color: Colors.grey.shade400),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -247,6 +316,7 @@ class HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
@@ -255,7 +325,7 @@ class HomeContent extends StatelessWidget {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: const Text('Predictions'),
+        title: Text(l10n.navPredictions),
         flexibleSpace: Container(
           decoration:
           const BoxDecoration(gradient: AppColors.primaryGradient),
@@ -479,7 +549,7 @@ class _FeatureCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryGreen.withOpacity(0.3),
+              color: AppColors.primaryGreen.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -506,7 +576,7 @@ class _FeatureCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 12,
                     ),
                   ),
@@ -545,7 +615,7 @@ class _ActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon,

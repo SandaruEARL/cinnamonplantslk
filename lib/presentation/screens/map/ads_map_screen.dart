@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/location.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AdsMapScreen extends StatefulWidget {
   final String title;
@@ -29,6 +30,8 @@ class _AdsMapScreenState extends State<AdsMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -50,7 +53,7 @@ class _AdsMapScreenState extends State<AdsMapScreen> {
               FlutterMap(
                 mapController: _mapController,
                 options: const MapOptions(
-                  initialCenter: LatLng(7.8731, 80.7718), // Sri Lanka center
+                  initialCenter: LatLng(7.8731, 80.7718),
                   initialZoom: 8,
                 ),
                 children: [
@@ -97,26 +100,26 @@ class _AdsMapScreenState extends State<AdsMapScreen> {
 
               // Loading indicator
               if (snapshot.connectionState == ConnectionState.waiting)
-                const Positioned(
+                Positioned(
                   top: 16,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: Card(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(
                                   strokeWidth: 2),
                             ),
-                            SizedBox(width: 8),
-                            Text('Loading locations...'),
+                            const SizedBox(width: 8),
+                            Text(l10n.loadingLocations),
                           ],
                         ),
                       ),
@@ -137,8 +140,7 @@ class _AdsMapScreenState extends State<AdsMapScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '${locations.length} '
-                          '${locations.length == 1 ? 'location' : 'locations'}',
+                      l10n.locationCount(locations.length),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -170,7 +172,9 @@ class _AdsMapScreenState extends State<AdsMapScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'No ${widget.title.toLowerCase()} registered yet',
+                            l10n.noLocationsRegistered(
+                              widget.title.toLowerCase(),
+                            ),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                                 color: AppColors.textSecondary,
@@ -204,7 +208,7 @@ class _AdsMapScreenState extends State<AdsMapScreen> {
   }
 }
 
-// ── Bottom sheet ────────────────────────────────────────────
+// ── Bottom sheet ────────────────────────────────────────
 
 class _LocationDetailSheet extends StatelessWidget {
   final BusinessLocation location;
@@ -212,6 +216,7 @@ class _LocationDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isNursery = location.type == LocationType.nursery;
 
     return Container(
@@ -286,7 +291,7 @@ class _LocationDetailSheet extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            isNursery ? 'Nursery' : 'Bale Buyer',
+                            isNursery ? l10n.nurseryBadge : l10n.baleBuyerBadge,
                             style: TextStyle(
                               fontSize: 12,
                               color: isNursery
@@ -356,7 +361,7 @@ class _LocationDetailSheet extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _call(location.ownerPhone),
                         icon: const Icon(Icons.phone, size: 18),
-                        label: const Text('Call'),
+                        label: Text(l10n.callButton),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primaryGreen,
                           side: const BorderSide(
@@ -372,7 +377,7 @@ class _LocationDetailSheet extends StatelessWidget {
                         onPressed: () => _getDirections(
                             location.latitude, location.longitude),
                         icon: const Icon(Icons.directions, size: 18),
-                        label: const Text('Directions'),
+                        label: Text(l10n.directionsButton),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryGreen,
                           foregroundColor: Colors.white,

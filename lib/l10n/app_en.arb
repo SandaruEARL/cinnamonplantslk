@@ -1,0 +1,375 @@
+{
+  "@@locale": "en",
+
+  "selectLanguage": "Select Language",
+
+  "categoryAllLabel": "All",
+  "categoryCinnamonPlants": "Cinnamon Plants",
+  "categoryCinnamonBales": "Cinnamon Bales",
+  "categoryCinnamonOil": "Cinnamon Oil",
+  "categoryCinnamonSoap": "Cinnamon Soap",
+  "categoryCinnamonScents": "Cinnamon Scents",
+  "categoryOtherProducts": "Other Products",
+
+  "loginTitle": "Login",
+  "loginSubtitle": "Welcome back to Cinnamon Marketplace",
+  "emailHint": "Email",
+  "passwordHint": "Password",
+  "loginButton": "Login",
+  "noAccount": "Don't have an account?",
+  "registerNow": "Register now",
+  "forgotPassword": "Forgot Password?",
+  "loginSuccess": "Login successful",
+  "loginFailed": "Login failed",
+
+  "exploreMap": "Explore Map",
+  "exploreMapSubtitle": "Find nurseries and bale\nbuyers near you",
+  "nurseryPlantations": "Nursery Plantations",
+  "baleBuyers": "Bale Buyers",
+  "baleBuyingShops": "Bale Buying Shops",
+  "myRegisteredLocations": "My Registered Locations",
+  "registerYourLocations": "Register your locations",
+
+  "navHome": "Feed",
+  "navChat": "Chat",
+  "navPredictions": "Predictions",
+  "navTools": "Tools",
+
+  "aiFeatures": "AI Features",
+  "pricePredict": "Price Predict",
+  "pricePredictSubtitle": "Forecast",
+  "quickActions": "Quick Actions",
+  "buyPlants": "Buy Plants",
+  "expenses": "Expenses",
+  "recentAds": "Recent Ads",
+  "viewAll": "View All",
+  "noAdsYet": "No ads yet",
+
+  "toastLoginRequired": "Please log in with a Nursery Owner or Bale Buyer account.",
+  "toastLocationRestricted": "Only Nursery Owners and Bale Buyers can register locations.",
+
+  "appVersion": "v.1.0.10 by EarlixLabs",
+
+  "registerNurseryTitle": "Register Nursery / Plantation location",
+  "registerShopTitle": "Register Bale Buying Shop location",
+  "updateNurseryTitle": "Update Nursery / Plantation",
+  "updateShopTitle": "Update Bale Buying Shop",
+
+  "hintNurseryName": "Nursery / Plantation Name",
+  "hintShopName": "Bale Buying Shop Name",
+  "hintContactNumber": "Contact Number",
+  "hintDescription": "Description",
+  "hintOpeningHours": "Opening Hours",
+
+  "validationRequired": "Required",
+
+  "pickLocationHint": "Pick your location from the map",
+  "submitForReview": "Submit for Review",
+  "updateLocation": "Update Location",
+
+  "locationSubmittedTitle": "Location Submitted",
+  "locationSubmittedBody": "Your {typeLabel} location is pending approval. It will appear on the map once approved.",
+  "@locationSubmittedBody": {
+    "placeholders": {
+      "typeLabel": { "type": "String" }
+    }
+  },
+  "gotIt": "Got it",
+
+  "errorPrefix": "Error: {message}",
+  "@errorPrefix": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "snackPickLocation": "Please pick a location on the map",
+
+  "myLocationsTitle": "My Registered Locations",
+  "plantationsLabel": "Plantations",
+  "baleBuyersLabel": "Bale Buyers",
+  "plantationsDescription": "Register your nursery so buyers can find you on the map.",
+  "baleBuyersDescription": "List your shop so sellers nearby can locate you easily.",
+  "locationsReviewNotice": "Locations are reviewed before appearing on the map.",
+  "noLocationsYet": "You haven't registered any locations yet",
+
+  "addLocation": "Add location",
+  "editLocation": "Edit",
+
+  "statusVisibleOnMap": "Visible on map",
+  "statusPendingReview": "Pending review",
+  "statusRejected": "Rejected",
+
+  "removeLocationTitle": "Remove location?",
+  "removeNurseryBody": "Your nursery location will be removed from the map.",
+  "removeShopBody": "Your shop location will be removed from the map.",
+  "cancel": "Cancel",
+  "remove": "Remove",
+
+  "pickLocationTitle": "Pick Location",
+  "searchLocationHint": "Search for location",
+  "confirmLocation": "Confirm",
+  "selectedLocation": "Selected Location",
+  "tapMapToSelect": "Tap map to select location",
+  "locationNotFound": "Location not found",
+  "couldNotFindLocation": "Could not find that location",
+  "couldNotGetLocation": "Could not get location: {error}",
+  "@couldNotGetLocation": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "loadingLocations": "Loading locations...",
+  "locationCount": "{count} {count, plural, =1{location} other{locations}}",
+  "@locationCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noLocationsRegistered": "No {typeName} registered yet",
+  "@noLocationsRegistered": {
+    "placeholders": {
+      "typeName": { "type": "String" }
+    }
+  },
+
+  "callButton": "Call",
+  "directionsButton": "Directions",
+  "nurseryBadge": "Nursery",
+  "baleBuyerBadge": "Bale Buyer",
+  "addedBadge": "Added",
+
+  "marketplaceTitle": "Feed",
+  "searchProducts": "Search products...",
+  "sortBy": "Sort By",
+  "latest": "Latest",
+  "priceLowToHigh": "Price: Low to High",
+  "priceHighToLow": "Price: High to Low",
+  "noProductsFound": "No products found",
+  "categoryAll": "All",
+  "postAd": "Post Advertisement",
+  "submitForAdReview": "Submit for Review",
+  "adPostedSuccess": "Advertisement posted successfully!",
+  "addImage": "Add image",
+  "titleHint": "Title ( nursery / plantation name )",
+  "descriptionHint": "Description",
+  "priceHint": "Price (Rs)",
+  "quantityHint": "Qty",
+  "gradeHint": "Grade",
+  "locationHint": "Location (Ex. Galle, batapola, matara)",
+  "pleaseAddImage": "Please add at least one image",
+  "myAdvertisements": "My Advertisements",
+  "noAdsPosted": "You haven't posted any ads yet",
+  "adStatusLive": "Live",
+  "adStatusPending": "Pending review",
+  "adStatusRejected": "Rejected",
+  "rejectionReason": "Reason: {reason}",
+  "@rejectionReason": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
+  "productDetails": "Product Details",
+  "descriptionLabel": "Description",
+  "sellerInformation": "Seller Information",
+  "callButton": "Call",
+  "whatsappButton": "Whatsapp",
+  "chatButton": "Chat",
+  "shareFunctionSoon": "Share functionality coming soon!",
+  "couldNotLaunchDialer": "Could not launch phone dialer",
+  "couldNotOpenWhatsapp": "Could not open WhatsApp",
+  "pleaseLoginToChat": "Please login to chat",
+  "cannotChatWithSelf": "You cannot chat with yourself",
+  "quantityLabel": "Qty {qty}",
+  "@quantityLabel": {
+    "placeholders": {
+      "qty": { "type": "int" }
+    }
+  },
+  "gradeLabel": "Grade: {grade}",
+  "@gradeLabel": {
+    "placeholders": {
+      "grade": { "type": "String" }
+    }
+  },
+
+  "messagesTitle": "Messages",
+  "pleaseLoginToViewMessages": "Please login to view messages",
+  "errorLoadingChats": "Error loading chats: {error}",
+  "@errorLoadingChats": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "noMessagesYet": "No messages yet",
+  "startChattingWithSellers": "Start chatting with sellers",
+  "startTheConversation": "Start the conversation!",
+  "writeAMessage": "Write a message...",
+  "failedToSendMessage": "Failed to send message: {error}",
+  "@failedToSendMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "failedToSendImage": "Failed to send image: {error}",
+  "@failedToSendImage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "photoLabel": "📷 Photo",
+
+  "validationEmailRequired": "Email is required",
+  "validationEmailInvalid": "Enter a valid email",
+  "validationPasswordRequired": "Password is required",
+  "validationPasswordTooShort": "Password must be at least 6 characters",
+  "validationPhoneRequired": "Phone number is required",
+  "validationPhoneInvalid": "Enter a valid phone number (10 digits)",
+  "validationFieldRequired": "{fieldName} is required",
+  "@validationFieldRequired": {
+    "placeholders": { "fieldName": { "type": "String" } }
+  },
+  "validationPriceRequired": "Price is required",
+  "validationPriceInvalid": "Enter a valid price",
+  "validationPasswordsDoNotMatch": "Passwords do not match",
+  "pricePredictionsTitle": "Price Predictions",
+  "samplePrice": "Sample Price",
+  "currentPrice": "Current Price",
+  "demoLabel": "DEMO",
+  "monthlyChangeSuffix": "(4 weeks)",
+  "monthlyChangeText": "{change} % (4 weeks)",
+  "@monthlyChangeText": {
+    "placeholders": {
+      "change": { "type": "String" }
+    }
+  },
+  "vsNationalLabel": "vs National",
+  "vsNationalWithPrice": "{change} vs National (Rs. {price})",
+  "@vsNationalWithPrice": {
+    "placeholders": {
+      "change": { "type": "String" },
+      "price": { "type": "String" }
+    }
+  },
+  "lastUpdated": "Last updated: {date}",
+  "@lastUpdated": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "weekForecastTitle": "4 - week forecast",
+  "districtLegend": "District",
+  "nationalLegend": "National",
+  "weeklyBreakdownTitle": "Weekly Breakdown",
+  "nextWeekLabel": "Next Week",
+  "weekLabel": "Week {week}",
+  "@weekLabel": {
+    "placeholders": { "week": { "type": "int" } }
+  },
+  "highestPrice": "Highest: Rs. {price}",
+  "@highestPrice": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+  "upwardTrend": "UPWARD TREND",
+  "downwardTrend": "DOWNWARD TREND",
+  "nationalLabel": "National: ",
+  "predictionDisclaimer": "Weekly predictions based on 3 months of historical data and national benchmarks. Actual prices may vary.",
+  "noPredictionsAvailable": "No predictions available",
+  "selectDistrictAndGrade": "Select a district and grade",
+  "allDistricts": "All Districts",
+  "allGrades": "All Grades",
+  "toolsTitle": "Tools",
+  "managementTools": "Management Tools",
+  "expenseTracker": "Expense Tracker",
+  "expenseTrackerDescription": "Track and manage your farm expenses",
+  "cropManagement": "Crop Management",
+  "cropManagementDescription": "Manage your crops and harvest schedule",
+  "analytics": "Analytics",
+  "analyticsDescription": "View insights and statistics about your farm",
+  "comingSoon": "Coming soon!",
+
+  "addExpenseTitle": "Add Expense — {farmerType}",
+  "@addExpenseTitle": {
+    "placeholders": { "farmerType": { "type": "String" } }
+  },
+  "categoryLabel": "Category",
+  "amountLabel": "Amount (Rs.)",
+  "dateLabel": "Date",
+  "saveExpense": "Save Expense",
+  "expenseAddedSuccess": "Expense added successfully!",
+
+  "expenseTrackerTitle": "Expense Tracker",
+  "switchFarmerType": "Switch farmer type",
+  "landOwnerLabel": "Land Owner",
+  "nurseryOwnerLabel": "Nursery Owner",
+  "baleBuyerShopLabel": "Bale Buyer Shop",
+  "trackingLabel": "Tracking: {term}",
+  "@trackingLabel": {
+    "placeholders": { "term": { "type": "String" } }
+  },
+  "totalExpensesLabel": "{farmerType} — Total Expenses",
+  "@totalExpensesLabel": {
+    "placeholders": { "farmerType": { "type": "String" } }
+  },
+  "transactionsThisMonth": "{count} transactions this month",
+  "@transactionsThisMonth": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "expenseBreakdown": "Expense Breakdown",
+  "recentTransactions": "Recent Transactions",
+  "noExpensesThisMonth": "No expenses this month",
+  "startTrackingCosts": "Start tracking your {farmerType} costs",
+  "@startTrackingCosts": {
+    "placeholders": { "farmerType": { "type": "String" } }
+  },
+  "revenueLabel": "Revenue",
+  "revenueRs": "Revenue: Rs. {amount}",
+  "@revenueRs": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "netProfitLoss": "Net Profit / Loss",
+  "enterRevenue": "Enter your revenue for this period",
+  "tapToEnterRevenue": "Tap to enter revenue & see profit",
+  "peelerShareReminder": "Remember: Cinnamon peelers typically take 1/3 to 1/2 of the processed cinnamon value. Make sure you've included this under \"Processing Workers Share\" expenses.",
+  "pleaseLogin": "Please login",
+
+  "historyTitle": "{emoji} History",
+  "@historyTitle": {
+    "placeholders": { "emoji": { "type": "String" } }
+  },
+  "allCategories": "All Categories",
+  "noExpensesYet": "No expenses yet",
+
+  "farmerTypeTermLandOwner": "Season (6 months)",
+  "farmerTypeTermNurseryOwner": "Batch / Month",
+  "farmerTypeTermBaleBuyer": "Month",
+  "farmerTypeProfitLabelLandOwner": "Cinnamon Sale Revenue",
+  "farmerTypeProfitLabelNurseryOwner": "Seedling Sales Revenue",
+  "farmerTypeProfitLabelBaleBuyer": "Cinnamon Sales Revenue",
+  "settingsTitle": "Settings",
+  "preferencesSection": "Preferences",
+  "languageLabel": "Language",
+  "darkModeLabel": "Dark Mode",
+  "darkModeSubtitle": "Switch between light and dark theme",
+  "darkModeSoon": "Dark mode coming soon!",
+  "notificationsSection": "Notifications",
+  "pushNotificationsLabel": "Push Notifications",
+  "pushNotificationsSubtitle": "Receive notifications for new messages and updates",
+  "accountSection": "Account",
+  "privacyPolicyLabel": "Privacy Policy",
+  "termsOfServiceLabel": "Terms of Service",
+  "aboutLabel": "About",
+  "aboutVersion": "Version 1.0.0",
+  "logoutLabel": "Logout",
+  "logoutConfirmTitle": "Logout",
+  "logoutConfirmBody": "Are you sure you want to logout?",
+  "appDescription": "Sri Lanka's premier marketplace for cinnamon trading with AI-powered features.",
+
+  "accountTitle": "Account",
+  "areYouSureLogout": "Are you sure you want to logout?",
+  "myAdsLabel": "My Ads",
+  "savedSearchesLabel": "Saved searches",
+  "myProfileLabel": "My Profile",
+  "faqLabel": "FAQ",
+
+  "editProfileTitle": "Edit Profile",
+  "roleLabel": "Role",
+  "fullNameLabel": "Full Name",
+  "phoneNumberLabel": "Phone Number",
+  "locationLabel": "Location",
+  "locationHintEdit": "e.g., Matale, Central Province",
+  "saveChanges": "Save Changes",
+  "profileUpdatedSuccess": "Profile updated successfully!"
+}

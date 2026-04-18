@@ -141,25 +141,10 @@ class _SplashBodyState extends State<_SplashBody>
               scale: _logoScale,
               child: FadeTransition(
                 opacity: _logoFade,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
-                        blurRadius: 24,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.eco,
-                    size: 64,
-                    color: AppColors.primaryGreen,
-                  ),
+                child: Image.asset(
+                  'assets/images/onboarding_buy_sell.png',
+                  width: 100,
+                  height: 100,
                 ),
               ),
             ),
@@ -188,7 +173,7 @@ class _SplashBodyState extends State<_SplashBody>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Marketplace',
+                        'Plants Lk',
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -214,7 +199,8 @@ class _SplashBodyState extends State<_SplashBody>
                 child: Transform.translate(
                   offset: Offset(0, _taglineSlide.value),
                   child: Text(
-                    "Sri Lanka's Cinnamon Trading Hub",
+                    "Find cinnamon plants, find cinnamon nurseries, find cinnamon bale buyers, see current cinnamon market prices, see predictions",
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.white.withOpacity(0.75),
                       letterSpacing: 0.5,
