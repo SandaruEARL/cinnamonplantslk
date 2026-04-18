@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/utils/validators.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../home/home_screen.dart';
-
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -24,17 +25,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  String _selectedUserType = AppConstants.userTypeFarmer;
+  String _selectedUserType = AppConstants.userTypeNurseryOwner;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  // ── Shared input decoration ────────────────────────────────────
+  InputDecoration _inputDecoration({String? hint, Widget? suffixIcon}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: const Color(0xFFF0F0F0),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.primaryBrown),
+        iconTheme: const IconThemeData(color: AppColors.primaryGreen),
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
@@ -43,11 +79,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               MaterialPageRoute(builder: (context) => const HomeScreen()),
             );
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.accentRed,
-              ),
+            Fluttertoast.showToast(
+              msg: state.message,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red.shade400,
+              textColor: Colors.white,
             );
           }
         },
@@ -61,7 +98,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   Text(
                     'Create Account',
-                    style: Theme.of(context).textTheme.displayMedium,
+                    style: Theme.of(context)
+                        .textTheme
+                        .displayMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
 
@@ -69,7 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   Text(
                     'Join the marketplace today',
-                    style: Theme. of(context).textTheme. bodyLarge?.copyWith(
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -77,165 +117,189 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Name field
+                  // ── Full Name ──────────────────────────────────
                   TextFormField(
                     controller: _nameController,
-                    validator: (value) => Validators.validateRequired(value, 'Name'),
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
+                    validator: (val) => Validators.validateRequired(
+                      val,
+                      requiredMessage: l10n.validationFieldRequired(l10n.hintNurseryName),
                     ),
+                    decoration: _inputDecoration(hint: 'Full Name'),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Email field
+                  // ── Email ──────────────────────────────────────
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: Validators.validateEmail,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
+                    validator: (val) => Validators.validateEmail(
+                      val,
+                      requiredMessage: l10n.validationEmailRequired,
+                      invalidMessage: l10n.validationEmailInvalid,
                     ),
+                    decoration: _inputDecoration(hint: 'Email'),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Phone field
+                  // ── Phone ──────────────────────────────────────
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    validator: Validators.validatePhone,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      prefixIcon: Icon(Icons.phone),
-                      hintText: '0771234567',
+                    validator: (val) => Validators.validatePhone(
+                      val,
+                      requiredMessage: l10n.validationPhoneRequired,
+                      invalidMessage: l10n.validationPhoneInvalid,
                     ),
+                    decoration: _inputDecoration(hint: 'Phone Number'),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // User type dropdown
+                  // ── User type dropdown ─────────────────────────
                   DropdownButtonFormField<String>(
                     value: _selectedUserType,
-                    decoration: const InputDecoration(
-                      labelText: 'I am a',
-                      prefixIcon: Icon(Icons.business),
-                    ),
+                    decoration: _inputDecoration(hint: 'I am a'),
                     items: const [
                       DropdownMenuItem(
-                        value: AppConstants.userTypeNursery,
-                        child: Text(AppConstants.userTypeNursery),
+                        value: AppConstants.userTypeNurseryOwner,
+                        child: Text('Nursery Owner'),
                       ),
                       DropdownMenuItem(
-                        value: AppConstants.userTypeFarmer,
-                        child: Text(AppConstants.userTypeFarmer),
+                        value: AppConstants.userTypeBuyer,
+                        child: Text('Buyer'),
                       ),
                       DropdownMenuItem(
-                        value: AppConstants. userTypeBuyer,
-                        child: Text(AppConstants.userTypeBuyer),
-                      ),
-                      DropdownMenuItem(
-                        value: AppConstants. userTypeSeller,
-                        child: Text(AppConstants.userTypeSeller),
+                        value: AppConstants.userTypeBaleBuyer,
+                        child: Text('Bale Buyer'),
                       ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedUserType = value! ;
-                      });
-                    },
+                    onChanged: (value) =>
+                        setState(() => _selectedUserType = value!),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Password field
+                  // ── Password ───────────────────────────────────
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    validator: Validators.validatePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
+                    validator: (val) => Validators.validatePassword(
+                      val,
+                      requiredMessage: l10n.validationPasswordRequired,
+                      tooShortMessage: l10n.validationPasswordTooShort,
+                    ),
+                    decoration: _inputDecoration(
+                      hint: 'Password',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: const Color(0xFFAAAAAA),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                        onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Confirm password field
+                  // ── Confirm Password ───────────────────────────
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
                     validator: (value) {
                       if (value != _passwordController.text) {
-                        return 'Passwords do not match';
+                        return l10n.validationPasswordsDoNotMatch;
                       }
                       return null;
                     },
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                    decoration: _inputDecoration(
+                      hint: 'Confirm Password',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                          _obscureConfirmPassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: const Color(0xFFAAAAAA),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
+                        onPressed: () => setState(() =>
+                        _obscureConfirmPassword =
+                        !_obscureConfirmPassword),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 32),
 
-                  // Register button
+                  // ── Create Account button (gradient) ───────────
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       final isLoading = state is AuthLoading;
-
-                      return ElevatedButton(
-                        onPressed: isLoading ? null : _handleRegister,
-                        child: isLoading
-                            ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors. white),
+                      return DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.greenGradient,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                              AppColors.primaryGreen.withOpacity(0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: SizedBox(
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            onPressed: isLoading ? null : _handleRegister,
+                            child: isLoading
+                                ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                AlwaysStoppedAnimation<Color>(
+                                    Colors.white),
+                              ),
+                            )
+                                : const Text(
+                              'Create Account',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        )
-                            : const Text('Create Account'),
+                        ),
                       );
                     },
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Login link
+                  // ── Login link ─────────────────────────────────
                   Row(
-                    mainAxisAlignment: MainAxisAlignment. center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Already have an account? ',
-                        style: Theme.of(context). textTheme.bodyMedium,
+                        'Already have an account?',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       TextButton(
-                        onPressed: () {
-                          Navigator. of(context).pop();
-                        },
+                        onPressed: () => Navigator.of(context).pop(),
                         child: const Text('Login'),
                       ),
                     ],
@@ -255,8 +319,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         AuthSignUpRequested(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          name: _nameController.text. trim(),
-          phone: _phoneController.text. trim(),
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
           userType: _selectedUserType,
         ),
       );

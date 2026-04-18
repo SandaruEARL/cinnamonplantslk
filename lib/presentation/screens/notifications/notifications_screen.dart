@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../../../core/app_colors.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -88,7 +87,7 @@ class NotificationsScreen extends StatelessWidget {
           final isRead = notification['isRead'] as bool;
 
           return Container(
-            color: isRead ? null : AppColors.primaryBrown. withOpacity(0.05),
+            color: isRead ? null : AppColors.primaryGreen.withOpacity(0.05),
             child: ListTile(
               leading: Container(
                 padding: const EdgeInsets.all(12),
@@ -129,7 +128,7 @@ class NotificationsScreen extends StatelessWidget {
                 width: 12,
                 height: 12,
                 decoration: const BoxDecoration(
-                  color: AppColors.primaryBrown,
+                  color: AppColors.primaryGreen,
                   shape: BoxShape. circle,
                 ),
               )
@@ -161,7 +160,7 @@ class NotificationsScreen extends StatelessWidget {
       case 'price':
         return AppColors.accentYellow;
       case 'ad':
-        return AppColors.primaryBrown;
+        return AppColors.primaryGreen;
       default:
         return AppColors.textSecondary;
     }

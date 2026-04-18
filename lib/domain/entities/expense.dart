@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class Expense extends Equatable {
@@ -12,7 +13,7 @@ class Expense extends Equatable {
   const Expense({
     required this.id,
     required this.userId,
-    required this. category,
+    required this.category,
     required this.amount,
     required this.description,
     required this.date,
@@ -26,20 +27,24 @@ class Expense extends Equatable {
       category: json['category'] as String,
       amount: (json['amount'] as num).toDouble(),
       description: json['description'] as String,
-      date: DateTime.parse(json['date'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      // Handle both Timestamp (Firestore) and String (legacy)
+      date: json['date'] is Timestamp
+          ? (json['date'] as Timestamp).toDate()
+          : DateTime.parse(json['date'] as String),
+      createdAt: json['createdAt'] is Timestamp
+          ? (json['createdAt'] as Timestamp).toDate()
+          : DateTime.parse(json['createdAt'] as String),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'userId': userId,
       'category': category,
       'amount': amount,
       'description': description,
-      'date': date.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
+      'date': Timestamp.fromDate(date),
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 

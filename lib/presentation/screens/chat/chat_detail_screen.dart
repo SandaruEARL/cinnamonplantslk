@@ -7,18 +7,18 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/messaging_service.dart';
 import '../../../data/services/firebase/storage_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
-
 
 class ChatDetailScreen extends StatefulWidget {
   final String otherUserId;
   final String otherUserName;
-  final String?  otherUserImage;
+  final String? otherUserImage;
 
   const ChatDetailScreen({
     super.key,
-    required this. otherUserId,
+    required this.otherUserId,
     required this.otherUserName,
     this.otherUserImage,
   });
@@ -30,17 +30,33 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
   bool _isSending = false;
+  bool _isTyping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    final hasText = _messageController.text.trim().isNotEmpty;
+    if (hasText != _isTyping) {
+      setState(() => _isTyping = hasText);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppColors. primaryBrown,
+              backgroundColor: AppColors.primaryGreen,
               backgroundImage: widget.otherUserImage != null
                   ? CachedNetworkImageProvider(widget.otherUserImage!)
                   : null,
@@ -86,7 +102,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -109,7 +125,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Start the conversation! ',
+                              'Start the conversation!',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
@@ -120,16 +136,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       );
                     }
 
-                    final messages = snapshot.data! ;
+                    final messages = snapshot.data!;
+
+                    // Mark messages as read
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      final messagingService = context.read<MessagingService>();
+                      final chatId = messagingService.getChatId(
+                        state.user.id,
+                        widget.otherUserId,
+                      );
+                      messagingService.markAsRead(chatId, state.user.id);
+                    });
 
                     return ListView.builder(
                       controller: _scrollController,
                       reverse: true,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: messages. length,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 16,
+                      ),
+                      itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[index];
-                        final isMe = message. senderId == state.user.id;
+                        final isMe = message.senderId == state.user.id;
 
                         return _ChatBubble(
                           message: message,
@@ -142,66 +171,78 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
 
               // Message Input
+              // Message Input
               Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: const BoxDecoration(
                   color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
                 ),
                 child: SafeArea(
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.image),
-                        color: AppColors.primaryBrown,
-                        onPressed: _pickImage,
-                      ),
+                      // Text Field
                       Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide. none,
-                            ),
-                            filled: true,
-                            fillColor: AppColors.background,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(25),
                           ),
-                          maxLines: null,
-                          textCapitalization: TextCapitalization. sentences,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _messageController,
+                                  focusNode: _focusNode,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Write a message...',
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  maxLines: null,
+                                  textCapitalization: TextCapitalization.sentences,
+                                ),
+                              ),
+                              // Send Button (inside text field, right side)
+                              if (_isTyping && !_isSending)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.send),
+                                    color: AppColors.primaryGreen,
+                                    onPressed: _sendMessage,
+                                    padding: const EdgeInsets.all(8),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 40,
+                                      minHeight: 40,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      _isSending
-                          ? const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          ),
+
+                      // Camera and Gallery Icons (right side, outside field)
+                      if (!_isTyping) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.camera_alt_outlined),
+                          color: AppColors.primaryGreen,
+                          onPressed: _pickImageFromCamera,
+                          padding: const EdgeInsets.all(8),
                         ),
-                      )
-                          : IconButton(
-                        icon: const Icon(Icons.send),
-                        color: AppColors.primaryBrown,
-                        onPressed: _sendMessage,
-                      ),
+                        IconButton(
+                          icon: const Icon(Icons.image_outlined),
+                          color: AppColors.primaryGreen,
+                          onPressed: _pickImageFromGallery,
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -223,7 +264,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     setState(() => _isSending = true);
 
     try {
-      await context. read<MessagingService>(). sendMessage(
+      await context.read<MessagingService>().sendMessage(
         senderId: authState.user.id,
         receiverId: widget.otherUserId,
         text: text,
@@ -232,17 +273,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _messageController.clear();
       _scrollToBottom();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send message: $e')),
+        );
+      }
     } finally {
-      setState(() => _isSending = false);
+      if (mounted) {
+        setState(() => _isSending = false);
+      }
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImageFromGallery() async {
+    await _pickImage(ImageSource.gallery);
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    await _pickImage(ImageSource.camera);
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker. pickImage(source: ImageSource. gallery);
+    final XFile? image = await picker.pickImage(source: source);
 
     if (image == null) return;
 
@@ -259,13 +312,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         widget.otherUserId,
       );
 
-      final imageUrl = await context.read<StorageService>(). uploadChatImage(
+      final imageUrl = await context.read<StorageService>().uploadChatImage(
         chatId,
         File(image.path),
       );
 
       // Send message with image
-      await messagingService. sendMessage(
+      await messagingService.sendMessage(
         senderId: authState.user.id,
         receiverId: widget.otherUserId,
         text: '📷 Photo',
@@ -274,11 +327,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
       _scrollToBottom();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send image: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send image: $e')),
+        );
+      }
     } finally {
-      setState(() => _isSending = false);
+      if (mounted) {
+        setState(() => _isSending = false);
+      }
     }
   }
 
@@ -287,16 +344,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _scrollController.animateTo(
         0,
         duration: const Duration(milliseconds: 300),
-        curve: Curves. easeOut,
+        curve: Curves.easeOut,
       );
     }
   }
 
   @override
   void dispose() {
+    _messageController.removeListener(_onTextChanged);
     _messageController.dispose();
     _scrollController.dispose();
-    super. dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 }
 
@@ -312,19 +371,18 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+        isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (! isMe) const SizedBox(width: 48),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                gradient: isMe
-                    ? AppColors.primaryGradient
-                    : null,
-                color: isMe ?  null : AppColors.background,
+                gradient: isMe ? AppColors.primaryGradient : null,
+                color: isMe ? null : AppColors.background,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -355,26 +413,61 @@ class _ChatBubble extends StatelessWidget {
                       ),
                     ),
                   const SizedBox(height: 4),
-                  Text(
-                    _formatTime(message.timestamp),
-                    style: TextStyle(
-                      color: isMe
-                          ? Colors.white. withOpacity(0.7)
-                          : AppColors.textSecondary,
-                      fontSize: 11,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _formatTime(message.timestamp),
+                        style: TextStyle(
+                          color: isMe
+                              ? Colors.white.withOpacity(0.7)
+                              : AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 4),
+                        _buildStatusIcon(),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
           ),
-          if (isMe) const SizedBox(width: 48),
         ],
       ),
     );
   }
 
+  Widget _buildStatusIcon() {
+    IconData icon;
+    Color color = Colors.white.withOpacity(0.7);
+
+    switch (message.status) {
+      case MessageStatus.sending:
+        icon = Icons.access_time;
+        break;
+      case MessageStatus.sent:
+        icon = Icons.check;
+        break;
+      case MessageStatus.delivered:
+        icon = Icons.done_all;
+        break;
+      case MessageStatus.read:
+        icon = Icons.done_all;
+        color = Colors.lightBlueAccent;
+        break;
+    }
+
+    return Icon(
+      icon,
+      size: 14,
+      color: color,
+    );
+  }
+
   String _formatTime(DateTime dateTime) {
-    return '${dateTime.hour.toString(). padLeft(2, '0')}:${dateTime.minute. toString().padLeft(2, '0')}';
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

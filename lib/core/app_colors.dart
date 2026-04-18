@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+
+  static const _iconColor = Color(0xFF9E9E9E);      // grey-500 — icons
+  static const _sectionColor = Color(0xFF9E9E9E);   // same for section headers
+  static const _titleColor = Color(0xFF212121);      // near-black for titles
+  static const _subtitleColor = Color(0xFF757575);   // grey-600 for subtitles
+
   // Primary Colors
-  static const primaryBrown = Color(0xFF8B4513);
-  static const secondaryBrown = Color(0xFFD2691E);
-  static const lightBrown = Color(0xFFDEB887);
+  static const primaryGreen = Color(0xFF2A9C2A);
+  static const secondaryGreen = Color(0xFF1F7A1F);
+  static const lightGreen = Color(0xFF8FD98F);
 
   // Accent Colors
   static const accentGreen = Color(0xFF10b981);
@@ -26,8 +32,17 @@ class AppColors {
 
   // Gradients
   static const primaryGradient = LinearGradient(
-    colors: [primaryBrown, secondaryBrown],
+    colors: [primaryGreen, secondaryGreen],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  static const deepGreen    = Color(0xFF244A19);         // gradient end
+
+  static const greenGradient = LinearGradient(
+    colors: [primaryGreen, deepGreen],                   // 0% → 100%
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+// ─────────────────────────────────────────────────────────────────────
 }

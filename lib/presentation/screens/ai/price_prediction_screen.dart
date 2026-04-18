@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/ai/tflite_service.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PricePredictionScreen extends StatefulWidget {
   const PricePredictionScreen({super.key});
@@ -13,34 +14,21 @@ class PricePredictionScreen extends StatefulWidget {
 }
 
 class _PricePredictionScreenState extends State<PricePredictionScreen> {
-  // Available districts and grades
   final List<String> _districts = [
-    'All Districts',
-    'Galle',
-    'Matara',
-    'Hambantota',
-    'Kalutara',
-    'Ratnapura',
-    'Gampaha',
+    ' Badulla', 'Colombo', 'Galle', 'Gampaha',
+    'Hambantota', 'Kalutara', 'Matara', 'Monaragala', 'Ratnapura',
   ];
 
   final List<String> _grades = [
-    'All Grades',
-    'Alba',
-    'C5 Special',
-    'C5',
-    'C4',
-    'M5',
-    'M4',
-    'H1',
-    'H2',
+    'Alba', 'C-4', 'C-5', 'C-5 Sp', 'M-4',
+    'M-5', 'H-1', 'H-2', 'H-Faq', 'Heen', 'Gorosu',
   ];
 
-  String _selectedDistrict = 'All Districts';
-  String _selectedGrade = 'All Grades';
-
+  String _selectedDistrict = 'Galle';
+  String _selectedGrade = 'C-4';
   Map<String, dynamic>? _predictionData;
   bool _isLoading = true;
+  String? _dataUpdatedAt;
 
   @override
   void initState() {
@@ -50,638 +38,471 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
 
   Future<void> _loadPredictions() async {
     setState(() => _isLoading = true);
-
     try {
       final tfliteService = context.read<TFLiteService>();
 
-      // Get predictions based on selected filters
-      final data = await tfliteService.predictPrices(
-        district: _selectedDistrict == 'All Districts' ? null : _selectedDistrict,
-        grade: _selectedGrade == 'All Grades' ? null : _selectedGrade,
-      );
+      if (tfliteService.getModelUpdatedAt() == null) {
+        await tfliteService.checkForModelUpdate();
+      }
 
+      final data = await tfliteService.predictPrices(
+        district: _selectedDistrict,
+        grade: _selectedGrade,
+      );
       setState(() {
         _predictionData = data;
+        _dataUpdatedAt = context.read<TFLiteService>().getModelUpdatedAt();
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Error loading predictions: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
-          SliverAppBar(
-            expandedHeight: 120,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Price Predictions'),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
-              ),
-            ),
-          ),
+      backgroundColor: Colors.grey[100],
 
-          // Filters
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.grey[100],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Filter by:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // District Filter
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedDistrict,
-                              isExpanded: true,
-                              items: _districts.map((district) {
-                                return DropdownMenuItem(
-                                  value: district,
-                                  child: Text(district),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() {
-                                    _selectedDistrict = value;
-                                  });
-                                  _loadPredictions();
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Grade Filter
-                  Row(
-                    children: [
-                      const Icon(Icons.grade, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedGrade,
-                              isExpanded: true,
-                              items: _grades.map((grade) {
-                                return DropdownMenuItem(
-                                  value: grade,
-                                  child: Text(grade),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() {
-                                    _selectedGrade = value;
-                                  });
-                                  _loadPredictions();
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          SliverToBoxAdapter(
-            child: _isLoading
-                ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(48.0),
-                child: CircularProgressIndicator(),
-              ),
-            )
-                : _buildContent(),
-          ),
-        ],
+      // ── AppBar ────────────────────────────────────────────────────
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          l10n.pricePredictionsTitle,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration:
+          const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _loadPredictions,
-        backgroundColor: AppColors.primaryBrown,
-        child: const Icon(Icons.refresh),
+
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _predictionData == null
+          ? _buildEmptyState()
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildFilters(),
+            const SizedBox(height: 16),
+            _buildPriceCard(),
+            const SizedBox(height: 24),
+            _buildChart(),
+            const SizedBox(height: 24),
+            _buildPredictionsList(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_predictionData == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(48.0),
-          child: Column(
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.grey,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No predictions available',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Try selecting different filters',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
+  Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.show_chart, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(l10n.noPredictionsAvailable,
+              style: TextStyle(fontSize: 18, color: Colors.grey[600])),
+          const SizedBox(height: 8),
+          Text(l10n.selectDistrictAndGrade,
+              style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+        ],
+      ),
+    );
+  }
+
+  // ── Filters ─────────────────────────────────────────────────────
+  Widget _buildFilters() {
+    return Row(
+      children: [
+        Expanded(child: _buildDropdown(
+          value: _selectedDistrict,
+          items: _districts,
+          onChanged: (value) {
+            setState(() => _selectedDistrict = value!);
+            _loadPredictions();
+          },
+        )),
+        const SizedBox(width: 12),
+        Expanded(child: _buildDropdown(
+          value: _selectedGrade,
+          items: _grades,
+          onChanged: (value) {
+            setState(() => _selectedGrade = value!);
+            _loadPredictions();
+          },
+        )),
+      ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade600),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          isDense: true,
+          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+          items: items.map((item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Text(item,
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: onChanged,
         ),
-      );
-    }
+      ),
+    );
+  }
 
+  // ── Price Card ───────────────────────────────────────────────────
+  Widget _buildPriceCard() {
+    final l10n = AppLocalizations.of(context)!;
     final currentPrice = _predictionData!['currentPrice'] as double;
-    final predictions = _predictionData!['predictions'] as List;
-    final weeklyChange = _predictionData!['weeklyChange'] as double;
-    final trend = _predictionData!['trend'] as String;
+    final monthlyChange = _predictionData!['monthlyChange'] as double;
     final isMock = _predictionData!['mock'] ?? false;
+    final nationalPrice = _predictionData!['nationalPrice'] as double?;
+    final priceVsNational = nationalPrice != null
+        ? ((currentPrice - nationalPrice) / nationalPrice * 100)
+        : null;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4A4A4A),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mock Data Warning (if using mock data)
-          if (isMock)
-            Card(
-              color: AppColors.accentYellow.withOpacity(0.2),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.warning_amber, color: AppColors.accentYellow),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Showing sample data. Select specific district and grade for real predictions.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          // Label row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isMock ? l10n.samplePrice : l10n.currentPrice,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
-            ),
-
-          if (isMock) const SizedBox(height: 16),
-
-          // Selection Summary
-          if (!isMock)
-            Card(
-              color: AppColors.primaryBrown.withOpacity(0.1),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, color: AppColors.primaryBrown),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Showing $_selectedGrade in $_selectedDistrict',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Based on 30 days of historical data',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          const SizedBox(height: 16),
-
-          // Current Price Card
-          Card(
-            elevation: 4,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        isMock ? 'Sample Price' : 'Current Market Price',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                      if (!isMock) ...[
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'Rs. ',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                        ),
-                      ),
-                      Text(
-                        currentPrice.toStringAsFixed(2),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        '/kg',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Icon(
-                        weeklyChange >= 0 ? Icons.trending_up : Icons.trending_down,
-                        color: weeklyChange >= 0 ? AppColors.accentGreen : AppColors.accentRed,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${weeklyChange >= 0 ? '+' : ''}${weeklyChange.toStringAsFixed(1)}% next 7 days',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Price Trend Chart
-          const Text(
-            '7-Day Price Forecast',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 250,
-                    child: LineChart(
-                      _buildChartData(currentPrice, predictions),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTrendIndicator(trend),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Predictions Table (Daily breakdown)
-          const Text(
-            'Daily Price Predictions',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          ...predictions.asMap().entries.map((entry) {
-            final index = entry.key;
-            final prediction = entry.value;
-
-            // Get date and price
-            final date = prediction['date'] as DateTime;
-            final avgPrice = prediction['average_price'] as double;
-            final highPrice = prediction['high_price'] as double;
-            final confidence = prediction['confidence'] as double;
-
-            // Calculate change from current price
-            final change = ((avgPrice - currentPrice) / currentPrice * 100);
-
-            // Day label
-            final dayLabel = index == 0
-                ? 'Tomorrow'
-                : index == 1
-                ? 'Day ${index + 1}'
-                : 'Day ${index + 1}';
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(12),
+              if (isMock)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBrown.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.calendar_today,
-                    color: AppColors.primaryBrown,
-                  ),
-                ),
-                title: Row(
-                  children: [
-                    Text(
-                      dayLabel,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      DateFormat('MMM dd').format(date),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Text(
-                      'High: Rs. ${highPrice.toStringAsFixed(0)} • Confidence: ${confidence.toStringAsFixed(0)}%',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(
-                          change >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                          size: 12,
-                          color: change >= 0 ? AppColors.accentGreen : AppColors.accentRed,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)}% vs today',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: change >= 0 ? AppColors.accentGreen : AppColors.accentRed,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Rs. ${avgPrice.toStringAsFixed(0)}',
+                  child: Text(l10n.demoLabel,
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryBrown,
-                      ),
-                    ),
-                    Text(
-                      'avg',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold)),
                 ),
-              ),
-            );
-          }).toList(),
+            ],
+          ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
-          // Quick Compare Button
-          if (_selectedDistrict != 'All Districts' || _selectedGrade != 'All Grades')
-            ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _selectedDistrict = 'All Districts';
-                  _selectedGrade = 'All Grades';
-                });
-                _loadPredictions();
-              },
-              icon: const Icon(Icons.clear_all),
-              label: const Text('Clear Filters'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300],
-                foregroundColor: Colors.black87,
-                minimumSize: const Size(double.infinity, 48),
-              ),
+          // Big price
+          Text(
+            'Rs.${currentPrice.toStringAsFixed(0)} / KG',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
             ),
+          ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // Disclaimer
+          // Monthly change pill
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.accentYellow.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accentYellow),
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.info_outline,
-                  color: AppColors.accentYellow,
+                Icon(
+                  monthlyChange >= 0
+                      ? Icons.trending_up
+                      : Icons.trending_down,
+                  color: Colors.white,
+                  size: 16,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Predictions are based on historical data and market trends. Actual prices may vary.',
-                    style: TextStyle(
-                      color: AppColors.textPrimary.withOpacity(0.7),
-                      fontSize: 12,
-                    ),
+                const SizedBox(width: 6),
+                Text(
+                  l10n.monthlyChangeText(
+                    '${monthlyChange >= 0 ? '+' : ''}${monthlyChange.toStringAsFixed(1)}',
                   ),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 24),
+          // National comparison pill
+          if (nationalPrice != null && priceVsNational != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    priceVsNational >= 0
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      l10n.vsNationalWithPrice(
+                        '${priceVsNational >= 0 ? '+' : ''}${priceVsNational.toStringAsFixed(1)}',
+                        nationalPrice.toStringAsFixed(0),
+                      ),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (_dataUpdatedAt != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const SizedBox(width: 5),
+                Text(
+                  l10n.lastUpdated(_formatUpdatedAt(_dataUpdatedAt!)),
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  LineChartData _buildChartData(double currentPrice, List predictions) {
-    final spots = <FlSpot>[
-      FlSpot(0, currentPrice),
+  // ── Chart ────────────────────────────────────────────────────────
+  Widget _buildChart() {
+    final currentPrice = _predictionData!['currentPrice'] as double;
+    final predictions = _predictionData!['predictions'] as List;
+    final trend = _predictionData!['trend'] as String;
+    final nationalPrice = _predictionData!['nationalPrice'] as double?;
+
+    final List<_ChartData> chartData = [
+      _ChartData(DateTime.now(), currentPrice),
+      ...predictions.map((p) =>
+          _ChartData(p['date'] as DateTime, p['average_price'] as double)),
     ];
 
-    for (int i = 0; i < predictions.length; i++) {
-      final prediction = predictions[i];
-      final avgPrice = prediction['average_price'] as double;
-      spots.add(FlSpot((i + 1).toDouble(), avgPrice));
+    List<_ChartData>? nationalData;
+    if (nationalPrice != null) {
+      nationalData = [
+        _ChartData(DateTime.now(), nationalPrice),
+        ...predictions
+            .where((p) => p['national_average'] != null)
+            .map((p) =>
+            _ChartData(p['date'] as DateTime, p['national_average'] as double)),
+      ];
     }
 
-    // Calculate min/max for better chart scaling
-    final allPrices = [currentPrice, ...predictions.map((p) => p['average_price'] as double)];
+    final allPrices = [
+      ...chartData.map((d) => d.price),
+      if (nationalData != null) ...nationalData.map((d) => d.price),
+    ];
     final minPrice = allPrices.reduce((a, b) => a < b ? a : b);
     final maxPrice = allPrices.reduce((a, b) => a > b ? a : b);
-    final padding = (maxPrice - minPrice) * 0.1;
+    final padding = (maxPrice - minPrice) * 0.15;
 
-    return LineChartData(
-      minY: minPrice - padding,
-      maxY: maxPrice + padding,
-      gridData: const FlGridData(
-        show: true,
-        drawVerticalLine: true,
-      ),
-      titlesData: FlTitlesData(
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 60,
-            getTitlesWidget: (value, meta) {
-              return Text(
-                'Rs. ${value.toInt()}',
-                style: const TextStyle(fontSize: 10),
-              );
-            },
+    const borderColor = AppColors.primaryGreen;
+    final nationalColor = AppColors.primaryGreen.withOpacity(0.45);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('4 - week forecast',
+                style: TextStyle(
+                    fontSize: 17, fontWeight: FontWeight.bold)),
+            if (nationalData != null)
+              Row(
+                children: [
+                  _buildLegendItem('District', borderColor),
+                  const SizedBox(width: 10),
+                  _buildLegendItem('National', nationalColor,
+                      isDashed: true),
+                ],
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ),
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              final labels = ['Now', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
-              if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                return Text(labels[value.toInt()]);
-              }
-              return const Text('');
-            },
-          ),
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(show: true),
-      lineBarsData: [
-        LineChartBarData(
-          spots: spots,
-          isCurved: true,
-          color: AppColors.primaryBrown,
-          barWidth: 3,
-          dotData: const FlDotData(show: true),
-          belowBarData: BarAreaData(
-            show: true,
-            color: AppColors.primaryBrown.withOpacity(0.1),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    height: 200,
+                    child: SfCartesianChart(
+                      backgroundColor: Colors.transparent,
+                      plotAreaBorderWidth: 0,
+                      primaryXAxis: DateTimeAxis(
+                        edgeLabelPlacement: EdgeLabelPlacement.shift,
+                        majorGridLines: const MajorGridLines(
+                            width: 0.5, color: Color(0xFFEEEEEE)),
+                        axisLabelFormatter: (details) => ChartAxisLabel(
+                          details.text,
+                          TextStyle(
+                              color: Colors.grey[600], fontSize: 10),
+                        ),
+                        dateFormat: DateFormat.MMMd(),
+                      ),
+                      primaryYAxis: NumericAxis(
+                        minimum: minPrice - padding,
+                        maximum: maxPrice + padding,
+                        majorGridLines: const MajorGridLines(
+                            width: 0.5, color: Color(0xFFEEEEEE)),
+                        numberFormat: NumberFormat.compact(),
+                        axisLine: const AxisLine(width: 0),
+                        axisLabelFormatter: (details) => ChartAxisLabel(
+                          'Rs ${details.text}',
+                          TextStyle(
+                              color: Colors.grey[600], fontSize: 10),
+                        ),
+                      ),
+                      series: <CartesianSeries<_ChartData, DateTime>>[
+                        AreaSeries<_ChartData, DateTime>(
+                          dataSource: chartData,
+                          xValueMapper: (d, _) => d.date,
+                          yValueMapper: (d, _) => d.price,
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primaryGreen.withOpacity(0.35),
+                              AppColors.primaryGreen.withOpacity(0.05),
+                              Colors.transparent,
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderColor: borderColor,
+                          borderWidth: 2,
+                          animationDuration: 0,
+                        ),
+                        if (nationalData != null &&
+                            nationalData.isNotEmpty)
+                          LineSeries<_ChartData, DateTime>(
+                            dataSource: nationalData,
+                            xValueMapper: (d, _) => d.date,
+                            yValueMapper: (d, _) => d.price,
+                            color: nationalColor,
+                            width: 2,
+                            dashArray: const <double>[5, 5],
+                            animationDuration: 0,
+                            markerSettings: MarkerSettings(
+                              isVisible: true,
+                              shape: DataMarkerType.circle,
+                              color: nationalColor,
+                              borderColor: Colors.white,
+                              borderWidth: 2,
+                              height: 6,
+                              width: 6,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildTrendIndicator(trend),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
+  Widget _buildLegendItem(String label, Color color,
+      {bool isDashed = false}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isDashed)
+          CustomPaint(
+              size: const Size(20, 2),
+              painter: DashedLinePainter(color: color))
+        else
+          Container(width: 20, height: 2, color: color),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 11)),
+      ],
+    );
+  }
+
   Widget _buildTrendIndicator(String trend) {
+    final l10n = AppLocalizations.of(context)!;
     final isUpward = trend == 'upward';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -695,15 +516,18 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isUpward ? Icons.arrow_upward : Icons.arrow_downward,
-            color: isUpward ? AppColors.accentGreen : AppColors.accentRed,
+            isUpward ? Icons.trending_up : Icons.trending_down,
+            color:
+            isUpward ? AppColors.accentGreen : AppColors.accentRed,
             size: 16,
           ),
           const SizedBox(width: 8),
           Text(
-            '${trend.toUpperCase()} TREND',
+            isUpward ? l10n.upwardTrend : l10n.downwardTrend,
             style: TextStyle(
-              color: isUpward ? AppColors.accentGreen : AppColors.accentRed,
+              color: isUpward
+                  ? AppColors.accentGreen
+                  : AppColors.accentRed,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -712,4 +536,207 @@ class _PricePredictionScreenState extends State<PricePredictionScreen> {
       ),
     );
   }
+
+  // ── Weekly Breakdown ─────────────────────────────────────────────
+  Widget _buildPredictionsList() {
+    final l10n = AppLocalizations.of(context)!;
+    final currentPrice = _predictionData!['currentPrice'] as double;
+    final predictions = _predictionData!['predictions'] as List;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.weeklyBreakdownTitle,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+
+        ...predictions.take(4).map((prediction) {
+          final date = prediction['date'] as DateTime;
+          final avgPrice = prediction['average_price'] as double;
+          final highPrice = prediction['high_price'] as double;
+          final change = ((avgPrice - currentPrice) / currentPrice * 100);
+          final nationalAvg = prediction['national_average'] as double?;
+          final weeksDiff = (date.difference(DateTime.now()).inDays / 7).round();
+          final weekLabel = weeksDiff == 1
+              ? l10n.nextWeekLabel
+              : l10n.weekLabel(weeksDiff);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF358841),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Left: labels
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            weekLabel,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('MMM dd').format(date),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.highestPrice(highPrice.toStringAsFixed(0)),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Right: price + change
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Rs. ${avgPrice.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              change >= 0
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              size: 13,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)}%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // National row
+                if (nationalAvg != null) ...[
+                  const SizedBox(height: 10),
+                  const Divider(height: 1, color: Colors.white24),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(l10n.nationalLabel,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12)),
+                      Text('Rs. ${nationalAvg.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12)),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${avgPrice > nationalAvg ? '+' : ''}${(avgPrice - nationalAvg).toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          );
+        }).toList(),
+
+        const SizedBox(height: 8),
+
+        // Disclaimer
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.info_outline, size: 14, color: Colors.grey[500]),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.predictionDisclaimer,
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+  String _formatUpdatedAt(String rawDate) {
+    try {
+      return DateFormat('MMM dd, yyyy').format(DateTime.parse(rawDate));
+    } catch (_) {
+      return rawDate;
+    }
+  }
 }
+
+// ── Chart data ────────────────────────────────────────────────────────────────
+
+class _ChartData {
+  final DateTime date;
+  final double price;
+  _ChartData(this.date, this.price);
+}
+
+// ── Dashed line painter ───────────────────────────────────────────────────────
+
+class DashedLinePainter extends CustomPainter {
+  final Color color;
+  DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    const dashWidth = 3.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, size.height / 2),
+          Offset(startX + dashWidth, size.height / 2), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+

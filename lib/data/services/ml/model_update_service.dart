@@ -6,9 +6,12 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 100% FREE Model Update Service
-/// Uses GitHub + jsdelivr CDN (no credit card needed!)
+/// Model Update Service
+/// Uses GitHub + jsdelivr CDN
 class ModelUpdateService {
+
+  static const String _keyUpdatedAt = 'model_updated_at';
+
   // PRIMARY: GitHub Raw URLs (no CDN cache issues)
   static const String _baseUrl =
       'https://raw.githubusercontent.com/SandaruEARL/cinnamon-models/main/models';
@@ -34,6 +37,8 @@ class ModelUpdateService {
 
   // Check every 24 hours
   final Duration _checkInterval = const Duration(hours: 24);
+
+  String? getUpdatedAt() => _prefs.getString(_keyUpdatedAt);
 
   final SharedPreferences _prefs;
 
@@ -64,6 +69,7 @@ class ModelUpdateService {
 
       // Save check time
       await _prefs.setString(_keyLastCheck, DateTime.now().toIso8601String());
+      await _prefs.setString(_keyUpdatedAt, remoteVersion.updatedAt);
 
       // Check if update needed
       if (currentVersion != null &&
@@ -194,6 +200,7 @@ class ModelUpdateService {
       // Update metadata with actual downloaded hash
       await _prefs.setString(_keyCurrentVersion, updateInfo.newVersion);
       await _prefs.setString(_keyModelHash, downloadedHash);
+      await _prefs.setString(_keyUpdatedAt, updateInfo.updateDate);
 
       debugPrint('✅ Model v${updateInfo.newVersion} installed');
       return true;
@@ -243,6 +250,7 @@ class ModelUpdateService {
   Future<File> getModelFile() async {
     return await _getLocalModelFile();
   }
+
 
   /// Download preprocessing.json
   Future<bool> downloadPreprocessing() async {

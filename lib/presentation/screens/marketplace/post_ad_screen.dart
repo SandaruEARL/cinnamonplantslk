@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/app_colors.dart';
+import '../../../core/utils/category_localizer.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/services/cloudinary/cloudinary_service.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 
@@ -31,62 +34,108 @@ class _PostAdScreenState extends State<PostAdScreen> {
   final List<File> _selectedImages = [];
   bool _isLoading = false;
 
+  // ── Shared input decoration ──────────────────────────────────────────
+  InputDecoration _inputDecoration({String? hint}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
+      filled: true,
+      fillColor: const Color(0xFFF0F0F0),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      // ── AppBar ─────────────────────────────────────────────────────
       appBar: AppBar(
-        title: const Text('Post Advertisement'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          l10n.postAd,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.primaryGradient,
           ),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
+
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Image Picker
-            const Text(
-              'Product Images',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 8),
+
+            // ── Image Picker ──────────────────────────────────────────
             SizedBox(
-              height: 120,
+              height: 100,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  // Add image button
                   GestureDetector(
                     onTap: _pickImages,
                     child: Container(
-                      width: 120,
+                      width: 100,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.divider, width: 2),
+                        color: const Color(0xFFF0F0F0),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Column(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_photo_alternate, size: 40),
-                          SizedBox(height: 8),
-                          Text('Add Photos'),
+                          const Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 32,
+                            color: Color(0xFFAAAAAA),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            l10n.addImage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFAAAAAA),
+                            ),
+                          )
                         ],
                       ),
                     ),
                   ),
+
                   // Selected images
                   ..._selectedImages.map((image) {
                     return Stack(
                       children: [
                         Container(
-                          width: 120,
+                          width: 100,
                           margin: const EdgeInsets.only(right: 8),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
@@ -100,11 +149,8 @@ class _PostAdScreenState extends State<PostAdScreen> {
                           top: 4,
                           right: 12,
                           child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedImages.remove(image);
-                              });
-                            },
+                            onTap: () =>
+                                setState(() => _selectedImages.remove(image)),
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: const BoxDecoration(
@@ -114,7 +160,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                               child: const Icon(
                                 Icons.close,
                                 color: Colors.white,
-                                size: 16,
+                                size: 14,
                               ),
                             ),
                           ),
@@ -126,81 +172,72 @@ class _PostAdScreenState extends State<PostAdScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // Category
+            // ── Category ──────────────────────────────────────────────
             DropdownButtonFormField<String>(
-              initialValue: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                prefixIcon: Icon(Icons.category),
-              ),
-              items: AppConstants.productCategories.map((category) {
+              value: _selectedCategory,
+              decoration: _inputDecoration(),
+              items: l10n.localizedCategories.map((entry) {
                 return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
+                  value: entry.value,
+                  child: Text(entry.label),
                 );
               }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value!;
-                });
-              },
+              onChanged: (value) => setState(() => _selectedCategory = value!),
             ),
 
             const SizedBox(height: 16),
 
-            // Title
+            // ── Title ─────────────────────────────────────────────────
             TextFormField(
               controller: _titleController,
-              validator: (value) => Validators.validateRequired(value, 'Title'),
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                prefixIcon: Icon(Icons.title),
-                hintText: 'e.g., Premium Alba Grade Cinnamon',
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.titleHint),
               ),
+              decoration:
+              _inputDecoration(hint: l10n.titleHint),
             ),
 
             const SizedBox(height: 16),
 
-            // Description
+            // ── Description ───────────────────────────────────────────
             TextFormField(
               controller: _descriptionController,
-              validator: (value) => Validators.validateRequired(value, 'Description'),
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.descriptionHint),
+              ),
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                hintText: 'Describe your product in detail...',
+              decoration: _inputDecoration(hint: l10n.descriptionHint).copyWith(
                 alignLabelWithHint: true,
               ),
             ),
 
             const SizedBox(height: 16),
 
-            // Price and Quantity Row
+            // ── Price & Qty ───────────────────────────────────────────
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: _priceController,
-                    validator: Validators.validatePrice,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Price (Rs.)',
-                      prefixIcon: Icon(Icons.attach_money),
+                    validator: (val) => Validators.validatePrice(
+                      val,
+                      requiredMessage: l10n.validationPriceRequired,
+                      invalidMessage: l10n.validationPriceInvalid,
                     ),
+                    keyboardType: TextInputType.number,
+                    decoration: _inputDecoration(hint: l10n.priceHint),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     controller: _quantityController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity (optional)',
-                      prefixIcon: Icon(Icons.inventory),
-                    ),
+                    decoration: _inputDecoration(hint: l10n.quantityHint),
                   ),
                 ),
               ],
@@ -208,59 +245,86 @@ class _PostAdScreenState extends State<PostAdScreen> {
 
             const SizedBox(height: 16),
 
-            // Grade (for cinnamon bales)
-            if (_selectedCategory.contains('Bales'))
+            // ── Grade (only for bales) ────────────────────────────────
+            if (_selectedCategory.contains('Bales')) ...[
               DropdownButtonFormField<String>(
-                initialValue: _selectedGrade,
-                decoration: const InputDecoration(
-                  labelText: 'Grade',
-                  prefixIcon: Icon(Icons.grade),
-                ),
+                value: _selectedGrade,
+                decoration: _inputDecoration(hint: l10n.gradeHint),
                 items: AppConstants.cinnamonGrades.map((grade) {
                   return DropdownMenuItem(
                     value: grade,
                     child: Text(grade),
                   );
                 }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedGrade = value;
-                  });
-                },
+                onChanged: (value) => setState(() => _selectedGrade = value),
               ),
+              const SizedBox(height: 16),
+            ],
 
-            if (_selectedCategory.contains('Bales')) const SizedBox(height: 16),
-
-            // Location
+            // ── Location ──────────────────────────────────────────────
             TextFormField(
               controller: _locationController,
-              validator: (value) => Validators.validateRequired(value, 'Location'),
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                prefixIcon: Icon(Icons.location_on),
-                hintText: 'e.g., Matale, Central Province',
+              validator: (val) => Validators.validateRequired(
+                val,
+                requiredMessage: l10n.validationFieldRequired(l10n.locationHint),
               ),
+              decoration: _inputDecoration(
+                  hint: l10n.locationHint),
             ),
 
             const SizedBox(height: 32),
 
-            // Submit Button
-            ElevatedButton(
-              onPressed: _isLoading ? null : _submitAd,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            // ── Submit for Review button ──────────────────────────────
+            DecoratedBox(
+
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryGreen.withOpacity(0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: _isLoading ? null : _submitAd,
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                      : Text(
+                    l10n.submitForReview,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
                 ),
-              )
-                  : const Text('Post Advertisement'),
+              ),
             ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -270,7 +334,6 @@ class _PostAdScreenState extends State<PostAdScreen> {
   Future<void> _pickImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
-
     if (images.isNotEmpty) {
       setState(() {
         _selectedImages.addAll(images.map((xFile) => File(xFile.path)));
@@ -279,11 +342,17 @@ class _PostAdScreenState extends State<PostAdScreen> {
   }
 
   Future<void> _submitAd() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one image')),
+      Fluttertoast.showToast(
+        msg: l10n.pleaseAddImage,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black87,
+        textColor: Colors.white,
+        fontSize: 14.0,
       );
       return;
     }
@@ -294,17 +363,12 @@ class _PostAdScreenState extends State<PostAdScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Upload images to Cloudinary
-      print('📤 Uploading ${_selectedImages.length} images...');
       final cloudinaryService = CloudinaryService();
-      final imageUrls = await cloudinaryService.uploadAdImages(_selectedImages);
+      final imageUrls =
+      await cloudinaryService.uploadAdImages(_selectedImages);
 
-      print('✅ Images uploaded: $imageUrls');
-      print('📊 Number of URLs: ${imageUrls.length}');
-
-      // 2. Create advertisement WITHOUT setting the ID
       final ad = Advertisement(
-        id: '', // ⚠️ Empty string - Firestore will create the real ID
+        id: '',
         sellerId: authState.user.id,
         sellerName: authState.user.name,
         sellerPhone: authState.user.phone,
@@ -319,35 +383,37 @@ class _PostAdScreenState extends State<PostAdScreen> {
             ? int.parse(_quantityController.text)
             : null,
         location: _locationController.text.trim(),
-        imageUrls: imageUrls, // ⚠️ This should have the URLs
+        imageUrls: imageUrls,
         createdAt: DateTime.now(),
       );
 
-      print('📝 Ad object created with ${ad.imageUrls.length} images');
-      print('🔍 Ad JSON: ${ad.toJson()}');
-
-      // 3. Save to Firestore
       final firestoreService = context.read<FirestoreService>();
-      final docId = await firestoreService.createAdvertisement(ad);
-
-      print('✅ Ad saved with ID: $docId');
+      await firestoreService.createAdvertisement(ad);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Advertisement posted successfully!'),
-            backgroundColor: AppColors.accentGreen,
-          ),
+        final l10n = AppLocalizations.of(context)!;
+
+        Fluttertoast.showToast(
+          msg: l10n.adPostedSuccess,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: AppColors.accentGreen,
+          textColor: Colors.white,
+          fontSize: 14.0,
         );
+
         Navigator.of(context).pop();
       }
     } catch (e) {
-      print('❌ Error submitting ad: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: AppColors.accentRed,
-        ),
+      final l10n = AppLocalizations.of(context)!;
+
+      Fluttertoast.showToast(
+        msg: l10n.errorPrefix(e.toString()),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: AppColors.accentRed,
+        textColor: Colors.white,
+        fontSize: 14.0,
       );
     } finally {
       setState(() => _isLoading = false);

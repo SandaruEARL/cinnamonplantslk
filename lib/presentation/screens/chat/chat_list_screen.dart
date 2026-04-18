@@ -4,8 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/app_colors.dart';
 import '../../../data/services/firebase/auth_service.dart';
 import '../../../data/services/firebase/messaging_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
+import '../home/home_screen.dart';
 import 'chat_detail_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -13,20 +15,23 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Messages'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+        title: Text(l10n.messagesTitle),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient,
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is! AuthAuthenticated) {
-            return const Center(
-              child: Text('Please login to view messages'),
+            return Center(
+              child: Text(l10n.pleaseLoginToViewMessages),
             );
           }
 
@@ -60,20 +65,20 @@ class ChatListScreen extends StatelessWidget {
                       Icon(
                         Icons.chat_bubble_outline,
                         size: 80,
-                        color: AppColors.textSecondary.withOpacity(0.5),
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'No messages yet',
-                        style: TextStyle(
+                      Text(
+                        l10n.noMessagesYet,
+                        style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Start chatting with sellers',
-                        style: TextStyle(
+                      Text(
+                        l10n.startTheConversation,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
@@ -133,7 +138,7 @@ class ChatListScreen extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 28,
-                              backgroundColor: AppColors.primaryBrown,
+                              backgroundColor: AppColors.primaryGreen,
                               backgroundImage: otherUser.profilePicUrl != null
                                   ? CachedNetworkImageProvider(
                                 otherUser.profilePicUrl!,
@@ -203,7 +208,7 @@ class ChatListScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             color: isUnread
-                                ? AppColors.primaryBrown
+                                ? AppColors.primaryGreen
                                 : AppColors.textSecondary,
                             fontWeight: isUnread
                                 ? FontWeight.bold

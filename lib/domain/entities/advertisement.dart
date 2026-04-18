@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+enum AdStatus { pending, approved, rejected }
+
 class Advertisement extends Equatable {
   final String id;
   final String sellerId;
@@ -19,6 +21,8 @@ class Advertisement extends Equatable {
   final bool isActive;
   final int views;
   final int favorites;
+  final AdStatus status;
+  final String? rejectionReason;
 
   const Advertisement({
     required this.id,
@@ -36,9 +40,11 @@ class Advertisement extends Equatable {
     required this.location,
     required this.imageUrls,
     required this.createdAt,
-    this.isActive = true,
+    this.isActive = false,
     this.views = 0,
     this.favorites = 0,
+    this.status = AdStatus.pending,
+    this.rejectionReason,
   });
 
   factory Advertisement.fromJson(Map<String, dynamic> json) {
@@ -58,15 +64,24 @@ class Advertisement extends Equatable {
       location: json['location'] as String,
       imageUrls: List<String>.from(json['imageUrls'] as List),
       createdAt: DateTime. parse(json['createdAt'] as String),
-      isActive: json['isActive'] as bool?  ?? true,
+      isActive: json['isActive'] as bool? ?? false,
+      status: _parseStatus(json['status'] as String?),
+      rejectionReason: json['rejectionReason'] as String?,
       views: json['views'] as int? ?? 0,
       favorites: json['favorites'] as int? ?? 0,
     );
   }
 
+  static AdStatus _parseStatus(String? value) {
+    switch (value) {
+      case 'approved': return AdStatus.approved;
+      case 'rejected': return AdStatus.rejected;
+      default: return AdStatus.pending;
+    }
+  }
+
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'sellerId': sellerId,
       'sellerName': sellerName,
       'sellerPhone': sellerPhone,
@@ -81,11 +96,18 @@ class Advertisement extends Equatable {
       'location': location,
       'imageUrls': imageUrls,
       'createdAt': createdAt.toIso8601String(),
-      'isActive': isActive,
+      'isActive':  isActive,
+      'status': status.name,
+      'rejectionReason': rejectionReason,
       'views': views,
       'favorites': favorites,
+
     };
   }
+
+  bool get isPending  => status == AdStatus.pending;
+  bool get isApproved => status == AdStatus.approved;
+  bool get isRejected => status == AdStatus.rejected;
 
   @override
   List<Object?> get props => [
@@ -96,6 +118,7 @@ class Advertisement extends Equatable {
     price,
     location,
     createdAt,
+    status
   ];
 
 }

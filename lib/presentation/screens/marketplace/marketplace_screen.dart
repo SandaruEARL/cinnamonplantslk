@@ -9,7 +9,9 @@ import '../../../core/app_colors.dart';
 import '../../../core/utils/constants.dart';
 import '../../../data/services/firebase/firestore_service.dart';
 import '../../../domain/entities/advertisement.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../widgets/product_card.dart';
+import '../home/home_screen.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -21,13 +23,18 @@ class MarketplaceScreen extends StatefulWidget {
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   String? _selectedCategory;
   String _sortBy = 'Latest';
-  bool _isGridView = true;
+  final bool _isGridView = true;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Marketplace'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+        title: Text(l10n.marketplaceTitle),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppColors.primaryGradient,
@@ -53,7 +60,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -73,9 +80,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       Navigator.pushNamed(context, '/login');
                     },
                     icon: const Icon(Icons.login, color: Colors.white, size: 20),
-                    label: const Text(
-                      'Login',
-                      style: TextStyle(color: Colors.white),
+                    label: Text(
+                      l10n.loginTitle,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 );
@@ -92,7 +99,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search products...',
+                  hintText: l10n.searchProducts,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.filter_list),
@@ -105,7 +112,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ),
             ),
           ),
-
+         /**
           // Category Chips
           SliverToBoxAdapter(
             child: SizedBox(
@@ -115,7 +122,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
                   _CategoryChip(
-                    label: 'All',
+                    label: l10n.categoryAll,
                     isSelected: _selectedCategory == null,
                     onTap: () {
                       setState(() {
@@ -133,11 +140,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         });
                       },
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
           ),
+          **/
 
           // Products Grid/List
           StreamBuilder<List<Advertisement>>(
@@ -163,9 +171,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                           color: AppColors.textSecondary.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'No products found',
-                          style: TextStyle(
+                        Text(
+                          l10n.noProductsFound,
+                          style: const TextStyle(
                             fontSize: 18,
                             color: AppColors.textSecondary,
                           ),
@@ -223,11 +231,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         ],
       ),
       // Post Ad button with auth guard
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _handlePostAd(context),
-        backgroundColor: AppColors.primaryBrown,
-        icon: const Icon(Icons.add),
-        label: const Text('Post Ad'),
+        backgroundColor: AppColors.primaryGreen,
+        shape: const CircleBorder(),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -245,87 +256,16 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     final authState = context.read<AuthBloc>().state;
 
     if (authState is AuthAuthenticated) {
-      // User is logged in - go to post ad screen
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const PostAdScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const PostAdScreen()),
       );
     } else {
-      // User not logged in - show login prompt
-      final shouldLogin = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBrown.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.store,
-                  color: AppColors.primaryBrown,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Post Your Ad',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'To post ads and connect with buyers, you need to create an account.',
-                style: TextStyle(fontSize: 16),
-              ),
-              SizedBox(height: 16),
-              Text(
-                '✓ Free to sign up\n✓ Takes less than 1 minute\n✓ Start selling immediately',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Maybe Later'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBrown,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Sign Up / Login'),
-            ),
-          ],
-        ),
-      );
-
-      if (shouldLogin == true && context.mounted) {
-        Navigator.pushNamed(context, '/login');
-      }
+      Navigator.pushNamed(context, '/login');
     }
   }
 
   void _showFilterSheet() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -335,18 +275,18 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Sort By',
-                style: TextStyle(
+              Text(
+                l10n.sortBy,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
               ListTile(
-                title: const Text('Latest'),
+                title: Text(l10n.latest),
                 leading: Radio(
-                  value: 'Latest',
+                  value: l10n.latest,
                   groupValue: _sortBy,
                   onChanged: (value) {
                     setState(() {
@@ -357,7 +297,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 ),
               ),
               ListTile(
-                title: const Text('Price: Low to High'),
+                title: Text(l10n.priceLowToHigh),
                 leading: Radio(
                   value: 'PriceLow',
                   groupValue: _sortBy,
@@ -370,7 +310,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 ),
               ),
               ListTile(
-                title: const Text('Price: High to Low'),
+                title: Text(l10n.priceHighToLow),
                 leading: Radio(
                   value: 'PriceHigh',
                   groupValue: _sortBy,
@@ -410,7 +350,10 @@ class _CategoryChip extends StatelessWidget {
         selected: isSelected,
         onSelected: (_) => onTap(),
         backgroundColor: Colors.white,
-        selectedColor: AppColors.primaryBrown,
+        selectedColor: AppColors.primaryGreen,
+        shape: const StadiumBorder(),
+        side: BorderSide.none,
+        checkmarkColor: Colors.white,
         labelStyle: TextStyle(
           color: isSelected ? Colors.white : AppColors.textPrimary,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

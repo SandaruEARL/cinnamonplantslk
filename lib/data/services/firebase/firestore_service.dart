@@ -2,20 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/utils/constants.dart';
 import '../../../domain/entities/advertisement.dart';
 import '../../../domain/entities/expense.dart';
+import '../../../domain/entities/location.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Create advertisement
   Future<String> createAdvertisement(Advertisement ad) async {
-    try {
-      final docRef = await _firestore
-          .collection(AppConstants.adsCollection)
-          .add(ad.toJson());
-      return docRef.id;
-    } catch (e) {
-      throw Exception('Failed to create ad: $e');
-    }
+    final data = ad.toJson();
+    data['status']   = 'pending';
+    data['isActive'] = false;
+    final docRef = await _firestore
+        .collection(AppConstants.adsCollection)
+        .add(data);
+    return docRef.id;
   }
 
   // Get advertisements with pagination
@@ -28,8 +28,7 @@ class FirestoreService {
     try {
       Query query = _firestore.collection(AppConstants.adsCollection);
 
-      // Add all where clauses first
-      query = query.where('isActive', isEqualTo: true);
+      query = query.where('status', isEqualTo: 'approved');
 
       if (category != null) {
         query = query.where('category', isEqualTo: category);
@@ -104,7 +103,7 @@ class FirestoreService {
     try {
       return _firestore
           .collection(AppConstants.adsCollection)
-          .where('isActive', isEqualTo: true)
+          .where('status', isEqualTo: 'approved')
           .orderBy('title')
           .startAt([query])
           .endAt([query + '\uf8ff'])
@@ -141,7 +140,82 @@ class FirestoreService {
     }
   }
 
-  // EXPENSES
+  // ── LOCATIONS ──────────────────────────────────────────────
+
+// Create or replace user's location (one per type per user)
+  Future<String> saveLocation(BusinessLocation location) async {
+    try {
+      // Check if user already has a location of this type
+      final existing = await _firestore
+          .collection(AppConstants.locationsCollection)
+          .where('userId', isEqualTo: location.userId)
+          .where('type', isEqualTo: location.type.name)
+          .limit(1)
+          .get();
+
+      if (existing.docs.isNotEmpty) {
+        // Update existing
+        final docId = existing.docs.first.id;
+        final data = location.toJson();
+        data['status'] = 'pending'; // re-review on update
+        await _firestore
+            .collection(AppConstants.locationsCollection)
+            .doc(docId)
+            .update(data);
+        return docId;
+      } else {
+        // Create new
+        final data = location.toJson();
+        data['status'] = 'pending';
+        final docRef = await _firestore
+            .collection(AppConstants.locationsCollection)
+            .add(data);
+        return docRef.id;
+      }
+    } catch (e) {
+      throw Exception('Failed to save location: $e');
+    }
+  }
+
+// Get user's own locations (both types)
+  Stream<List<BusinessLocation>> getUserLocations(String userId) {
+    return _firestore
+        .collection(AppConstants.locationsCollection)
+        .where('userId', isEqualTo: userId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return BusinessLocation.fromJson(data);
+    }).toList());
+  }
+
+// Get approved locations by type (for map display)
+  Stream<List<BusinessLocation>> getApprovedLocations(LocationType type) {
+    return _firestore
+        .collection(AppConstants.locationsCollection)
+        .where('status', isEqualTo: 'approved')
+        .where('type', isEqualTo: type.name)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return BusinessLocation.fromJson(data);
+    }).toList());
+  }
+
+  // Remove (unpin) a location
+  Future<void> deleteLocation(String locationId) async {
+    try {
+      await _firestore
+          .collection(AppConstants.locationsCollection)
+          .doc(locationId)
+          .delete();
+    } catch (e) {
+      throw Exception('Failed to delete location: $e');
+    }
+  }
 
   // Create expense
   Future<String> createExpense(Expense expense) async {
@@ -181,24 +255,20 @@ class FirestoreService {
       DateTime startDate,
       DateTime endDate,
       ) {
-    try {
-      return _firestore
-          .collection(AppConstants.expensesCollection)
-          .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: startDate.toIso8601String())
-          .where('date', isLessThanOrEqualTo: endDate.toIso8601String())
-          .orderBy('date', descending: true)
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          final data = doc.data();
-          data['id'] = doc.id;
-          return Expense.fromJson(data);
-        }).toList();
-      });
-    } catch (e) {
-      throw Exception('Failed to get expenses by date: $e');
-    }
+    return _firestore
+        .collection(AppConstants.expensesCollection)
+        .where('userId', isEqualTo: userId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return Expense.fromJson(data);
+      }).toList();
+    });
   }
 
   // Update expense
