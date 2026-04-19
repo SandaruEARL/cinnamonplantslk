@@ -1,11 +1,5 @@
-import 'package:cinnamon_marketplace_app/presentation/bloc/auth/auth_bloc.dart';
-import 'package:cinnamon_marketplace_app/presentation/bloc/auth/auth_event.dart';
-import 'package:cinnamon_marketplace_app/presentation/bloc/locale/locale_bloc.dart'; // ADD
-import 'package:cinnamon_marketplace_app/presentation/screens/home/home_screen.dart';
-import 'package:cinnamon_marketplace_app/presentation/screens/onboarding/onboarding_screen.dart';
-import 'package:cinnamon_marketplace_app/presentation/screens/splash/splash_screen.dart';
-import 'package:cinnamon_marketplace_app/presentation/screens/auth/login_screen.dart';
-import 'package:cinnamon_marketplace_app/presentation/screens/auth/register_screen.dart';
+import 'package:cinnamon_marketplace_app/features/locale/presentation/bloc/locale_bloc.dart';
+import 'package:cinnamon_marketplace_app/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,88 +7,60 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_theme.dart';
 import 'data/services/ai/tflite_service.dart';
-import 'data/services/firebase/auth_service.dart';
-import 'data/services/firebase/firestore_service.dart';
-import 'data/services/firebase/messaging_service.dart';
-import 'data/services/firebase/storage_service.dart';
-import 'data/services/ml/ml_preprocessing_service.dart';
-import 'data/services/ml/model_update_service.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_event.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/presentation/screens/register_screen.dart';
+import 'features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'features/splash/presentation/screens/splash_screen.dart';
 import 'firebase_options.dart';
+import 'injection_container.dart' as di;
 import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final prefs = await SharedPreferences.getInstance();
-  final preprocessingService = MLPreprocessingService();
-  final modelUpdateService = ModelUpdateService(prefs);
-  final tfliteService = TFLiteService(modelUpdateService, preprocessingService);
   await dotenv.load(fileName: ".env");
-  await tfliteService.initialize();
+  await di.init();
+  await di.sl<TFLiteService>().initialize();
 
-  runApp(MyApp(
-    tfliteService: tfliteService,
-    preprocessingService: preprocessingService,
-    prefs: prefs,
-  ));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final TFLiteService tfliteService;
-  final MLPreprocessingService preprocessingService;
-  final SharedPreferences prefs;
-
-  const MyApp({
-    super.key,
-    required this.tfliteService,
-    required this.preprocessingService,
-    required this.prefs,
-  });
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
+    return MultiBlocProvider(
       providers: [
-        RepositoryProvider(create: (context) => AuthService()),
-        RepositoryProvider(create: (context) => FirestoreService()),
-        RepositoryProvider(create: (context) => StorageService()),
-        RepositoryProvider(create: (context) => MessagingService()),
-        RepositoryProvider.value(value: tfliteService),
-        RepositoryProvider.value(value: preprocessingService),
-        RepositoryProvider.value(value: prefs),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) => AuthBloc(
-              authService: context.read<AuthService>(),
-            )..add(AuthCheckRequested()),
-          ),
-          BlocProvider(
-            create: (context) => LocaleBloc(prefs),
-          ),
-        ],
-        child: BlocBuilder<LocaleBloc, LocaleState>(
-          builder: (context, localeState) {
-            return MaterialApp(
-              title: 'Cinnamon Marketplace',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: ThemeMode.light,
-              locale: localeState.locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: const SplashScreen(),
-              routes: {
-                '/onboarding': (context) => const OnboardingScreen(),
-                '/home': (context) => const HomeScreen(),
-                '/login': (context) => const LoginScreen(),
-                '/register': (context) => const RegisterScreen(),
-              },
-            );
-          },
+        BlocProvider(
+          create: (_) => di.sl<AuthBloc>()..add(const AuthCheckRequested()),
         ),
+        BlocProvider(
+          create: (_) => LocaleBloc(di.sl<SharedPreferences>()),
+        ),
+      ],
+      child: BlocBuilder<LocaleBloc, LocaleState>(
+        builder: (context, localeState) {
+          return MaterialApp(
+            title: 'Cinnamon Marketplace',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.light,
+            locale: localeState.locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const SplashScreen(),
+            routes: {
+              '/onboarding': (_) => const OnboardingScreen(),
+              '/home':       (_) => const HomeScreen(),
+              '/login':      (_) => const LoginScreen(),
+              '/register':   (_) => const RegisterScreen(),
+            },
+          );
+        },
       ),
     );
   }
