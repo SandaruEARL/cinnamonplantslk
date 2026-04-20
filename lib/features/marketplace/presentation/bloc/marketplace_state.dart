@@ -17,6 +17,11 @@ class MarketplaceLoaded extends MarketplaceState {
   const MarketplaceLoaded(this.ads);
 }
 
+class MarketplaceAnnouncementsLoaded extends MarketplaceState {
+  final List<AdvertisementEntity> announcements;
+  const MarketplaceAnnouncementsLoaded(this.announcements);
+}
+
 class MarketplaceAdCreating extends MarketplaceState {
   const MarketplaceAdCreating();
 }

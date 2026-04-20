@@ -514,7 +514,7 @@ class HomeContent extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 16),
                           child: SizedBox(
                             width: 200,
-                            child: ProductCard(ad: recent[index]),  // AdvertisementEntity ✅
+                            child: ProductCard(ad: recent[index]),  // AdvertisementEntity
                           ),
                         );
                       },

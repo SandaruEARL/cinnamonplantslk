@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../injection_container.dart';
@@ -94,7 +95,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                   : null,
               child: widget.otherUserImage == null
                   ? Text(widget.otherUserName[0].toUpperCase(),
-                  style: const TextStyle(color: Colors.white, fontSize: 16))
+                  style:
+                  const TextStyle(color: Colors.white, fontSize: 16))
                   : null,
             ),
             const SizedBox(width: 12),
@@ -105,14 +107,18 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
           ],
         ),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+          decoration:
+          const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         actions: [
-          // 👈 block/unblock menu
+          // ✅ AppBar only has the block/unblock menu — uses AuthBloc correctly
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, authState) {
-              if (authState is! AuthAuthenticated) return const SizedBox.shrink();
-              final isBlocked = authState.user.blockedUsers.contains(widget.otherUserId);
+              if (authState is! AuthAuthenticated) {
+                return const SizedBox.shrink();
+              }
+              final isBlocked =
+              authState.user.blockedUsers.contains(widget.otherUserId);
               return PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: Colors.white),
                 onSelected: (value) {
@@ -161,98 +167,138 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                 // pending cleanup
                 if (state is ChatMessagesLoaded) {
                   setState(() {
-                    _pendingMessages.removeWhere((p) =>
-                        state.messages.any((m) =>
-                        m.text == p.text &&
-                            m.senderId == p.senderId &&
-                            m.timestamp.difference(p.timestamp).inSeconds.abs() < 10 &&
-                            !m.deletedFor.contains(widget.currentUserId),
-                        ),
-                    );
+                    _pendingMessages.removeWhere((p) => state.messages.any(
+                          (m) =>
+                      m.text == p.text &&
+                          m.senderId == p.senderId &&
+                          m.timestamp
+                              .difference(p.timestamp)
+                              .inSeconds
+                              .abs() <
+                              10 &&
+                          !m.deletedFor.contains(widget.currentUserId),
+                    ));
                   });
                 }
                 // block/unblock feedback
                 if (state is ChatUserBlocked) {
                   context.read<AuthBloc>().add(const AuthCheckRequested());
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User blocked')),
+                  //  Reload messages so chatState goes back to ChatMessagesLoaded
+                  context.read<ChatBloc>().add(ChatMessagesLoadRequested(
+                    currentUserId: widget.currentUserId,
+                    otherUserId: widget.otherUserId,
+                  ));
+                  Fluttertoast.showToast(
+                    msg: 'User blocked',
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.black87,
+                    textColor: Colors.white,
                   );
                 }
                 if (state is ChatUserUnblocked) {
                   context.read<AuthBloc>().add(const AuthCheckRequested());
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User unblocked')),
+                  //  Same here
+                  context.read<ChatBloc>().add(ChatMessagesLoadRequested(
+                    currentUserId: widget.currentUserId,
+                    otherUserId: widget.otherUserId,
+                  ));
+                  Fluttertoast.showToast(
+                    msg: 'User unblocked',
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.black87,
+                    textColor: Colors.white,
                   );
                 }
               },
-              builder: (context, state) {
-                if (state is ChatLoading) {
+              builder: (context, chatState) {
+                if (chatState is ChatLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (state is ChatMessagesLoaded) {
-                  // 👈 get blockedUsers from AuthBloc inside builder
-                  final authState = context.read<AuthBloc>().state;
-                  final blockedUsers = authState is AuthAuthenticated
-                      ? authState.user.blockedUsers
-                      : <String>[];
+                if (chatState is ChatMessagesLoaded) {
+                  // ✅ Nested BlocBuilder<AuthBloc> so it rebuilds on block/unblock
+                  return BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, authState) {
+                      final blockedUsers = authState is AuthAuthenticated
+                          ? authState.user.blockedUsers
+                          : <String>[];
 
-                  final visibleMessages = state.messages
-                      .where((m) =>
-                  !m.deletedFor.contains(widget.currentUserId) &&
-                      !blockedUsers.contains(m.senderId))
-                      .toList();
+                      final visibleMessages = chatState.messages
+                          .where((m) =>
+                      !m.deletedFor.contains(widget.currentUserId) &&
+                          !blockedUsers.contains(m.senderId))
+                          .toList();
 
-                  final stillPending = _pendingMessages.where((p) =>
-                  !visibleMessages.any((m) =>
-                  m.text == p.text &&
-                      m.senderId == p.senderId &&
-                      m.timestamp.difference(p.timestamp).inSeconds.abs() < 10
-                  )
-                  ).toList();
+                      final stillPending = _pendingMessages
+                          .where((p) => !visibleMessages.any((m) =>
+                      m.text == p.text &&
+                          m.senderId == p.senderId &&
+                          m.timestamp
+                              .difference(p.timestamp)
+                              .inSeconds
+                              .abs() <
+                              10))
+                          .toList();
 
-                  final allMessages = [...stillPending.reversed, ...visibleMessages];
+                      final allMessages = [
+                        ...stillPending.reversed,
+                        ...visibleMessages
+                      ];
 
-                  if (allMessages.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.chat_bubble_outline,
-                              size: 64, color: AppColors.textSecondary),
-                          SizedBox(height: 16),
-                          Text('No messages yet',
-                              style: TextStyle(
-                                  fontSize: 16, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    );
-                  }
+                      if (allMessages.isEmpty) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.chat_bubble_outline,
+                                  size: 64, color: AppColors.textSecondary),
+                              SizedBox(height: 16),
+                              Text('No messages yet',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: AppColors.textSecondary)),
+                            ],
+                          ),
+                        );
+                      }
 
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    final chatId = ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
-                    context.read<ChatBloc>().add(ChatMarkAsReadRequested(
-                      chatId: chatId,
-                      userId: widget.currentUserId,
-                    ));
-                  });
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        final chatId =
+                        ([widget.currentUserId, widget.otherUserId]
+                          ..sort())
+                            .join('_');
+                        context.read<ChatBloc>().add(ChatMarkAsReadRequested(
+                          chatId: chatId,
+                          userId: widget.currentUserId,
+                        ));
+                      });
 
-                  return ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    itemCount: allMessages.length,
-                    itemBuilder: (context, index) {
-                      final message = allMessages[index];
-                      final isMe = message.senderId == widget.currentUserId;
-                      return _ChatBubble(
-                        message: message,
-                        isMe: isMe,
-                        currentUserId: widget.currentUserId,
-                        chatId: ([widget.currentUserId, widget.otherUserId]..sort()).join('_'),
-                        onLongPress: isMe && !message.id.startsWith('pending_')
-                            ? () => _showDeleteOptions(context, message)
-                            : null,
+                      return ListView.builder(
+                        controller: _scrollController,
+                        reverse: true,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 16),
+                        itemCount: allMessages.length,
+                        itemBuilder: (context, index) {
+                          final message = allMessages[index];
+                          final isMe =
+                              message.senderId == widget.currentUserId;
+                          return _ChatBubble(
+                            message: message,
+                            isMe: isMe,
+                            currentUserId: widget.currentUserId,
+                            chatId:
+                            ([widget.currentUserId, widget.otherUserId]
+                              ..sort())
+                                .join('_'),
+                            onLongPress: isMe &&
+                                !message.id.startsWith('pending_')
+                                ? () => _showDeleteOptions(context, message)
+                                : null,
+                          );
+                        },
                       );
                     },
                   );
@@ -264,7 +310,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
 
           // Input
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.white,
             child: SafeArea(
               child: Row(
@@ -289,7 +336,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                                     horizontal: 16, vertical: 12),
                               ),
                               maxLines: null,
-                              textCapitalization: TextCapitalization.sentences,
+                              textCapitalization:
+                              TextCapitalization.sentences,
                             ),
                           ),
                           if (_isTyping)
@@ -328,7 +376,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
   }
 
   void _showDeleteOptions(BuildContext context, MessageEntity message) {
-    final chatId = ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
+    final chatId =
+    ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(
@@ -348,16 +397,18 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.red),
+              leading:
+              const Icon(Icons.delete_forever, color: Colors.red),
               title: const Text('Delete for everyone',
                   style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
-                context.read<ChatBloc>().add(ChatMessageDeleteForEveryoneRequested(
-                  chatId: chatId,
-                  messageId: message.id,
-                  senderId: widget.currentUserId,
-                ));
+                context.read<ChatBloc>().add(
+                    ChatMessageDeleteForEveryoneRequested(
+                      chatId: chatId,
+                      messageId: message.id,
+                      senderId: widget.currentUserId,
+                    ));
               },
             ),
           ],
@@ -395,7 +446,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
     final image = await picker.pickImage(source: source);
     if (image == null) return;
 
-    final chatId = ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
+    final chatId =
+    ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
     if (mounted) {
       context.read<ChatBloc>().add(ChatImageSendRequested(
         senderId: widget.currentUserId,
@@ -479,9 +531,8 @@ class _ChatBubble extends StatelessWidget {
                       Text(
                         message.text,
                         style: TextStyle(
-                          color: isMe
-                              ? Colors.white
-                              : AppColors.textPrimary,
+                          color:
+                          isMe ? Colors.white : AppColors.textPrimary,
                           fontSize: 15,
                         ),
                       ),
@@ -513,7 +564,6 @@ class _ChatBubble extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _statusIcon() {
     IconData icon;

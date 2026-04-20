@@ -20,6 +20,7 @@ class AdvertisementModel extends AdvertisementEntity {
     required super.createdAt,
     super.status,
     super.rejectionReason,
+    super.type,
   });
 
   factory AdvertisementModel.fromFirestore(DocumentSnapshot doc) {
@@ -44,6 +45,7 @@ class AdvertisementModel extends AdvertisementEntity {
           : DateTime.parse(data['createdAt'] as String),
       status: data['status'] ?? 'pending',
       rejectionReason: data['rejectionReason'],
+      type: data['type'] ?? 'listing', // backward-compatible default
     );
   }
 
@@ -64,5 +66,6 @@ class AdvertisementModel extends AdvertisementEntity {
     'createdAt': Timestamp.fromDate(createdAt),
     'status': status,
     'rejectionReason': rejectionReason,
+    'type': type,
   };
 }

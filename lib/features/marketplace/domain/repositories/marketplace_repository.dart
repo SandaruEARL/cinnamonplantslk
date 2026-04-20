@@ -9,6 +9,11 @@ abstract class MarketplaceRepository {
     int? limit,
   });
 
+  Stream<Either<Failure, List<AdvertisementEntity>>> getAnnouncements({
+    String? category,
+    int? limit,
+  });
+
   Stream<Either<Failure, List<AdvertisementEntity>>> getUserAdvertisements(
       String userId,
       );
@@ -18,13 +23,7 @@ abstract class MarketplaceRepository {
     required List<File> images,
   });
 
-  Future<Either<Failure, void>> addToFavorites(
-      String userId,
-      String adId,
-      );
+  Future<Either<Failure, void>> addToFavorites(String userId, String adId);
 
-  Future<Either<Failure, void>> removeFromFavorites(
-      String userId,
-      String adId,
-      );
+  Future<Either<Failure, void>> removeFromFavorites(String userId, String adId);
 }

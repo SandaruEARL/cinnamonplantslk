@@ -9,6 +9,11 @@ class MarketplaceLoadRequested extends MarketplaceEvent {
   const MarketplaceLoadRequested({this.category});
 }
 
+class MarketplaceAnnouncementsLoadRequested extends MarketplaceEvent {
+  final String? category;
+  const MarketplaceAnnouncementsLoadRequested({this.category});
+}
+
 class MarketplaceUserAdsLoadRequested extends MarketplaceEvent {
   final String userId;
   const MarketplaceUserAdsLoadRequested(this.userId);
@@ -27,6 +32,7 @@ class MarketplaceAdCreateRequested extends MarketplaceEvent {
   final int? quantity;
   final String location;
   final List<File> images;
+  final String type; // 'listing' | 'announcement'
 
   const MarketplaceAdCreateRequested({
     required this.sellerId,
@@ -41,6 +47,7 @@ class MarketplaceAdCreateRequested extends MarketplaceEvent {
     this.quantity,
     required this.location,
     required this.images,
+    this.type = 'listing',
   });
 }
 

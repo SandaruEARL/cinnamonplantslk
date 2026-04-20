@@ -26,6 +26,20 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
+  Stream<Either<Failure, List<AdvertisementEntity>>> getAnnouncements({
+    String? category,
+    int? limit,
+  }) {
+    try {
+      return remoteDataSource
+          .getAnnouncements(category: category, limit: limit)
+          .map((ads) => Right(ads));
+    } on ServerException catch (e) {
+      return Stream.value(Left(ServerFailure(e.message)));
+    }
+  }
+
+  @override
   Stream<Either<Failure, List<AdvertisementEntity>>> getUserAdvertisements(
       String userId,
       ) {
@@ -44,7 +58,10 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
     required List<File> images,
   }) async {
     try {
-      final imageUrls = await remoteDataSource.uploadImages(images);
+      // Announcements don't have images — skip upload if empty
+      final imageUrls =
+      images.isNotEmpty ? await remoteDataSource.uploadImages(images) : <String>[];
+
       final model = AdvertisementModel(
         id: ad.id,
         sellerId: ad.sellerId,
@@ -62,6 +79,7 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
         imageUrls: imageUrls,
         createdAt: ad.createdAt,
         status: ad.status,
+        type: ad.type,
       );
       await remoteDataSource.createAdvertisement(model, imageUrls);
       return const Right(null);

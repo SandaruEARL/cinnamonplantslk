@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/advertisement_entity.dart';
 import '../../domain/usecases/create_advertisement.dart';
 import '../../domain/usecases/get_advertisements.dart';
+import '../../domain/usecases/get_anouncements.dart';
 import '../../domain/usecases/get_user_advertisements.dart';
 import '../../domain/usecases/toggle_favorite.dart';
 import 'marketplace_event.dart';
@@ -10,6 +11,7 @@ import 'marketplace_state.dart';
 
 class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
   final GetAdvertisements getAdvertisements;
+  final GetAnnouncements getAnnouncements;
   final GetUserAdvertisements getUserAdvertisements;
   final CreateAdvertisement createAdvertisement;
   final AddToFavorites addToFavorites;
@@ -19,12 +21,14 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
 
   MarketplaceBloc({
     required this.getAdvertisements,
+    required this.getAnnouncements,
     required this.getUserAdvertisements,
     required this.createAdvertisement,
     required this.addToFavorites,
     required this.removeFromFavorites,
   }) : super(const MarketplaceInitial()) {
     on<MarketplaceLoadRequested>(_onLoadRequested);
+    on<MarketplaceAnnouncementsLoadRequested>(_onAnnouncementsLoadRequested);
     on<MarketplaceUserAdsLoadRequested>(_onUserAdsLoadRequested);
     on<MarketplaceAdCreateRequested>(_onAdCreateRequested);
     on<MarketplaceFavoriteToggled>(_onFavoriteToggled);
@@ -42,6 +46,21 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
       onData: (result) => result.fold(
             (failure) => MarketplaceError(failure.message),
             (ads) => MarketplaceLoaded(ads),
+      ),
+    );
+  }
+
+  Future<void> _onAnnouncementsLoadRequested(
+      MarketplaceAnnouncementsLoadRequested event,
+      Emitter<MarketplaceState> emit,
+      ) async {
+    emit(const MarketplaceLoading());
+
+    await emit.forEach(
+      getAnnouncements(GetAnnouncementsParams(category: event.category)),
+      onData: (result) => result.fold(
+            (failure) => MarketplaceError(failure.message),
+            (announcements) => MarketplaceAnnouncementsLoaded(announcements),
       ),
     );
   }
@@ -80,6 +99,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
       location: event.location,
       imageUrls: [],
       createdAt: DateTime.now(),
+      type: event.type,
     );
     final result = await createAdvertisement(
       CreateAdvertisementParams(ad: ad, images: event.images),

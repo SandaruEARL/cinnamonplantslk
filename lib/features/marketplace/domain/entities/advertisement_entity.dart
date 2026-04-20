@@ -16,10 +16,13 @@ class AdvertisementEntity {
   final DateTime createdAt;
   final String status; // pending, approved, rejected
   final String? rejectionReason;
+  final String type; // 'listing' | 'announcement'
 
   bool get isPending => status == 'pending';
   bool get isApproved => status == 'approved';
   bool get isRejected => status == 'rejected';
+  bool get isListing => type == 'listing';
+  bool get isAnnouncement => type == 'announcement';
 
   const AdvertisementEntity({
     required this.id,
@@ -39,5 +42,6 @@ class AdvertisementEntity {
     required this.createdAt,
     this.status = 'pending',
     this.rejectionReason,
+    this.type = 'listing',
   });
 }

@@ -50,7 +50,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             IconButton(
               icon: Icon(
                 _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : Colors.white,
+                color: _isFavorite ? Colors.white : Colors.white,
               ),
               onPressed: () => _toggleFavorite(context),
             ),

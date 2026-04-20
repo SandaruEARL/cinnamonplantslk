@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../../../core/app_colors.dart';
+import '../cubit/onboarding_cubit.dart';
 
 
 class OnboardingScreen extends StatefulWidget {
@@ -44,106 +45,117 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Skip button ──────────────────────────────────────────────
-            Align(
-              alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: () => _completeOnboarding(),
-                child: const Text(
-                  'Skip',
-                  style: TextStyle(
-                    color: AppColors.primaryGreen,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+    return BlocListener<OnboardingCubit, OnboardingState>(
+      listener: (context, state) {
+        if (state is OnboardingCompleted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── Skip button ──────────────────────────────────────────────
+              Align(
+                alignment: Alignment.topRight,
+                child: TextButton(
+                  onPressed: () => _completeOnboarding(),
+                  child: const Text(
+                    'Skip',
+                    style: TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ),
-            ),
-
-            // ── Page view ────────────────────────────────────────────────
-            Expanded(
-              child: PageView.builder(
+      
+              // ── Page view ────────────────────────────────────────────────
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  itemCount: _pages.length,
+                  itemBuilder: (context, index) => _buildPage(_pages[index]),
+                ),
+              ),
+      
+              // ── Page indicator ───────────────────────────────────────────
+              SmoothPageIndicator(
                 controller: _pageController,
-                onPageChanged: (index) => setState(() => _currentPage = index),
-                itemCount: _pages.length,
-                itemBuilder: (context, index) => _buildPage(_pages[index]),
-              ),
-            ),
-
-            // ── Page indicator ───────────────────────────────────────────
-            SmoothPageIndicator(
-              controller: _pageController,
-              count: _pages.length,
-              effect: const WormEffect(
-                dotColor: AppColors.divider,
-                activeDotColor: AppColors.primaryGreen,  // ← #2A9C2A
-                dotHeight: 10,
-                dotWidth: 10,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // ── Next / Get Started button (gradient) ─────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.greenGradient,  // ← #2A9C2A → #244A19
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryGreen.withOpacity(0.35),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                count: _pages.length,
+                effect: const WormEffect(
+                  dotColor: AppColors.divider,
+                  activeDotColor: AppColors.primaryGreen,  // ← #2A9C2A
+                  dotHeight: 10,
+                  dotWidth: 10,
                 ),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+              ),
+      
+              const SizedBox(height: 32),
+      
+              // ── Next / Get Started button (gradient) ─────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.greenGradient,  // ← #2A9C2A → #244A19
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryGreen.withOpacity(0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    onPressed: () {
-                      if (_currentPage == _pages.length - 1) {
-                        _completeOnboarding();
-                      } else {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    },
-                    child: Text(
-                      _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.4,
+                    ],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (_currentPage == _pages.length - 1) {
+                          _completeOnboarding();
+                        } else {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
+                      child: Text(
+                        _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 32),
-          ],
+      
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _completeOnboarding() {
+    context.read<OnboardingCubit>().finish();
   }
 
   Widget _buildPage(OnboardingPage page) {
@@ -215,11 +227,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Future<void> _completeOnboarding() async {
-    final prefs = context.read<SharedPreferences>();
-    await prefs.setBool('is_first_time', false);
-    if (mounted) Navigator.pushReplacementNamed(context, '/home');
-  }
 
   @override
   void dispose() {

@@ -15,7 +15,8 @@ import '../bloc/marketplace_event.dart';
 import '../bloc/marketplace_state.dart';
 
 class PostAdScreen extends StatefulWidget {
-  const PostAdScreen({super.key});
+  final String type; // 'listing' | 'announcement'
+  const PostAdScreen({super.key, this.type = 'listing'});
 
   @override
   State<PostAdScreen> createState() => _PostAdScreenState();
@@ -32,6 +33,8 @@ class _PostAdScreenState extends State<PostAdScreen> {
   String _selectedCategory = AppConstants.productCategories[0];
   String? _selectedGrade;
   final List<File> _selectedImages = [];
+
+  bool get _isAnnouncement => widget.type == 'announcement';
 
   InputDecoration _inputDecoration({String? hint}) => InputDecoration(
     hintText: hint,
@@ -73,7 +76,9 @@ class _PostAdScreenState extends State<PostAdScreen> {
         listener: (context, state) {
           if (state is MarketplaceAdCreated) {
             Fluttertoast.showToast(
-              msg: l10n.adPostedSuccess,
+              msg: _isAnnouncement
+                  ? 'Announcement posted successfully!'
+                  : l10n.adPostedSuccess,
               backgroundColor: AppColors.accentGreen,
               textColor: Colors.white,
             );
@@ -89,10 +94,11 @@ class _PostAdScreenState extends State<PostAdScreen> {
         child: Scaffold(
           appBar: AppBar(
             iconTheme: const IconThemeData(color: Colors.white),
-            title: Text(l10n.postAd,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600)),
+            title: Text(
+              _isAnnouncement ? 'Post Buying Announcement' : l10n.postAd,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w600),
+            ),
             flexibleSpace: Container(
               decoration: const BoxDecoration(
                   gradient: AppColors.primaryGradient),
@@ -105,73 +111,103 @@ class _PostAdScreenState extends State<PostAdScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const SizedBox(height: 8),
-
-                // Image picker
-                SizedBox(
-                  height: 100,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      GestureDetector(
-                        onTap: _pickImages,
-                        child: Container(
-                          width: 100,
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0F0F0),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_photo_alternate_outlined,
-                                  size: 32, color: Color(0xFFAAAAAA)),
-                              SizedBox(height: 6),
-                              Text('Add image',
-                                  style:
-                                  TextStyle(color: Color(0xFFAAAAAA))),
-                            ],
+                // Announcement banner
+                if (_isAnnouncement) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: Colors.orange.withOpacity(0.3)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.campaign_outlined,
+                            color: Colors.orange, size: 20),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'You\'re posting a buying announcement. Sellers will contact you directly.',
+                            style: TextStyle(
+                                color: Colors.orange, fontSize: 13),
                           ),
                         ),
-                      ),
-                      ..._selectedImages.map((image) => Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            margin:
-                            const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              borderRadius:
-                              BorderRadius.circular(12),
-                              image: DecorationImage(
-                                image: FileImage(image),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 12,
-                            child: GestureDetector(
-                              onTap: () => setState(
-                                      () => _selectedImages.remove(image)),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle),
-                                child: const Icon(Icons.close,
-                                    color: Colors.white, size: 14),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
+                ],
+
+                // Image picker — listings only
+                if (!_isAnnouncement) ...[
+                  SizedBox(
+                    height: 100,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        GestureDetector(
+                          onTap: _pickImages,
+                          child: Container(
+                            width: 100,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F0F0),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_photo_alternate_outlined,
+                                    size: 32,
+                                    color: Color(0xFFAAAAAA)),
+                                SizedBox(height: 6),
+                                Text('Add image',
+                                    style: TextStyle(
+                                        color: Color(0xFFAAAAAA))),
+                              ],
+                            ),
+                          ),
+                        ),
+                        ..._selectedImages.map((image) => Stack(
+                          children: [
+                            Container(
+                              width: 100,
+                              margin:
+                              const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                borderRadius:
+                                BorderRadius.circular(12),
+                                image: DecorationImage(
+                                  image: FileImage(image),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 12,
+                              child: GestureDetector(
+                                onTap: () => setState(() =>
+                                    _selectedImages.remove(image)),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle),
+                                  child: const Icon(Icons.close,
+                                      color: Colors.white,
+                                      size: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Category
                 DropdownButtonFormField<String>(
@@ -190,9 +226,13 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 TextFormField(
                   controller: _titleController,
                   validator: (val) => Validators.validateRequired(val,
-                      requiredMessage:
-                      l10n.validationFieldRequired(l10n.titleHint)),
-                  decoration: _inputDecoration(hint: l10n.titleHint),
+                      requiredMessage: l10n
+                          .validationFieldRequired(l10n.titleHint)),
+                  decoration: _inputDecoration(
+                    hint: _isAnnouncement
+                        ? 'e.g. Looking for Alba grade cinnamon bales'
+                        : l10n.titleHint,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -201,10 +241,13 @@ class _PostAdScreenState extends State<PostAdScreen> {
                   controller: _descriptionController,
                   maxLines: 4,
                   validator: (val) => Validators.validateRequired(val,
-                      requiredMessage: l10n
-                          .validationFieldRequired(l10n.descriptionHint)),
-                  decoration:
-                  _inputDecoration(hint: l10n.descriptionHint),
+                      requiredMessage: l10n.validationFieldRequired(
+                          l10n.descriptionHint)),
+                  decoration: _inputDecoration(
+                    hint: _isAnnouncement
+                        ? 'Describe what you are looking for, preferred quality, etc.'
+                        : l10n.descriptionHint,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -215,13 +258,17 @@ class _PostAdScreenState extends State<PostAdScreen> {
                       child: TextFormField(
                         controller: _priceController,
                         keyboardType: TextInputType.number,
-                        validator: (val) => Validators.validatePrice(val,
+                        validator: (val) => Validators.validatePrice(
+                            val,
                             requiredMessage:
                             l10n.validationPriceRequired,
                             invalidMessage:
                             l10n.validationPriceInvalid),
-                        decoration:
-                        _inputDecoration(hint: l10n.priceHint),
+                        decoration: _inputDecoration(
+                          hint: _isAnnouncement
+                              ? 'Offered price (LKR)'
+                              : l10n.priceHint,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -237,8 +284,9 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Grade (bales only)
-                if (_selectedCategory.contains('Bales')) ...[
+                // Grade
+                if (_selectedCategory.contains('Bales') ||
+                    _isAnnouncement) ...[
                   DropdownButtonFormField<String>(
                     value: _selectedGrade,
                     decoration:
@@ -257,8 +305,8 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 TextFormField(
                   controller: _locationController,
                   validator: (val) => Validators.validateRequired(val,
-                      requiredMessage: l10n
-                          .validationFieldRequired(l10n.locationHint)),
+                      requiredMessage: l10n.validationFieldRequired(
+                          l10n.locationHint)),
                   decoration:
                   _inputDecoration(hint: l10n.locationHint),
                 ),
@@ -270,7 +318,9 @@ class _PostAdScreenState extends State<PostAdScreen> {
                     final isLoading = state is MarketplaceAdCreating;
                     return DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen,
+                        color: _isAnnouncement
+                            ? Colors.orange
+                            : AppColors.primaryGreen,
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: SizedBox(
@@ -294,14 +344,19 @@ class _PostAdScreenState extends State<PostAdScreen> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(
+                              valueColor:
+                              AlwaysStoppedAnimation(
                                   Colors.white),
                             ),
                           )
-                              : Text(l10n.submitForReview,
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600)),
+                              : Text(
+                            _isAnnouncement
+                                ? 'Post Announcement'
+                                : l10n.submitForReview,
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     );
@@ -320,15 +375,15 @@ class _PostAdScreenState extends State<PostAdScreen> {
     final picker = ImagePicker();
     final images = await picker.pickMultiImage();
     if (images.isNotEmpty) {
-      setState(() => _selectedImages
-          .addAll(images.map((x) => File(x.path))));
+      setState(() =>
+          _selectedImages.addAll(images.map((x) => File(x.path))));
     }
   }
 
   void _submitAd(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedImages.isEmpty) {
+    if (!_isAnnouncement && _selectedImages.isEmpty) {
       Fluttertoast.showToast(msg: l10n.pleaseAddImage);
       return;
     }
@@ -350,6 +405,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
           : null,
       location: _locationController.text.trim(),
       images: _selectedImages,
+      type: widget.type,
     ));
   }
 

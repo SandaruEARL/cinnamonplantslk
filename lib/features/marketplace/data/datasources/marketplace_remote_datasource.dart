@@ -10,6 +10,11 @@ abstract class MarketplaceRemoteDataSource {
     int? limit,
   });
 
+  Stream<List<AdvertisementModel>> getAnnouncements({
+    String? category,
+    int? limit,
+  });
+
   Stream<List<AdvertisementModel>> getUserAdvertisements(String userId);
 
   Future<void> createAdvertisement(
@@ -55,6 +60,36 @@ class MarketplaceRemoteDataSourceImpl implements MarketplaceRemoteDataSource {
       return query.snapshots().map(
             (snap) => snap.docs
             .map((doc) => AdvertisementModel.fromFirestore(doc))
+            .where((ad) => ad.type != 'announcement')
+            .toList(),
+      );
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Stream<List<AdvertisementModel>> getAnnouncements({
+    String? category,
+    int? limit,
+  }) {
+    try {
+      Query query = _firestore
+          .collection('advertisements')
+          .where('status', isEqualTo: 'approved')
+          .where('type', isEqualTo: 'announcement')
+          .orderBy('createdAt', descending: true);
+
+      if (category != null) {
+        query = query.where('category', isEqualTo: category);
+      }
+      if (limit != null) {
+        query = query.limit(limit);
+      }
+
+      return query.snapshots().map(
+            (snap) => snap.docs
+            .map((doc) => AdvertisementModel.fromFirestore(doc))
             .toList(),
       );
     } catch (e) {
@@ -70,8 +105,9 @@ class MarketplaceRemoteDataSourceImpl implements MarketplaceRemoteDataSource {
           .where('sellerId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
           .snapshots()
-          .map((snap) =>
-          snap.docs.map((doc) => AdvertisementModel.fromFirestore(doc)).toList());
+          .map((snap) => snap.docs
+          .map((doc) => AdvertisementModel.fromFirestore(doc))
+          .toList());
     } catch (e) {
       throw ServerException(e.toString());
     }

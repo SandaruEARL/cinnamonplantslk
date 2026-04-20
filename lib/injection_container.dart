@@ -25,6 +25,7 @@ import 'features/marketplace/data/repositories/marketplace_repository_impl.dart'
 import 'features/marketplace/domain/repositories/marketplace_repository.dart';
 import 'features/marketplace/domain/usecases/create_advertisement.dart';
 import 'features/marketplace/domain/usecases/get_advertisements.dart';
+import 'features/marketplace/domain/usecases/get_anouncements.dart';
 import 'features/marketplace/domain/usecases/get_user_advertisements.dart';
 import 'features/marketplace/domain/usecases/toggle_favorite.dart';
 import 'features/marketplace/presentation/bloc/marketplace_bloc.dart';
@@ -69,6 +70,10 @@ import 'features/ai/presentation/bloc/ai_bloc.dart';
 import 'data/services/cloudinary/cloudinary_service.dart';
 import 'data/services/firebase/auth_service.dart';
 import 'data/services/firebase/storage_service.dart';
+import 'features/onboarding/domain/repositories/onboarding_repository.dart';
+import 'features/onboarding/domain/usecases/complete_onboarding.dart';
+import 'features/onboarding/presentation/cubit/onboarding_cubit.dart';
+import 'features/onboarding/data/repositories/onboarding_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -85,6 +90,7 @@ Future<void> init() async {
   sl.registerFactory(() => MarketplaceBloc(
     getAdvertisements: sl(),
     getUserAdvertisements: sl(),
+    getAnnouncements: sl(),
     createAdvertisement: sl(),
     addToFavorites: sl(),
     removeFromFavorites: sl(),
@@ -134,6 +140,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateAdvertisement(sl()));
   sl.registerLazySingleton(() => AddToFavorites(sl()));
   sl.registerLazySingleton(() => RemoveFromFavorites(sl()));
+  sl.registerLazySingleton(() => GetAnnouncements(sl()));
 
   // Chat
   sl.registerLazySingleton(() => GetUserChats(sl()));
@@ -203,6 +210,14 @@ Future<void> init() async {
   // would be slow and wasteful.
   sl.registerLazySingleton<AiLocalDatasource>(
           () => AiLocalDatasourceImpl(sl()));
+
+
+  sl.registerLazySingleton<OnboardingRepository>(
+        () => OnboardingRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton(() => CompleteOnboarding(sl()));
+  sl.registerFactory(() => OnboardingCubit(sl()));
 
   // ── External ───────────────────────────────────────────────────
   sl.registerLazySingleton(() => FirebaseAuth.instance);
