@@ -31,8 +31,10 @@ class ChatRepositoryImpl implements ChatRepository {
         final validChats = chats.where((chat) {
           final participants =
               (chat['participants'] as List?)?.cast<String>() ?? [];
-          return participants.length == 2 &&
-              participants[0] != participants[1] &&
+          final hiddenFor =
+              (chat['hiddenFor'] as List?)?.cast<String>() ?? [];
+          return participants.isNotEmpty &&
+              !hiddenFor.contains(userId) &&
               chat['lastMessageTime'] != null;
         }).toList();
 
@@ -40,8 +42,11 @@ class ChatRepositoryImpl implements ChatRepository {
         for (final chat in validChats) {
           final participants =
           (chat['participants'] as List).cast<String>();
-          final otherUserId =
-          participants.firstWhere((id) => id != userId);
+          final otherUserId = participants.firstWhere(
+                (id) => id != userId,
+            orElse: () => '',
+          );
+          if (otherUserId.isEmpty) continue;
           try {
             final otherUser = await authService.getUserData(otherUserId);
             if (otherUser == null) continue;
@@ -57,6 +62,7 @@ class ChatRepositoryImpl implements ChatRepository {
               otherUserName: otherUser['name'] as String? ?? '',
               otherUserImage: otherUser['profilePicUrl'] as String?,
               isVerified: otherUser['isVerified'] as bool? ?? false,
+              readBy: (chat['readBy'] as List?)?.cast<String>() ?? [],
             ));
           } catch (_) {
             continue;
@@ -88,6 +94,7 @@ class ChatRepositoryImpl implements ChatRepository {
       return Left(ServerFailure(e.message));
     }
   }
+
 
   @override
   Future<Either<Failure, void>> blockUser(String currentUserId, String targetUserId) async {
@@ -150,14 +157,30 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
+
   @override
   Future<Either<Failure, String>> uploadChatImage({
     required String chatId,
     required File image,
+    void Function(double)? onProgress,
   }) async {
     try {
-      final url = await remoteDataSource.uploadChatImage(chatId, image);
+      final url = await remoteDataSource.uploadChatImage(
+        chatId,
+        image,
+        onProgress: onProgress,
+      );
       return Right(url);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteChat(String chatId, String userId) async {
+    try {
+      await remoteDataSource.deleteChat(chatId, userId);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     }

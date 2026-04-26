@@ -41,6 +41,55 @@ class CloudinaryService {
     }
   }
 
+  /// Upload chat image
+  Future<String> uploadChatImage(
+      File image,
+      String chatId, {
+        void Function(double progress)? onProgress,
+      }) async {
+    try {
+      final compressedImage = await _compressImage(image, quality: 70);
+      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final publicId = 'chat_${chatId}_$timestamp';
+      const folder = 'cinnamon_marketplace/chats';
+      const eager = 'w_800,h_800,c_limit,q_auto:eco,f_auto';
+
+      //  eager must be included, params sorted alphabetically
+      final paramsToSign =
+          'eager=$eager&eager_async=true&folder=$folder&public_id=$publicId&timestamp=$timestamp$apiSecret';
+
+      final signature = sha1.convert(utf8.encode(paramsToSign)).toString();
+
+      final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+      final request = http.MultipartRequest('POST', uri);
+
+      request.fields['eager'] = eager;       // part of signature
+      request.fields['folder'] = folder;
+      request.fields['public_id'] = publicId;
+      request.fields['eager_async'] = 'true';
+      request.fields['timestamp'] = timestamp.toString();
+      request.fields['signature'] = signature;
+      request.fields['api_key'] = apiKey;   // NOT part of signature
+      request.files.add(await http.MultipartFile.fromPath('file', compressedImage.path));
+
+      onProgress?.call(0.1);
+      final streamedResponse = await request.send();
+      onProgress?.call(0.9);
+
+      final responseData = await streamedResponse.stream.bytesToString();
+      onProgress?.call(1.0);
+
+      if (streamedResponse.statusCode == 200) {
+        final jsonResponse = json.decode(responseData);
+        return jsonResponse['secure_url'] as String;
+      } else {
+        throw Exception('Cloudinary upload failed: $responseData');
+      }
+    } catch (e) {
+      throw Exception('Failed to upload chat image: $e');
+    }
+  }
+
   /// Upload advertisement images with parallel processing
   Future<List<String>> uploadAdImages(List<File> images) async {
     if (images.isEmpty) return [];

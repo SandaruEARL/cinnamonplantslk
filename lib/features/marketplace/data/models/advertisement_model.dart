@@ -21,6 +21,7 @@ class AdvertisementModel extends AdvertisementEntity {
     super.status,
     super.rejectionReason,
     super.type,
+    super.isActive,
   });
 
   factory AdvertisementModel.fromFirestore(DocumentSnapshot doc) {
@@ -46,6 +47,7 @@ class AdvertisementModel extends AdvertisementEntity {
       status: data['status'] ?? 'pending',
       rejectionReason: data['rejectionReason'],
       type: data['type'] ?? 'listing', // backward-compatible default
+      isActive: data['isActive'] ?? false,
     );
   }
 
@@ -67,5 +69,6 @@ class AdvertisementModel extends AdvertisementEntity {
     'status': status,
     'rejectionReason': rejectionReason,
     'type': type,
+    'isActive': isActive,
   };
 }

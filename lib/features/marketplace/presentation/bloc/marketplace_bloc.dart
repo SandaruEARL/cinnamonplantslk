@@ -6,6 +6,8 @@ import '../../domain/usecases/get_advertisements.dart';
 import '../../domain/usecases/get_anouncements.dart';
 import '../../domain/usecases/get_user_advertisements.dart';
 import '../../domain/usecases/toggle_favorite.dart';
+import '../../domain/usecases/update_advertisement.dart';
+import '../../domain/usecases/upload_images.dart';
 import 'marketplace_event.dart';
 import 'marketplace_state.dart';
 
@@ -16,6 +18,8 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
   final CreateAdvertisement createAdvertisement;
   final AddToFavorites addToFavorites;
   final RemoveFromFavorites removeFromFavorites;
+  final UpdateAdvertisement updateAdvertisement;
+  final UploadImages uploadImages;
 
   StreamSubscription? _adsSubscription;
 
@@ -25,12 +29,15 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     required this.getUserAdvertisements,
     required this.createAdvertisement,
     required this.addToFavorites,
+    required this.uploadImages,
+    required this.updateAdvertisement,
     required this.removeFromFavorites,
   }) : super(const MarketplaceInitial()) {
     on<MarketplaceLoadRequested>(_onLoadRequested);
     on<MarketplaceAnnouncementsLoadRequested>(_onAnnouncementsLoadRequested);
     on<MarketplaceUserAdsLoadRequested>(_onUserAdsLoadRequested);
     on<MarketplaceAdCreateRequested>(_onAdCreateRequested);
+    on<MarketplaceAdUpdateRequested>(_onAdUpdateRequested);
     on<MarketplaceFavoriteToggled>(_onFavoriteToggled);
   }
 
@@ -62,6 +69,48 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
             (failure) => MarketplaceError(failure.message),
             (announcements) => MarketplaceAnnouncementsLoaded(announcements),
       ),
+    );
+  }
+
+  Future<void> _onAdUpdateRequested(
+      MarketplaceAdUpdateRequested event,
+      Emitter<MarketplaceState> emit,
+      ) async {
+    emit(const MarketplaceAdCreating());
+
+    List<String> newUrls = [];
+    if (event.newImages.isNotEmpty) {
+      final uploadResult = await uploadImages(event.newImages);
+      final failed = uploadResult.fold((f) => true, (_) => false);
+      if (failed) {
+        emit(MarketplaceError(uploadResult.fold((f) => f.message, (_) => '')));
+        return;
+      }
+      newUrls = uploadResult.fold((_) => [], (urls) => urls);
+    }
+
+    final allImages = [...event.existingImageUrls, ...newUrls];
+
+    final result = await updateAdvertisement(UpdateAdvertisementParams(
+      adId: event.adId,
+      data: {
+        'title': event.title,
+        'description': event.description,
+        'category': event.category,
+        'price': event.price,
+        'grade': event.grade,
+        'location': event.location,
+        'imageUrls': allImages,
+        'status': 'pending',
+        'isActive': false,
+        'isUpdate': true,
+        'updatedAt': DateTime.now().toIso8601String(),
+      },
+    ));
+
+    result.fold(
+          (failure) => emit(MarketplaceError(failure.message)),
+          (_) => emit(const MarketplaceAdUpdated()),
     );
   }
 

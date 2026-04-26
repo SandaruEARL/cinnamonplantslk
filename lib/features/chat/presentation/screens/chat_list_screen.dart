@@ -87,7 +87,7 @@ class _ChatListView extends StatelessWidget {
                     Icon(Icons.chat_bubble_outline,
                         size: 80,
                         color: AppColors.textSecondary
-                            .withOpacity(0.5)),
+                            .withValues(alpha: 0.5)),
                     const SizedBox(height: 16),
                     Text(l10n.noMessagesYet,
                         style: const TextStyle(
@@ -106,8 +106,7 @@ class _ChatListView extends StatelessWidget {
               itemCount: state.chats.length,
               itemBuilder: (context, index) {
                 final chat = state.chats[index];
-                final isUnread =
-                    chat.lastMessageSender != currentUserId;
+                final isUnread = chat.isUnreadFor(currentUserId);
                 return _ChatTile(
                   chat: chat,
                   isUnread: isUnread,
@@ -144,6 +143,7 @@ class _ChatTile extends StatelessWidget {
           otherUserImage: chat.otherUserImage,
         ),
       )),
+      onLongPress: () => _showDeleteDialog(context),
       leading: Stack(
         children: [
           CircleAvatar(
@@ -210,6 +210,35 @@ class _ChatTile extends StatelessWidget {
           fontWeight:
           isUnread ? FontWeight.bold : FontWeight.normal,
         ),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Chat'),
+        content: Text(
+          'Delete your conversation with ${chat.otherUserName}? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<ChatBloc>().add(ChatDeleteRequested(
+                chatId: chat.chatId,
+                userId: currentUserId,
+              ));
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

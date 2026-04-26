@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../data/services/cloudinary/cloudinary_service.dart';
@@ -18,14 +19,22 @@ class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({super.key, required this.ad});
 
   @override
-  State<ProductDetailsScreen> createState() =>
-      _ProductDetailsScreenState();
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   int _currentImageIndex = 0;
   bool _isFavorite = false;
   final PageController _pageController = PageController();
+
+  void _openFullScreen(int initialIndex) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => _ProductImageGallery(
+        imageUrls: widget.ad.imageUrls,
+        initialIndex: initialIndex,
+      ),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +50,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w600)),
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient),
+            decoration:
+            const BoxDecoration(gradient: AppColors.primaryGradient),
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -50,7 +59,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             IconButton(
               icon: Icon(
                 _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.white : Colors.white,
+                color: Colors.white,
               ),
               onPressed: () => _toggleFavorite(context),
             ),
@@ -84,16 +93,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           if (widget.ad.imageUrls.isEmpty) {
                             return Container(
                               color: Colors.grey[200],
-                              child: const Icon(
-                                  Icons.image_not_supported,
-                                  size: 60,
-                                  color: Colors.grey),
+                              child: const Icon(Icons.image_not_supported,
+                                  size: 60, color: Colors.grey),
                             );
                           }
-                          return _buildImage(
-                              widget.ad.imageUrls[index]);
+                          // ✅ tap opens full screen
+                          return GestureDetector(
+                            onTap: () => _openFullScreen(index),
+                            child: _buildImage(widget.ad.imageUrls[index]),
+                          );
                         },
                       ),
+                      // dots indicator
                       if (widget.ad.imageUrls.length > 1)
                         Positioned(
                           bottom: 10,
@@ -104,8 +115,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             children: List.generate(
                               widget.ad.imageUrls.length,
                                   (i) => Container(
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 3),
+                                margin:
+                                const EdgeInsets.symmetric(horizontal: 3),
                                 width: 7,
                                 height: 7,
                                 decoration: BoxDecoration(
@@ -118,6 +129,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             ),
                           ),
                         ),
+
                     ],
                   ),
                 ),
@@ -134,8 +146,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
-                    Text(
-                        'Rs.${widget.ad.price.toStringAsFixed(0)}',
+                    Text('Rs.${widget.ad.price.toStringAsFixed(0)}',
                         style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -150,14 +161,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         if (widget.ad.quantity != null)
                           Chip(
                             label: Text(
-                                l10n.quantityLabel(
-                                    widget.ad.quantity ?? 0),
+                                l10n.quantityLabel(widget.ad.quantity ?? 0),
                                 style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13)),
-                            backgroundColor:
-                            const Color(0xFFB8E98D),
+                            backgroundColor: const Color(0xFFB8E98D),
                             shape: const StadiumBorder(),
                             side: BorderSide.none,
                           ),
@@ -198,8 +207,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         const SizedBox(width: 4),
                         Text(widget.ad.location,
                             style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textPrimary)),
+                                fontSize: 14, color: AppColors.textPrimary)),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -210,11 +218,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
-                    Text(
-                        '${widget.ad.sellerName} - ${widget.ad.sellerPhone}',
+                    Text('${widget.ad.sellerName} - ${widget.ad.sellerPhone}',
                         style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textPrimary)),
+                            fontSize: 14, color: AppColors.textPrimary)),
 
                     const SizedBox(height: 100),
                   ],
@@ -235,10 +241,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       size: 18, color: Color(0xFFB8E98D)),
                   label: Text(l10n.callButton),
                   style: OutlinedButton.styleFrom(
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(
-                        color: Colors.black, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Colors.black, width: 1.5),
                     foregroundColor: AppColors.textPrimary,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
@@ -254,16 +258,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     backgroundColor: const Color(0xFFB8E98D),
                     foregroundColor: AppColors.textPrimary,
                     elevation: 0,
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
-                    side: const BorderSide(
-                        color: Colors.black, width: 1.5),
+                    side:
+                    const BorderSide(color: Colors.black, width: 1.5),
                   ),
                   child: Text(l10n.whatsappButton,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600)),
+                      style:
+                      const TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -274,10 +277,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       size: 16, color: Color(0xFFB8E98D)),
                   label: Text(l10n.chatButton),
                   style: OutlinedButton.styleFrom(
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(
-                        color: Colors.black, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Colors.black, width: 1.5),
                     foregroundColor: AppColors.textPrimary,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
@@ -292,8 +293,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   Widget _buildImage(String url) {
-    final detailUrl =
-    CloudinaryService.getDetailUrl(url, maxWidth: 1200);
+    final detailUrl = CloudinaryService.getDetailUrl(url, maxWidth: 1200);
     return CachedNetworkImage(
       imageUrl: detailUrl,
       fit: BoxFit.cover,
@@ -355,5 +355,107 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+}
+
+// Full screen gallery — same pattern as chat
+class _ProductImageGallery extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const _ProductImageGallery({
+    required this.imageUrls,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_ProductImageGallery> createState() => _ProductImageGalleryState();
+}
+
+class _ProductImageGalleryState extends State<_ProductImageGallery> {
+  late PageController _pageController;
+  late int _currentIndex;
+  bool _isZoomed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          '${_currentIndex + 1} / ${widget.imageUrls.length}',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ),
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (_isZoomed) return;
+          const threshold = 200.0;
+          final velocity = details.primaryVelocity ?? 0;
+          if (velocity < -threshold &&
+              _currentIndex < widget.imageUrls.length - 1) {
+            _pageController.nextPage(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          } else if (velocity > threshold && _currentIndex > 0) {
+            _pageController.previousPage(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          }
+        },
+        child: PageView.builder(
+          controller: _pageController,
+          physics: _isZoomed
+              ? const NeverScrollableScrollPhysics()
+              : const PageScrollPhysics(),
+          itemCount: widget.imageUrls.length,
+          onPageChanged: (index) => setState(() => _currentIndex = index),
+          itemBuilder: (context, index) {
+            final url = CloudinaryService.getDetailUrl(
+              widget.imageUrls[index],
+              maxWidth: 1200,
+            );
+            return SizedBox(
+              width: size.width,
+              height: size.height,
+              child: PhotoView(
+                imageProvider: CachedNetworkImageProvider(url),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 4,
+                initialScale: PhotoViewComputedScale.contained,
+                backgroundDecoration:
+                const BoxDecoration(color: Colors.black),
+                scaleStateChangedCallback: (state) {
+                  final zoomed = state != PhotoViewScaleState.initial &&
+                      state != PhotoViewScaleState.zoomedOut;
+                  setState(() => _isZoomed = zoomed);
+                },
+                loadingBuilder: (context, event) => const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }

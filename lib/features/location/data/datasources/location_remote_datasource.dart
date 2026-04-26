@@ -23,37 +23,45 @@ class LocationRemoteDataSourceImpl implements LocationRemoteDataSource {
   })  : _firestore = firestore,
         _cloudinary = cloudinary;
 
-  @override
-  Stream<List<BusinessLocationModel>> getApprovedLocations(
-      LocationType type,
-      ) {
-    try {
-      return _firestore
-          .collection('locations')
-          .where('type', isEqualTo: type.name)
-          .where('status', isEqualTo: 'approved')
-          .snapshots()
-          .map((snap) => snap.docs
-          .map((doc) => BusinessLocationModel.fromFirestore(doc))
-          .toList());
-    } catch (e) {
-      throw ServerException(e.toString());
-    }
+  Stream<List<BusinessLocationModel>> getApprovedLocations(LocationType type) {
+    return _firestore
+        .collection('locations')
+        .where('type', isEqualTo: type.name)
+        .where('status', isEqualTo: 'approved')
+        .snapshots()
+        .map((snap) {
+      print('DEBUG: got ${snap.docs.length} docs for type=${type.name}');
+      final results = <BusinessLocationModel>[];
+      for (final doc in snap.docs) {
+        try {
+          results.add(BusinessLocationModel.fromFirestore(doc));
+          print('DEBUG: parsed ${doc.id} ok');
+        } catch (e) {
+          print('DEBUG: failed to parse ${doc.id}: $e');
+        }
+      }
+      print('DEBUG: returning ${results.length} locations');
+      return results;
+    });
   }
 
   @override
   Stream<List<BusinessLocationModel>> getUserLocations(String userId) {
-    try {
-      return _firestore
-          .collection('locations')
-          .where('userId', isEqualTo: userId)
-          .snapshots()
-          .map((snap) => snap.docs
-          .map((doc) => BusinessLocationModel.fromFirestore(doc))
-          .toList());
-    } catch (e) {
-      throw ServerException(e.toString());
-    }
+    return _firestore
+        .collection('locations')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snap) {
+      final results = <BusinessLocationModel>[];
+      for (final doc in snap.docs) {
+        try {
+          results.add(BusinessLocationModel.fromFirestore(doc));
+        } catch (e) {
+          // skip malformed docs
+        }
+      }
+      return results;
+    });
   }
 
   @override
@@ -65,7 +73,19 @@ class LocationRemoteDataSourceImpl implements LocationRemoteDataSource {
         await _firestore
             .collection('locations')
             .doc(location.id)
-            .set(location.toFirestore(), SetOptions(merge: true));
+            .update({
+          'businessName': location.businessName,
+          'description': location.description,
+          'address': location.address,
+          'latitude': location.latitude,
+          'longitude': location.longitude,
+          'ownerPhone': location.ownerPhone,
+          'ownerName': location.ownerName,
+          'ownerProfilePic': location.ownerProfilePic,
+          'openingHours': location.openingHours,
+          'photoUrls': location.photoUrls,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
       }
     } catch (e) {
       throw ServerException(e.toString());

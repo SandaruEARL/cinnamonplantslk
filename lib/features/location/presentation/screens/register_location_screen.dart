@@ -470,10 +470,10 @@ class _RegisterLocationScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
+                  color: Colors.grey.shade100,
                   shape: BoxShape.circle),
               child: Icon(Icons.hourglass_top_rounded,
-                  size: 48, color: Colors.orange.shade700),
+                  size: 48, color: Colors.grey.shade100, ),
             ),
             const SizedBox(height: 20),
             Text(l10n.locationSubmittedTitle,

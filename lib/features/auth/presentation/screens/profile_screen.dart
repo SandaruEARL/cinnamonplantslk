@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../features/auth/presentation/screens/settings_screen.dart';
+import '../../../settings/presentation/settings_screen.dart';
 import '../../../../features/marketplace/presentation/screens/my_ads_screen.dart';
 import '../../../../features/auth/presentation/screens/edit_profile_screen.dart';
 import '../bloc/auth_bloc.dart';

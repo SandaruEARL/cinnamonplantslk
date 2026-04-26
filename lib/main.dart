@@ -7,10 +7,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_theme.dart';
 import 'data/services/ai/tflite_service.dart';
+import 'data/services/notification/fcm_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
+import 'features/notification/presentation/bloc/notification_bloc.dart';
 import 'features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
@@ -24,6 +26,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await di.init();
   await di.sl<TFLiteService>().initialize();
+  await di.sl<FcmService>().initialize();
 
   runApp(const MyApp());
 }
@@ -35,6 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => di.sl<NotificationBloc>()),
         BlocProvider(
           create: (_) => di.sl<AuthBloc>()..add(const AuthCheckRequested()),
         ),

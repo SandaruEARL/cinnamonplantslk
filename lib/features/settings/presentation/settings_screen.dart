@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import '../../../../core/app_colors.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../locale/presentation/bloc/locale_bloc.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
+import '../../../core/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../locale/presentation/bloc/locale_bloc.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_event.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

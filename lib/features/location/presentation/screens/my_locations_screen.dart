@@ -292,7 +292,7 @@ class _LocationCard extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.location_off_outlined,
-                  color: Colors.red),
+                  color: Colors.grey),
               tooltip: l10n.removeLocationTitle,
               onPressed: () => _confirmDelete(context),
             ),
@@ -351,11 +351,11 @@ class _StatusBadge extends StatelessWidget {
       label = l10n.statusVisibleOnMap;
       icon = Icons.check_circle_outline;
     } else if (location.isPending) {
-      bg = Colors.orange.shade50;
-      fg = Colors.orange.shade700;
+      bg = Colors.grey.shade100;
+      fg = Colors.grey.shade600;
       label = l10n.statusPendingReview;
       icon = Icons.hourglass_top_rounded;
-    } else {
+    }else {
       bg = Colors.red.shade50;
       fg = Colors.red.shade700;
       label = location.rejectionReason ?? l10n.statusRejected;

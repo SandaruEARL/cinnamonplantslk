@@ -17,6 +17,7 @@ class AdvertisementEntity {
   final String status; // pending, approved, rejected
   final String? rejectionReason;
   final String type; // 'listing' | 'announcement'
+  final bool isActive;
 
   bool get isPending => status == 'pending';
   bool get isApproved => status == 'approved';
@@ -43,5 +44,6 @@ class AdvertisementEntity {
     this.status = 'pending',
     this.rejectionReason,
     this.type = 'listing',
+    this.isActive = false,
   });
 }

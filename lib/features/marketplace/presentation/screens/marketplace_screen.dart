@@ -7,6 +7,9 @@ import '../../../../features/marketplace/presentation/screens/post_ad_screen.dar
 import '../../../../features/marketplace/presentation/screens/product_details_screen.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../notification/presentation/bloc/notification_bloc.dart';
+import '../../../notification/presentation/bloc/notification_state.dart';
+import '../../../notification/presentation/screens/notifications_screen.dart';
 import '../bloc/marketplace_bloc.dart';
 import '../bloc/marketplace_event.dart';
 import '../bloc/marketplace_state.dart';
@@ -67,42 +70,54 @@ class _MarketplaceViewState extends State<_MarketplaceView>
     }
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const Text(
-                'What do you want to post?',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  child: const Icon(Icons.storefront_outlined,
-                      color: AppColors.primaryGreen),
                 ),
-                title: const Text('Listing',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: const Text('Sell your cinnamon products'),
+              ),
+
+              // Title
+              const Text(
+                'Create a post',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Choose what you want to post',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Listing option
+              _SheetOption(
+                icon: Icons.storefront_outlined,
+                title: 'Listing',
+                subtitle: 'Sell your cinnamon products',
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.of(context).push(MaterialPageRoute(
@@ -110,20 +125,13 @@ class _MarketplaceViewState extends State<_MarketplaceView>
                   ));
                 },
               ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.campaign_outlined,
-                      color: Colors.orange),
-                ),
-                title: const Text('Buying Announcement',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle:
-                const Text('Announce what cinnamon you want to buy'),
+              const SizedBox(height: 10),
+
+              // Announcement option
+              _SheetOption(
+                icon: Icons.campaign_outlined,
+                title: 'Buying announcement',
+                subtitle: 'Announce what cinnamon you want to buy',
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.of(context).push(MaterialPageRoute(
@@ -131,7 +139,7 @@ class _MarketplaceViewState extends State<_MarketplaceView>
                   ));
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -155,12 +163,6 @@ class _MarketplaceViewState extends State<_MarketplaceView>
           const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         actions: [
-          // Post type selector
-          IconButton(
-            icon: const Icon(Icons.add_box_outlined, color: Colors.white),
-            tooltip: 'Post',
-            onPressed: () => _showPostTypeSheet(context),
-          ),
           // Profile
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
@@ -188,14 +190,40 @@ class _MarketplaceViewState extends State<_MarketplaceView>
               return Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: TextButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/login'),
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
                   icon: const Icon(Icons.login,
                       color: Colors.white, size: 20),
                   label: Text(l10n.loginTitle,
-                      style:
-                      const TextStyle(color: Colors.white)),
+                      style: const TextStyle(color: Colors.white)),
                 ),
+              );
+            },
+          ),
+
+          BlocBuilder<NotificationBloc, NotificationState>(
+            builder: (context, state) {
+              final unread = state is NotificationLoaded ? state.unreadCount : 0;
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                    ),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 8, top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red, shape: BoxShape.circle,
+                        ),
+                        child: Text('$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 10)),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -207,16 +235,7 @@ class _MarketplaceViewState extends State<_MarketplaceView>
           unselectedLabelColor: Colors.white60,
           tabs: const [
             Tab(text: 'Listings'),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Announcements'),
-                  SizedBox(width: 4),
-                  _NewBadge(),
-                ],
-              ),
-            ),
+            Tab(text: 'Announcements'),
           ],
         ),
       ),
@@ -227,7 +246,87 @@ class _MarketplaceViewState extends State<_MarketplaceView>
           _AnnouncementsTab(),
         ],
       ),
-      // FAB removed — post button is now in AppBar
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showPostTypeSheet(context),
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        shape: const CircleBorder(),
+        tooltip: 'Create post',
+        child: const Icon(Icons.add, size: 28),
+      ),
+    );
+  }
+}
+
+// ── Sheet option tile ────────────────────────────────────────────────────────
+
+class _SheetOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _SheetOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon,
+                  color: AppColors.primaryGreen, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right,
+                color: Colors.grey.shade400, size: 20),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -274,7 +373,7 @@ class _ListingsTab extends StatelessWidget {
                       children: [
                         Icon(Icons.inventory_2_outlined,
                             size: 80,
-                            color: AppColors.textSecondary.withOpacity(0.5)),
+                            color: AppColors.textSecondary.withOpacity(0.4)),
                         const SizedBox(height: 16),
                         Text(l10n.noProductsFound,
                             style: const TextStyle(
@@ -337,18 +436,19 @@ class _AnnouncementsTab extends StatelessWidget {
         }
         if (state is MarketplaceAnnouncementsLoaded) {
           if (state.announcements.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.campaign_outlined,
-                      size: 80, color: AppColors.textSecondary),
-                  SizedBox(height: 16),
-                  Text('No buying announcements yet',
+                      size: 80,
+                      color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  const Text('No buying announcements yet',
                       style: TextStyle(
                           fontSize: 18, color: AppColors.textSecondary)),
-                  SizedBox(height: 8),
-                  Text('Be the first to post what you want to buy',
+                  const SizedBox(height: 8),
+                  const Text('Be the first to post what you want to buy',
                       style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
@@ -364,32 +464,6 @@ class _AnnouncementsTab extends StatelessWidget {
         }
         return const SizedBox.shrink();
       },
-    );
-  }
-}
-
-// ── "NEW" badge widget ──────────────────────────────────────────────────────
-
-class _NewBadge extends StatelessWidget {
-  const _NewBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.orange,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text(
-        'NEW',
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
-      ),
     );
   }
 }

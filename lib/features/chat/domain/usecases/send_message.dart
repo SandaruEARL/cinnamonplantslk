@@ -28,6 +28,7 @@ class SendImageMessage extends UseCase<void, SendImageParams> {
     final uploadResult = await repository.uploadChatImage(
       chatId: params.chatId,
       image: params.image,
+      onProgress: params.onProgress,
     );
     return uploadResult.fold(
           (failure) => Left(failure),
@@ -46,6 +47,7 @@ class SendMessageParams {
   final String receiverId;
   final String text;
   final String? imageUrl;
+
   const SendMessageParams({
     required this.senderId,
     required this.receiverId,
@@ -58,11 +60,15 @@ class SendImageParams {
   final String senderId;
   final String receiverId;
   final String chatId;
+  final String pendingId;
   final File image;
+  final void Function(double)? onProgress;
   const SendImageParams({
     required this.senderId,
     required this.receiverId,
     required this.chatId,
+    this.onProgress,
     required this.image,
+    required this.pendingId
   });
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/app_colors.dart';
 import '../../domain/entities/advertisement_entity.dart';
+import '../screens/anouncement_details.dart';
+
 
 class AnnouncementCard extends StatelessWidget {
   final AdvertisementEntity ad;
@@ -8,166 +10,119 @@ class AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => AnnouncementDetailScreen(ad: ad),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row
-          Row(
-            children: [
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shopping_cart_outlined,
-                        size: 14, color: Colors.orange),
-                    SizedBox(width: 4),
-                    Text(
-                      'BUYING',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.orange,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Text(
-                _timeAgo(ad.createdAt),
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Title
-          Text(
-            ad.title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-          ),
-          const SizedBox(height: 6),
-
-          // Description
-          Text(
-            ad.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 12),
-
-          // Info chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              _InfoChip(
-                icon: Icons.attach_money,
-                label: 'LKR ${ad.price.toStringAsFixed(0)}/kg',
-                color: AppColors.primaryGreen,
-              ),
-              if (ad.grade != null)
-                _InfoChip(
-                  icon: Icons.grade_outlined,
-                  label: ad.grade!,
-                  color: Colors.blue,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Top row: badge + time ─────────────────────────────────
+            Row(
+              children: [
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'BUYING',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryGreen,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
-              if (ad.quantity != null)
-                _InfoChip(
-                  icon: Icons.inventory_2_outlined,
-                  label: '${ad.quantity} kg',
-                  color: Colors.purple,
-                ),
-              _InfoChip(
-                icon: Icons.location_on_outlined,
-                label: ad.location,
-                color: Colors.red,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Seller row + contact button
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primaryGreen,
-                child: Text(
-                  ad.sellerName.isNotEmpty
-                      ? ad.sellerName[0].toUpperCase()
-                      : '?',
+                const Spacer(),
+                Text(
+                  _timeAgo(ad.createdAt),
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600),
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // ── Title ─────────────────────────────────────────────────
+            Text(
+              ad.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ad.sellerName,
-                      style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      ad.category,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ],
+            ),
+            const SizedBox(height: 10),
+
+            // ── Key info row ──────────────────────────────────────────
+            Row(
+              children: [
+                _MetaItem(
+                  label: 'LKR ${ad.price.toStringAsFixed(0)}/kg',
+                  color: AppColors.primaryGreen,
                 ),
-              ),
-              OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: navigate to chat or dial
-                },
-                icon: const Icon(Icons.chat_bubble_outline, size: 14),
-                label: const Text('Contact'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primaryGreen,
-                  side: const BorderSide(color: AppColors.primaryGreen),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
-                  textStyle: const TextStyle(fontSize: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
+                if (ad.grade != null) ...[
+                  const SizedBox(width: 10),
+                  _MetaItem(label: ad.grade!),
+                ],
+                const Spacer(),
+                Text(
+                  ad.location,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // ── Seller row ────────────────────────────────────────────
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 13,
+                  backgroundColor: Colors.grey.shade100,
+                  child: Text(
+                    ad.sellerName.isNotEmpty
+                        ? ad.sellerName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                        color: AppColors.primaryGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  ad.sellerName,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -181,32 +136,23 @@ class AnnouncementCard extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
+class _MetaItem extends StatelessWidget {
   final String label;
   final Color color;
-  const _InfoChip(
-      {required this.icon, required this.label, required this.color});
+  const _MetaItem({required this.label, this.color = AppColors.textSecondary});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-                fontSize: 12, color: color, fontWeight: FontWeight.w500),
-          ),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+            fontSize: 12, color: color, fontWeight: FontWeight.w500),
       ),
     );
   }

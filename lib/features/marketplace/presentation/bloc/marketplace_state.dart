@@ -34,3 +34,7 @@ class MarketplaceError extends MarketplaceState {
   final String message;
   const MarketplaceError(this.message);
 }
+
+class MarketplaceAdUpdated extends MarketplaceState {
+  const MarketplaceAdUpdated();
+}

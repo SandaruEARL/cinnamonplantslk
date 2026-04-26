@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'data/services/ai/tflite_service.dart';
 import 'data/services/ml/ml_preprocessing_service.dart';
 import 'data/services/ml/model_update_service.dart';
+import 'data/services/notification/fcm_service.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -19,6 +20,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 // Marketplace
 import 'features/chat/domain/usecases/block_user.dart';
+import 'features/chat/domain/usecases/delete_chat.dart';
 import 'features/chat/domain/usecases/delete_message.dart';
 import 'features/marketplace/data/datasources/marketplace_remote_datasource.dart';
 import 'features/marketplace/data/repositories/marketplace_repository_impl.dart';
@@ -28,6 +30,8 @@ import 'features/marketplace/domain/usecases/get_advertisements.dart';
 import 'features/marketplace/domain/usecases/get_anouncements.dart';
 import 'features/marketplace/domain/usecases/get_user_advertisements.dart';
 import 'features/marketplace/domain/usecases/toggle_favorite.dart';
+import 'features/marketplace/domain/usecases/update_advertisement.dart';
+import 'features/marketplace/domain/usecases/upload_images.dart';
 import 'features/marketplace/presentation/bloc/marketplace_bloc.dart';
 
 // Chat
@@ -36,9 +40,12 @@ import 'features/chat/data/repositories/chat_repository_impl.dart';
 import 'features/chat/domain/repositories/chat_repository.dart';
 import 'features/chat/domain/usecases/get_messages.dart';
 import 'features/chat/domain/usecases/get_user_chats.dart';
-import 'features/chat/domain/usecases/mark_as_read.dart';
+import 'features/chat/domain/usecases/mark_as_read.dart' as chat;
 import 'features/chat/domain/usecases/send_message.dart';
 import 'features/chat/presentation/bloc/chat_bloc.dart';
+
+// Notification
+import 'features/notification/domain/usecases/mark_as_read.dart' as notification;
 
 // Expense
 import 'features/expense/data/datasources/expense_remote_datasource.dart';
@@ -70,6 +77,13 @@ import 'features/ai/presentation/bloc/ai_bloc.dart';
 import 'data/services/cloudinary/cloudinary_service.dart';
 import 'data/services/firebase/auth_service.dart';
 import 'data/services/firebase/storage_service.dart';
+import 'features/notification/data/datasources/notification_remote_datasource.dart';
+import 'features/notification/data/repositories/notification_repository_impl.dart';
+import 'features/notification/domain/repositories/notification_repository.dart';
+import 'features/notification/domain/usecases/get_notifications.dart';
+import 'features/notification/domain/usecases/mark_all_as_read.dart';
+import 'features/notification/presentation/bloc/notification_bloc.dart';
+
 import 'features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'features/onboarding/domain/usecases/complete_onboarding.dart';
 import 'features/onboarding/presentation/cubit/onboarding_cubit.dart';
@@ -94,6 +108,8 @@ Future<void> init() async {
     createAdvertisement: sl(),
     addToFavorites: sl(),
     removeFromFavorites: sl(),
+    updateAdvertisement: sl(),
+    uploadImages: sl()
   ));
 
   sl.registerFactory(() => ChatBloc(
@@ -101,11 +117,12 @@ Future<void> init() async {
     getMessages: sl(),
     sendMessage: sl(),
     sendImageMessage: sl(),
-    markAsRead: sl(),
+    markAsRead: sl<chat.MarkAsRead>(),
     deleteMessageForMe: sl(),
     deleteMessageForEveryone: sl(),
     blockUser: sl(),
     unblockUser: sl(),
+    deleteChat: sl(),
   ));
 
   sl.registerFactory(() => ExpenseBloc(
@@ -119,6 +136,12 @@ Future<void> init() async {
     getUserLocations: sl(),
     saveLocation: sl(),
     deleteLocation: sl(),
+  ));
+
+  sl.registerFactory(() => NotificationBloc(
+    getNotifications: sl(),
+    markAsRead: sl<notification.MarkAsRead>(),
+    markAllAsRead: sl(),
   ));
 
   // registerFactory so each screen navigation gets a clean state
@@ -141,15 +164,18 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddToFavorites(sl()));
   sl.registerLazySingleton(() => RemoveFromFavorites(sl()));
   sl.registerLazySingleton(() => GetAnnouncements(sl()));
+  sl.registerLazySingleton(() => UpdateAdvertisement(sl()));
+  sl.registerLazySingleton(() => UploadImages(sl()));
 
   // Chat
   sl.registerLazySingleton(() => GetUserChats(sl()));
   sl.registerLazySingleton(() => GetMessages(sl()));
   sl.registerLazySingleton(() => SendMessage(sl()));
   sl.registerLazySingleton(() => SendImageMessage(sl()));
-  sl.registerLazySingleton(() => MarkAsRead(sl()));
+  sl.registerLazySingleton(() => chat.MarkAsRead(sl()));
   sl.registerLazySingleton(() => DeleteMessageForMe(sl()));
   sl.registerLazySingleton(() => DeleteMessageForEveryone(sl()));
+  sl.registerLazySingleton(() => DeleteChat(sl()));
 
   // Expense
   sl.registerLazySingleton(() => GetExpensesByDateRange(sl()));
@@ -161,6 +187,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetUserLocations(sl()));
   sl.registerLazySingleton(() => SaveLocation(sl()));
   sl.registerLazySingleton(() => DeleteLocation(sl()));
+
+  // Notification
+  sl.registerLazySingleton(() => GetNotifications(sl()));
+  sl.registerLazySingleton(() => notification.MarkAsRead(sl()));
+  sl.registerLazySingleton(() => MarkAllAsRead(sl()));
 
   // AI
   sl.registerLazySingleton(() => PredictPrice(sl()));
@@ -184,6 +215,10 @@ Future<void> init() async {
   sl.registerLazySingleton<AiRepository>(
           () => AiRepositoryImpl(datasource: sl()));
 
+
+  sl.registerLazySingleton<NotificationRepository>(
+          () => NotificationRepositoryImpl(remoteDataSource: sl()));
+
   // ── Data Sources ───────────────────────────────────────────────
   sl.registerLazySingleton<AuthRemoteDataSource>(
           () => AuthRemoteDataSourceImpl(
@@ -203,6 +238,9 @@ Future<void> init() async {
   sl.registerLazySingleton<LocationRemoteDataSource>(
           () => LocationRemoteDataSourceImpl(
           firestore: sl(), cloudinary: sl()));
+
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+          () => NotificationRemoteDataSourceImpl(firestore: sl()));
 
 
   // TFLiteService is lazySingleton — one shared model instance across the app.
@@ -225,6 +263,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CloudinaryService());
   sl.registerLazySingleton(() => StorageService());
   sl.registerLazySingleton(() => AuthService());
+  sl.registerLazySingleton(() => FcmService());
 
   final prefs = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => prefs);

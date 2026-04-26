@@ -8,8 +8,10 @@ class ChatEntity {
   final String otherUserName;
   final String? otherUserImage;
   final bool isVerified;
+  final List<String> readBy;
 
-  bool get isUnread => true; // resolved in BLoC against current user
+  bool isUnreadFor(String userId) =>
+      lastMessageSender != userId && !readBy.contains(userId);
 
   const ChatEntity({
     required this.chatId,
@@ -21,5 +23,6 @@ class ChatEntity {
     required this.otherUserName,
     this.otherUserImage,
     this.isVerified = false,
+    this.readBy = const [],
   });
 }

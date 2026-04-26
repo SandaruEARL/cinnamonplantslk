@@ -33,9 +33,11 @@ class ChatImageSendRequested extends ChatEvent {
   final String senderId;
   final String receiverId;
   final String chatId;
+  final String pendingId;
   final File image;
   const ChatImageSendRequested({
     required this.senderId,
+    required this.pendingId,
     required this.receiverId,
     required this.chatId,
     required this.image,
@@ -88,5 +90,14 @@ class ChatUserUnblockRequested extends ChatEvent {
   const ChatUserUnblockRequested({
     required this.currentUserId,
     required this.targetUserId,
+  });
+}
+
+class ChatDeleteRequested extends ChatEvent {
+  final String chatId;
+  final String userId;
+  const ChatDeleteRequested({
+    required this.chatId,
+    required this.userId,
   });
 }

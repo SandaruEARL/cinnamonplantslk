@@ -44,3 +44,21 @@ class ChatUserBlocked extends ChatState {
 class ChatUserUnblocked extends ChatState {
   const ChatUserUnblocked();
 }
+
+class ChatImageUploadProgress extends ChatState {
+  final String pendingId;
+  final double progress;
+  const ChatImageUploadProgress({
+    required this.pendingId,
+    required this.progress,
+  });
+}
+
+class ChatImageSent extends ChatState {
+  final String pendingId;
+  const ChatImageSent({required this.pendingId});
+}
+
+class ChatDeleted extends ChatState {
+  const ChatDeleted();
+}

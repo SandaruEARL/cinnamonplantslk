@@ -40,6 +40,26 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
+  Future<Either<Failure, List<String>>> uploadImages(List<File> images) async {
+    try {
+      final urls = await remoteDataSource.uploadImages(images);
+      return Right(urls);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateAdvertisement(String adId, Map<String, dynamic> data) async {
+    try {
+      await remoteDataSource.updateAdvertisement(adId, data);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Stream<Either<Failure, List<AdvertisementEntity>>> getUserAdvertisements(
       String userId,
       ) {

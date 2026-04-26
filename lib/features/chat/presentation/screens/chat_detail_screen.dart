@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photo_view/photo_view.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -71,6 +72,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
   final ScrollController _scrollController = ScrollController();
   bool _isTyping = false;
   final List<MessageEntity> _pendingMessages = [];
+  final Map<String, String> _pendingImagePaths = {};
+  ChatMessagesLoaded? _lastMessagesState; // ← cache field
 
   @override
   void initState() {
@@ -87,19 +90,6 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
       appBar: AppBar(
         title: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primaryGreen,
-              backgroundImage: widget.otherUserImage != null
-                  ? CachedNetworkImageProvider(widget.otherUserImage!)
-                  : null,
-              child: widget.otherUserImage == null
-                  ? Text(widget.otherUserName[0].toUpperCase(),
-                  style:
-                  const TextStyle(color: Colors.white, fontSize: 16))
-                  : null,
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Text(widget.otherUserName,
                   style: const TextStyle(fontSize: 18)),
@@ -107,11 +97,10 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
           ],
         ),
         flexibleSpace: Container(
-          decoration:
-          const BoxDecoration(gradient: AppColors.primaryGradient),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
+        // actions unchanged — uses AuthBloc correctly
         actions: [
-          // ✅ AppBar only has the block/unblock menu — uses AuthBloc correctly
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, authState) {
               if (authState is! AuthAuthenticated) {
@@ -148,7 +137,8 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                         Text(
                           isBlocked ? 'Unblock User' : 'Block User',
                           style: TextStyle(
-                              color: isBlocked ? Colors.green : Colors.red),
+                            color: isBlocked ? Colors.green : Colors.red,
+                          ),
                         ),
                       ],
                     ),
@@ -164,26 +154,30 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
           Expanded(
             child: BlocConsumer<ChatBloc, ChatState>(
               listener: (context, state) {
-                // pending cleanup
-                if (state is ChatMessagesLoaded) {
+
+                // Image bubble removed deterministically by pendingId
+                if (state is ChatImageSent) {
                   setState(() {
-                    _pendingMessages.removeWhere((p) => state.messages.any(
-                          (m) =>
-                      m.text == p.text &&
-                          m.senderId == p.senderId &&
-                          m.timestamp
-                              .difference(p.timestamp)
-                              .inSeconds
-                              .abs() <
-                              10 &&
-                          !m.deletedFor.contains(widget.currentUserId),
-                    ));
+                    _pendingMessages.removeWhere((p) => p.id == state.pendingId);
+                    _pendingImagePaths.remove(state.pendingId);
                   });
                 }
-                // block/unblock feedback
+
+                // Text message pending cleanup only (skip image pending entries)
+                if (state is ChatMessagesLoaded) {
+                  setState(() {
+                    _pendingMessages.removeWhere((p) {
+                      if (_pendingImagePaths.containsKey(p.id)) return false; // images handled above
+                      return state.messages.any((m) =>
+                      m.senderId == p.senderId &&
+                          (m.timestamp.difference(p.timestamp).inSeconds.abs() < 30) &&
+                          !m.deletedFor.contains(widget.currentUserId));
+                    });
+                  });
+                }
+
                 if (state is ChatUserBlocked) {
                   context.read<AuthBloc>().add(const AuthCheckRequested());
-                  //  Reload messages so chatState goes back to ChatMessagesLoaded
                   context.read<ChatBloc>().add(ChatMessagesLoadRequested(
                     currentUserId: widget.currentUserId,
                     otherUserId: widget.otherUserId,
@@ -196,9 +190,9 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                     textColor: Colors.white,
                   );
                 }
+
                 if (state is ChatUserUnblocked) {
                   context.read<AuthBloc>().add(const AuthCheckRequested());
-                  //  Same here
                   context.read<ChatBloc>().add(ChatMessagesLoadRequested(
                     currentUserId: widget.currentUserId,
                     otherUserId: widget.otherUserId,
@@ -212,106 +206,146 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                   );
                 }
               },
+              // Fixed builder — caches last messages state
               builder: (context, chatState) {
-                if (chatState is ChatLoading) {
+                if (chatState is ChatMessagesLoaded) {
+                  _lastMessagesState = chatState;
+                }
+
+                if (chatState is ChatLoading && _lastMessagesState == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (chatState is ChatMessagesLoaded) {
-                  // ✅ Nested BlocBuilder<AuthBloc> so it rebuilds on block/unblock
-                  return BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, authState) {
-                      final blockedUsers = authState is AuthAuthenticated
-                          ? authState.user.blockedUsers
-                          : <String>[];
 
-                      final visibleMessages = chatState.messages
-                          .where((m) =>
-                      !m.deletedFor.contains(widget.currentUserId) &&
-                          !blockedUsers.contains(m.senderId))
-                          .toList();
+                final effectiveState = chatState is ChatMessagesLoaded
+                    ? chatState
+                    : _lastMessagesState;
 
-                      final stillPending = _pendingMessages
-                          .where((p) => !visibleMessages.any((m) =>
-                      m.text == p.text &&
-                          m.senderId == p.senderId &&
-                          m.timestamp
-                              .difference(p.timestamp)
-                              .inSeconds
-                              .abs() <
-                              10))
-                          .toList();
+                if (effectiveState == null) return const SizedBox.shrink();
 
-                      final allMessages = [
-                        ...stillPending.reversed,
-                        ...visibleMessages
-                      ];
+                return BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, authState) {
+                    final blockedUsers = authState is AuthAuthenticated
+                        ? authState.user.blockedUsers
+                        : <String>[];
 
-                      if (allMessages.isEmpty) {
-                        return const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.chat_bubble_outline,
-                                  size: 64, color: AppColors.textSecondary),
-                              SizedBox(height: 16),
-                              Text('No messages yet',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        );
-                      }
+                    final visibleMessages = effectiveState.messages
+                        .where((m) =>
+                    !m.deletedFor.contains(widget.currentUserId) &&
+                        !blockedUsers.contains(m.senderId))
+                        .toList();
 
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!mounted) return;
-                        final chatId =
-                        ([widget.currentUserId, widget.otherUserId]
-                          ..sort())
-                            .join('_');
-                        context.read<ChatBloc>().add(ChatMarkAsReadRequested(
-                          chatId: chatId,
-                          userId: widget.currentUserId,
-                        ));
-                      });
+                    final stillPending = _pendingMessages
+                        .where((p) => !visibleMessages.any((m) =>
+                    m.senderId == p.senderId &&
+                        (m.timestamp.difference(p.timestamp).inSeconds.abs() < 30)))
+                        .toList();
 
-                      return ListView.builder(
-                        controller: _scrollController,
-                        reverse: true,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 16),
-                        itemCount: allMessages.length,
-                        itemBuilder: (context, index) {
-                          final message = allMessages[index];
-                          final isMe =
-                              message.senderId == widget.currentUserId;
-                          return _ChatBubble(
-                            message: message,
-                            isMe: isMe,
-                            currentUserId: widget.currentUserId,
-                            chatId:
-                            ([widget.currentUserId, widget.otherUserId]
-                              ..sort())
-                                .join('_'),
-                            onLongPress: isMe &&
-                                !message.id.startsWith('pending_')
-                                ? () => _showDeleteOptions(context, message)
-                                : null,
-                          );
-                        },
+                    final allMessages = [
+                      ...stillPending.reversed,
+                      ...visibleMessages,
+                    ];
+
+                    if (allMessages.isEmpty) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.chat_bubble_outline,
+                                size: 64, color: AppColors.textSecondary),
+                            SizedBox(height: 16),
+                            Text('No messages yet',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.textSecondary)),
+                          ],
+                        ),
                       );
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
+                    }
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      final chatId =
+                      ([widget.currentUserId, widget.otherUserId]..sort())
+                          .join('_');
+                      context.read<ChatBloc>().add(ChatMarkAsReadRequested(
+                        chatId: chatId,
+                        userId: widget.currentUserId,
+                      ));
+                    });
+
+                    final groupedItems = <dynamic>[];
+                    int i = 0;
+                    while (i < allMessages.length) {
+                      final msg = allMessages[i];
+                      final isImage = msg.imageUrl != null ||
+                          _pendingImagePaths.containsKey(msg.id);
+
+                      if (isImage) {
+                        final group = <MessageEntity>[msg];
+                        int j = i + 1;
+                        while (j < allMessages.length) {
+                          final next = allMessages[j];
+                          final nextIsImage = next.imageUrl != null ||
+                              _pendingImagePaths.containsKey(next.id);
+                          if (nextIsImage && next.senderId == msg.senderId) {
+                            group.add(next);
+                            j++;
+                          } else {
+                            break;
+                          }
+                        }
+                        if (group.length >= 5) {
+                          groupedItems.add(group); // render as grid
+                        } else {
+                          groupedItems.addAll(group); // render individually
+                        }
+                        i = j;
+                      } else {
+                        groupedItems.add(msg);
+                        i++;
+                      }
+                    }
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                      itemCount: groupedItems.length,
+                      itemBuilder: (context, index) {
+                        final item = groupedItems[index];
+
+                        if (item is List<MessageEntity>) {
+                          final isMe = item.first.senderId == widget.currentUserId;
+                          return _ImageGridBubble(
+                            messages: item,
+                            isMe: isMe,
+                            pendingImagePaths: _pendingImagePaths,
+                          );
+                        }
+
+                        final message = item as MessageEntity;
+                        final isMe = message.senderId == widget.currentUserId;
+                        return _ChatBubble(
+                          message: message,
+                          isMe: isMe,
+                          currentUserId: widget.currentUserId,
+                          chatId: ([widget.currentUserId, widget.otherUserId]..sort()).join('_'),
+                          localImagePath: _pendingImagePaths[message.id],
+                          onLongPress: isMe && !message.id.startsWith('pending_')
+                              ? () => _showDeleteOptions(context, message)
+                              : null,
+                        );
+                      },
+                    );
+                  },
+                );
               },
             ),
           ),
 
-          // Input
+          // Input bar
           Container(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.white,
             child: SafeArea(
               child: Row(
@@ -336,8 +370,7 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                                     horizontal: 16, vertical: 12),
                               ),
                               maxLines: null,
-                              textCapitalization:
-                              TextCapitalization.sentences,
+                              textCapitalization: TextCapitalization.sentences,
                             ),
                           ),
                           if (_isTyping)
@@ -397,8 +430,7 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
               },
             ),
             ListTile(
-              leading:
-              const Icon(Icons.delete_forever, color: Colors.red),
+              leading: const Icon(Icons.delete_forever, color: Colors.red),
               title: const Text('Delete for everyone',
                   style: TextStyle(color: Colors.red)),
               onTap: () {
@@ -448,22 +480,39 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
 
     final chatId =
     ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
+    final pendingId = 'pending_${DateTime.now().millisecondsSinceEpoch}';
+
+    final optimistic = MessageEntity(
+      id: pendingId,
+      senderId: widget.currentUserId,
+      receiverId: widget.otherUserId,
+      text: '📷 Photo',
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
+    );
+
+    setState(() {
+      _pendingMessages.add(optimistic);
+      _pendingImagePaths[pendingId] = image.path;
+    });
+
+    _scrollToBottom();
+
     if (mounted) {
       context.read<ChatBloc>().add(ChatImageSendRequested(
         senderId: widget.currentUserId,
         receiverId: widget.otherUserId,
         chatId: chatId,
         image: File(image.path),
+        pendingId: pendingId,
       ));
     }
-    _scrollToBottom();
   }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut);
+          duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     }
   }
 
@@ -479,6 +528,7 @@ class _ChatBubble extends StatelessWidget {
   final MessageEntity message;
   final bool isMe;
   final String currentUserId;
+  final String? localImagePath;
   final String chatId;
   final VoidCallback? onLongPress;
 
@@ -487,11 +537,14 @@ class _ChatBubble extends StatelessWidget {
     required this.isMe,
     required this.currentUserId,
     required this.chatId,
+    this.localImagePath,
     this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool isImageBubble = message.imageUrl != null || localImagePath != null;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
@@ -503,11 +556,12 @@ class _ChatBubble extends StatelessWidget {
             child: GestureDetector(
               onLongPress: onLongPress,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 10),
+                padding: isImageBubble
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  gradient: isMe ? AppColors.primaryGradient : null,
-                  color: isMe ? null : AppColors.background,
+                  gradient: isMe && !isImageBubble ? AppColors.primaryGradient : null,
+                  color: isMe || isImageBubble ? null : AppColors.background,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(16),
                     topRight: const Radius.circular(16),
@@ -519,42 +573,108 @@ class _ChatBubble extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (message.imageUrl != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: message.imageUrl!,
-                          width: 200,
-                          fit: BoxFit.cover,
+                      GestureDetector(
+                        onTap: () => _showFullScreen(context, imageUrl: message.imageUrl),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: message.imageUrl!,
+                                width: 200,
+                                fit: BoxFit.cover,
+                                memCacheWidth: 400,
+                              ),
+                              // timestamp + status bottom-left of image
+                              Positioned(
+                                left: 8,
+                                bottom: 6,
+                                child: _timestampRow(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else if (localImagePath != null)
+                      GestureDetector(
+                        onTap: () => _showFullScreen(context, localPath: localImagePath),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              Image.file(
+                                File(localImagePath!),
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                cacheWidth: 400,
+                                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                                  if (wasSynchronouslyLoaded || frame != null) return child;
+                                  return Container(
+                                    width: 200,
+                                    height: 200,
+                                    color: Colors.grey[200],
+                                  );
+                                },
+                              ),
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                child: LinearProgressIndicator(
+                                  backgroundColor: Colors.transparent,
+                                  valueColor: AlwaysStoppedAnimation(Colors.white.withOpacity(0.8)),
+                                  minHeight: 3,
+                                ),
+                              ),
+                              // timestamp + status bottom-left of image
+                              Positioned(
+                                left: 8,
+                                bottom: 6,
+                                child: _timestampRow(),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     if (message.text != '📷 Photo')
-                      Text(
-                        message.text,
-                        style: TextStyle(
-                          color:
-                          isMe ? Colors.white : AppColors.textPrimary,
-                          fontSize: 15,
-                        ),
-                      ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                      Padding(
+                        padding: isImageBubble
+                            ? const EdgeInsets.symmetric(horizontal: 10, vertical: 4)
+                            : EdgeInsets.zero,
+                        child: Text(
+                          message.text,
                           style: TextStyle(
-                            color: isMe
-                                ? Colors.white.withOpacity(0.7)
-                                : AppColors.textSecondary,
-                            fontSize: 11,
+                            color: isMe ? Colors.white : AppColors.textPrimary,
+                            fontSize: 15,
                           ),
                         ),
-                        if (isMe) ...[
-                          const SizedBox(width: 4),
-                          _statusIcon(),
-                        ],
-                      ],
-                    ),
+                      ),
+
+                    // Only show timestamp row outside for non-image bubbles
+                    if (!isImageBubble)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                              style: TextStyle(
+                                color: isMe
+                                    ? Colors.white.withOpacity(0.7)
+                                    : AppColors.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                            if (isMe) ...[
+                              const SizedBox(width: 4),
+                              _statusIcon(),
+                            ],
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -563,6 +683,48 @@ class _ChatBubble extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _timestampRow() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.black38,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+            style: const TextStyle(color: Colors.white, fontSize: 11),
+          ),
+          if (isMe) ...[
+            const SizedBox(width: 4),
+            _statusIcon(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreen(BuildContext context, {String? imageUrl, String? localPath}) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: InteractiveViewer(
+            child: imageUrl != null
+                ? CachedNetworkImage(imageUrl: imageUrl)
+                : Image.file(File(localPath!)),
+          ),
+        ),
+      ),
+    ));
   }
 
   Widget _statusIcon() {
@@ -584,5 +746,317 @@ class _ChatBubble extends StatelessWidget {
         break;
     }
     return Icon(icon, size: 14, color: color);
+  }
+}
+
+class _ImageGridBubble extends StatelessWidget {
+  final List<MessageEntity> messages;
+  final bool isMe;
+  final Map<String, String> pendingImagePaths;
+
+  const _ImageGridBubble({
+    required this.messages,
+    required this.isMe,
+    required this.pendingImagePaths,
+  });
+
+  void _openGallery(BuildContext context, int startIndex) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => _ImageGalleryViewer(
+        messages: messages,
+        pendingImagePaths: pendingImagePaths,
+        initialIndex: startIndex,
+      ),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Max 4 shown, rest hidden behind +N
+    final visibleCount = messages.length > 4 ? 4 : messages.length;
+    final hiddenCount = messages.length - visibleCount;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment:
+        isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 220),
+              decoration: BoxDecoration(
+                gradient: isMe ? AppColors.primaryGradient : null,
+                color: isMe ? null : AppColors.background,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(isMe ? 16 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 16),
+                ),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Column(
+                crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: visibleCount,
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 3,
+                      mainAxisSpacing: 3,
+                    ),
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      final localPath = pendingImagePaths[msg.id];
+                      final isLastVisible = index == visibleCount - 1;
+                      final showCounter = isLastVisible && hiddenCount > 0;
+
+                      return GestureDetector(
+                        onTap: () => _openGallery(context, index),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Image
+                              if (msg.imageUrl != null)
+                                CachedNetworkImage(
+                                  imageUrl: msg.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  memCacheWidth: 200,
+                                )
+                              else if (localPath != null)
+                                Image.file(
+                                  File(localPath),
+                                  fit: BoxFit.cover,
+                                  cacheWidth: 200,
+                                  frameBuilder: (context, child, frame,
+                                      wasSynchronouslyLoaded) {
+                                    if (wasSynchronouslyLoaded || frame != null) {
+                                      return child;
+                                    }
+                                    return Container(color: Colors.grey[200]);
+                                  },
+                                ),
+
+                              // Upload progress bar
+                              if (localPath != null)
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: LinearProgressIndicator(
+                                    backgroundColor: Colors.transparent,
+                                    valueColor: AlwaysStoppedAnimation(
+                                        Colors.white.withOpacity(0.8)),
+                                    minHeight: 2,
+                                  ),
+                                ),
+
+                              // +N overlay on last visible tile
+                              if (showCounter)
+                                Container(
+                                  color: Colors.black54,
+                                  child: Center(
+                                    child: Text(
+                                      '+$hiddenCount',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                              // Timestamp on last tile (no counter)
+                              if (isLastVisible && !showCounter)
+                                Positioned(
+                                  left: 6,
+                                  bottom: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black38,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}',
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 10),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Full-screen PageView gallery
+class _ImageGalleryViewer extends StatefulWidget {
+  final List<MessageEntity> messages;
+  final Map<String, String> pendingImagePaths;
+  final int initialIndex;
+
+  const _ImageGalleryViewer({
+    required this.messages,
+    required this.pendingImagePaths,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_ImageGalleryViewer> createState() => _ImageGalleryViewerState();
+}
+
+class _ImageGalleryViewerState extends State<_ImageGalleryViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+  bool _isZoomed = false; // track zoom at parent level
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          '${_currentIndex + 1} / ${widget.messages.length}',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ),
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (_isZoomed) return;
+          const threshold = 200.0;
+          final velocity = details.primaryVelocity ?? 0;
+          if (velocity < -threshold && _currentIndex < widget.messages.length - 1) {
+            _pageController.nextPage(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          } else if (velocity > threshold && _currentIndex > 0) {
+            _pageController.previousPage(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          }
+        },
+        child: PageView.builder(
+          controller: _pageController,
+          physics: _isZoomed
+              ? const NeverScrollableScrollPhysics()
+              : const PageScrollPhysics(),
+          itemCount: widget.messages.length,
+          onPageChanged: (index) => setState(() => _currentIndex = index),
+          itemBuilder: (context, index) {
+            final msg = widget.messages[index];
+            final localPath = widget.pendingImagePaths[msg.id];
+
+            final imageProvider = msg.imageUrl != null
+                ? CachedNetworkImageProvider(msg.imageUrl!)
+                : localPath != null
+                ? FileImage(File(localPath)) as ImageProvider
+                : null;
+
+            if (imageProvider == null) return const SizedBox.shrink();
+
+            return PhotoView(
+              imageProvider: imageProvider,
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.covered * 4,
+              initialScale: PhotoViewComputedScale.contained,
+              backgroundDecoration: const BoxDecoration(color: Colors.black),
+              // immediately tells PageView to own the gesture at scale 1
+              scaleStateChangedCallback: (state) {
+                final zoomed = state != PhotoViewScaleState.initial &&
+                    state != PhotoViewScaleState.zoomedOut;
+                setState(() => _isZoomed = zoomed);
+              },
+              loadingBuilder: (context, event) => const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ZoomableImage extends StatefulWidget {
+  final Widget child;
+  final void Function(bool isZoomed) onZoomChanged;
+
+  const _ZoomableImage({
+    required this.child,
+    required this.onZoomChanged,
+  });
+
+  @override
+  State<_ZoomableImage> createState() => _ZoomableImageState();
+}
+
+class _ZoomableImageState extends State<_ZoomableImage> {
+  final TransformationController _controller = TransformationController();
+  bool _isZoomed = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InteractiveViewer(
+      transformationController: _controller,
+      minScale: 1.0,
+      maxScale: 4.0,
+      panEnabled: _isZoomed,
+      onInteractionEnd: (_) {
+        final scale = _controller.value.getMaxScaleOnAxis();
+        final zoomed = scale > 1.05;
+        if (zoomed != _isZoomed) {
+          setState(() => _isZoomed = zoomed);
+          widget.onZoomChanged(zoomed); // tell PageView to lock/unlock
+        }
+        if (!zoomed) {
+          _controller.value = Matrix4.identity();
+        }
+      },
+      child: Center(child: widget.child),
+    );
   }
 }

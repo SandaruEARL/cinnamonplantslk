@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 class AppColors {
 
-  static const _iconColor = Color(0xFF9E9E9E);      // grey-500 — icons
-  static const _sectionColor = Color(0xFF9E9E9E);   // same for section headers
-  static const _titleColor = Color(0xFF212121);      // near-black for titles
-  static const _subtitleColor = Color(0xFF757575);   // grey-600 for subtitles
 
   // Primary Colors
   static const primaryGreen = Color(0xFF2A9C2A);

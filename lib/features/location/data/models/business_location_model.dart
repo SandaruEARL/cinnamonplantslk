@@ -22,6 +22,12 @@ class BusinessLocationModel extends BusinessLocationEntity {
     super.rejectionReason,
   });
 
+  static DateTime _toDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.parse(value);
+    return DateTime.now();
+  }
+
   factory BusinessLocationModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return BusinessLocationModel(
@@ -38,8 +44,8 @@ class BusinessLocationModel extends BusinessLocationEntity {
       longitude: (data['longitude'] ?? 0).toDouble(),
       openingHours: data['openingHours'],
       photoUrls: List<String>.from(data['photoUrls'] ?? []),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      createdAt: _toDate(data['createdAt']),
+      updatedAt: _toDate(data['updatedAt']),
       status: data['status'] ?? 'pending',
       rejectionReason: data['rejectionReason'],
     );

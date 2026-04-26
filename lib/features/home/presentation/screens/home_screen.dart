@@ -11,7 +11,7 @@ import '../../../ai/presentation/bloc/ai_bloc.dart';
 import '../../../ai/presentation/screens/price_prediction_screen.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../auth/presentation/screens/settings_screen.dart';
+import '../../../settings/presentation/settings_screen.dart';
 import '../../../chat/presentation/screens/chat_list_screen.dart';
 import '../../../expense/presentation/screens/expense_dashboard_screen.dart';
 import '../../../location/presentation/screens/ads_map_screen.dart';

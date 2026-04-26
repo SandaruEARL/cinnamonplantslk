@@ -10,6 +10,7 @@ abstract class ChatRepository {
   Stream<Either<Failure, List<ChatEntity>>> getUserChats(String userId);
   Future<Either<Failure, void>> blockUser(String currentUserId, String targetUserId);
   Future<Either<Failure, void>> unblockUser(String currentUserId, String targetUserId);
+  Future<Either<Failure, void>> deleteChat(String chatId, String userId);
 
   Stream<Either<Failure, List<MessageEntity>>> getMessages(
       String currentUserId,
@@ -23,9 +24,11 @@ abstract class ChatRepository {
     String? imageUrl,
   });
 
+
   Future<Either<Failure, String>> uploadChatImage({
     required String chatId,
     required File image,
+    void Function(double)? onProgress,
   });
 
   Future<Either<Failure, void>> markAsRead(

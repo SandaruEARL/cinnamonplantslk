@@ -51,6 +51,32 @@ class MarketplaceAdCreateRequested extends MarketplaceEvent {
   });
 }
 
+class MarketplaceAdUpdateRequested extends MarketplaceEvent {
+  final String adId;
+  final String title;
+  final String description;
+  final String category;
+  final double price;
+  final String? grade;
+  final String location;
+  final List<String> existingImageUrls;
+  final List<File> newImages;
+  final String type;
+
+  const MarketplaceAdUpdateRequested({
+    required this.adId,
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.price,
+    this.grade,
+    required this.location,
+    required this.existingImageUrls,
+    required this.newImages,
+    required this.type,
+  });
+}
+
 class MarketplaceFavoriteToggled extends MarketplaceEvent {
   final String userId;
   final String adId;

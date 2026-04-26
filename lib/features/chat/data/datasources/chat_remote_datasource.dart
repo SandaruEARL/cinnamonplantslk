@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../../../data/services/cloudinary/cloudinary_service.dart';
 import '../../../../data/services/firebase/storage_service.dart';
 import '../models/message_model.dart';
 
@@ -8,18 +9,21 @@ abstract class ChatRemoteDataSource {
   Stream<List<Map<String, dynamic>>> getUserChats(String userId);
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(MessageModel message, String chatId);
-  Future<String> uploadChatImage(String chatId, File image);
   Future<void> markAsRead(String chatId, String userId);
   String getChatId(String userId1, String userId2);
   Future<void> deleteMessageForMe(String chatId, String messageId, String userId);
   Future<void> deleteMessageForEveryone(String chatId, String messageId);
   Future<void> blockUser(String currentUserId, String targetUserId);
   Future<void> unblockUser(String currentUserId, String targetUserId);
+  Future<String> uploadChatImage(String chatId, File image, {void Function(double)? onProgress});
+  Future<void> deleteChat(String chatId, String userId);
+
 }
 
 class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   final FirebaseFirestore _firestore;
   final StorageService _storage;
+  final CloudinaryService _cloudinary = CloudinaryService();
 
   ChatRemoteDataSourceImpl({
     required FirebaseFirestore firestore,
@@ -52,6 +56,54 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }
 
   @override
+  Future<void> deleteChat(String chatId, String userId) async {
+    try {
+      final chatRef = _firestore.collection('chats').doc(chatId);
+      final chatDoc = await chatRef.get();
+      if (!chatDoc.exists) return;
+
+      final hiddenFor = (chatDoc.data()?['hiddenFor'] as List?)
+          ?.cast<String>() ?? [];
+      final participants = (chatDoc.data()?['participants'] as List?)
+          ?.cast<String>() ?? [];
+
+      // Mark all messages deletedFor this user
+      final messages = await chatRef.collection('messages').get();
+      if (messages.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final doc in messages.docs) {
+          batch.update(doc.reference, {
+            'deletedFor': FieldValue.arrayUnion([userId]),
+          });
+        }
+        await batch.commit();
+      }
+
+      // Check if other user already deleted
+      final updatedHiddenFor = {...hiddenFor, userId};
+      final allHidden = participants.every((id) => updatedHiddenFor.contains(id));
+
+      if (allHidden) {
+        // Both deleted — wipe everything
+        final allMessages = await chatRef.collection('messages').get();
+        final deleteBatch = _firestore.batch();
+        for (final doc in allMessages.docs) {
+          deleteBatch.delete(doc.reference);
+        }
+        deleteBatch.delete(chatRef);
+        await deleteBatch.commit();
+      } else {
+        // Just hide for this user — participants stays intact
+        await chatRef.update({
+          'hiddenFor': FieldValue.arrayUnion([userId]),
+        });
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
   Future<void> blockUser(String currentUserId, String targetUserId) async {
     try {
       await _firestore.collection('users').doc(currentUserId).update({
@@ -72,6 +124,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       throw ServerException(e.toString());
     }
   }
+
 
   @override
   Stream<List<MessageModel>> getMessages(String chatId) {
@@ -122,44 +175,47 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   @override
   Future<void> sendMessage(MessageModel message, String chatId) async {
     try {
-      final batch = _firestore.batch();
-
-      final messageRef = _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .doc();
-      batch.set(messageRef, message.toFirestore());
-
       final chatRef = _firestore.collection('chats').doc(chatId);
-      batch.set(chatRef, {
+
+      await chatRef.set({
         'participants': ([message.senderId, message.receiverId]..sort()),
         'lastMessage': message.text ?? '',
         'lastMessageSender': message.senderId,
         'lastMessageTime': FieldValue.serverTimestamp(),
+        'readBy': [message.senderId],
+        'hiddenFor': [],
       }, SetOptions(merge: true));
 
-      await batch.commit();
+      await chatRef.collection('messages').add(message.toFirestore());
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Future<String> uploadChatImage(String chatId, File image) async {
+  Future<String> uploadChatImage(
+      String chatId,
+      File imageFile, {
+        void Function(double)? onProgress,
+      }) async {
     try {
-      return await _storage.uploadChatImage(chatId, image);
+      return await _cloudinary.uploadChatImage(
+        imageFile,
+        chatId,
+        onProgress: onProgress,
+      );
     } catch (e) {
-      throw ServerException('Image upload failed: $e');
+      throw Exception('Failed to upload chat image: $e');
     }
   }
 
   @override
   Future<void> markAsRead(String chatId, String userId) async {
     try {
-      final messages = await _firestore
-          .collection('chats')
-          .doc(chatId)
+      final chatRef = _firestore.collection('chats').doc(chatId);
+
+      // Mark individual messages as read
+      final messages = await chatRef
           .collection('messages')
           .where('receiverId', isEqualTo: userId)
           .where('status', isNotEqualTo: 'read')
@@ -169,6 +225,12 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       for (final doc in messages.docs) {
         batch.update(doc.reference, {'status': 'read'});
       }
+
+      // also update readBy on the chat doc so tile updates immediately
+      batch.update(chatRef, {
+        'readBy': FieldValue.arrayUnion([userId]),
+      });
+
       await batch.commit();
     } catch (e) {
       throw ServerException(e.toString());

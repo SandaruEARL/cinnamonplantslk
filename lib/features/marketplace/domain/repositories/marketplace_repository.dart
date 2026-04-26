@@ -26,4 +26,8 @@ abstract class MarketplaceRepository {
   Future<Either<Failure, void>> addToFavorites(String userId, String adId);
 
   Future<Either<Failure, void>> removeFromFavorites(String userId, String adId);
+
+  Future<Either<Failure, void>> updateAdvertisement(String adId, Map<String, dynamic> data);
+
+  Future<Either<Failure, List<String>>> uploadImages(List<File> images);
 }

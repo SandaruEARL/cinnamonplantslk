@@ -27,6 +27,8 @@ abstract class MarketplaceRemoteDataSource {
   Future<void> addToFavorites(String userId, String adId);
 
   Future<void> removeFromFavorites(String userId, String adId);
+
+  Future<void> updateAdvertisement(String adId, Map<String, dynamic> data);
 }
 
 class MarketplaceRemoteDataSourceImpl implements MarketplaceRemoteDataSource {
@@ -63,6 +65,15 @@ class MarketplaceRemoteDataSourceImpl implements MarketplaceRemoteDataSource {
             .where((ad) => ad.type != 'announcement')
             .toList(),
       );
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateAdvertisement(String adId, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('advertisements').doc(adId).update(data);
     } catch (e) {
       throw ServerException(e.toString());
     }
