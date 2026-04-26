@@ -29,6 +29,8 @@ abstract class MarketplaceRemoteDataSource {
   Future<void> removeFromFavorites(String userId, String adId);
 
   Future<void> updateAdvertisement(String adId, Map<String, dynamic> data);
+
+  Future<void> submitAdEdit(String adId, Map<String, dynamic> editData);
 }
 
 class MarketplaceRemoteDataSourceImpl implements MarketplaceRemoteDataSource {
@@ -65,6 +67,19 @@ class MarketplaceRemoteDataSourceImpl implements MarketplaceRemoteDataSource {
             .where((ad) => ad.type != 'announcement')
             .toList(),
       );
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> submitAdEdit(String adId, Map<String, dynamic> editData) async {
+    try {
+      await _firestore
+          .collection('advertisements')
+          .doc(adId)
+          .collection('pendingEdit')
+          .add(editData);
     } catch (e) {
       throw ServerException(e.toString());
     }

@@ -30,11 +30,17 @@ class MarketplaceAdCreated extends MarketplaceState {
   const MarketplaceAdCreated();
 }
 
+class MarketplaceAdUpdated extends MarketplaceState {
+  const MarketplaceAdUpdated();
+}
+
+/// Emitted after a live-ad edit is successfully submitted to the
+/// `pendingEdit` subcollection and is awaiting admin approval.
+class MarketplaceAdEditSubmitted extends MarketplaceState {
+  const MarketplaceAdEditSubmitted();
+}
+
 class MarketplaceError extends MarketplaceState {
   final String message;
   const MarketplaceError(this.message);
-}
-
-class MarketplaceAdUpdated extends MarketplaceState {
-  const MarketplaceAdUpdated();
 }

@@ -25,6 +25,29 @@ class LocationRepositoryImpl implements LocationRepository {
   }
 
   @override
+  Future<Either<Failure, List<String>>> uploadPhotos(List<File> photos) async {
+    try {
+      final urls = await remoteDataSource.uploadPhotos(photos);
+      return Right(urls);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> submitLocationEdit(
+      String locationId,
+      Map<String, dynamic> editData,
+      ) async {
+    try {
+      await remoteDataSource.submitLocationEdit(locationId, editData);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Stream<Either<Failure, List<BusinessLocationEntity>>> getUserLocations(
       String userId,
       ) {

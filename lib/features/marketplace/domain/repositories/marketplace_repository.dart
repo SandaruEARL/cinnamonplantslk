@@ -27,7 +27,19 @@ abstract class MarketplaceRepository {
 
   Future<Either<Failure, void>> removeFromFavorites(String userId, String adId);
 
-  Future<Either<Failure, void>> updateAdvertisement(String adId, Map<String, dynamic> data);
+  /// In-place update for PENDING ads — replaces document fields directly.
+  Future<Either<Failure, void>> updateAdvertisement(
+      String adId,
+      Map<String, dynamic> data,
+      );
+
+  /// Submits an edit for a LIVE/APPROVED ad into the `pendingEdit`
+  /// subcollection under `advertisements/{adId}/pendingEdit/{editId}`.
+  /// The original ad remains live until admin approves.
+  Future<Either<Failure, void>> submitAdEdit(
+      String adId,
+      Map<String, dynamic> editData,
+      );
 
   Future<Either<Failure, List<String>>> uploadImages(List<File> images);
 }

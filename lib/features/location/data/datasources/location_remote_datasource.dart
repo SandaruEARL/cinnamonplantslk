@@ -11,6 +11,7 @@ abstract class LocationRemoteDataSource {
   Future<void> saveLocation(BusinessLocationModel location);
   Future<List<String>> uploadPhotos(List<File> photos);
   Future<void> deleteLocation(String locationId);
+  Future<void> submitLocationEdit(String locationId, Map<String, dynamic> editData);
 }
 
 class LocationRemoteDataSourceImpl implements LocationRemoteDataSource {
@@ -43,6 +44,22 @@ class LocationRemoteDataSourceImpl implements LocationRemoteDataSource {
       print('DEBUG: returning ${results.length} locations');
       return results;
     });
+  }
+
+  @override
+  Future<void> submitLocationEdit(
+      String locationId,
+      Map<String, dynamic> editData,
+      ) async {
+    try {
+      await _firestore
+          .collection('locations')
+          .doc(locationId)
+          .collection('pendingEdit')
+          .add(editData);
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
   }
 
   @override

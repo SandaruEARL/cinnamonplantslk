@@ -15,34 +15,18 @@ import '../bloc/marketplace_bloc.dart';
 import '../bloc/marketplace_event.dart';
 import '../bloc/marketplace_state.dart';
 
-// ── Announcement categories & grades ────────────────────────────────────────
-
 const _announcementCategories = ['Cinnamon Bales', 'Cinnamon Oils'];
 
 const _cinnamonGrades = [
-  'Alba',
-  'C5 Special',
-  'C5',
-  'C4',
-  'C3',
-  'C2',
-  'C1',
-  'M5',
-  'M4',
-  'H2',
-  'H1',
-  'Hamburg Extra Special',
-  'Hamburg Special',
-  'Hamburg',
-  'Mexican Grade',
+  'Alba', 'C5 Special', 'C5', 'C4', 'C3', 'C2', 'C1',
+  'M5', 'M4', 'H2', 'H1',
+  'Hamburg Extra Special', 'Hamburg Special', 'Hamburg', 'Mexican Grade',
 ];
 
-// ────────────────────────────────────────────────────────────────────────────
-
 class PostAdScreen extends StatefulWidget {
-  final String type; // 'listing' | 'announcement'
+  final String type;
   final AdvertisementEntity? existing;
-  const PostAdScreen({super.key, this.type = 'listing', this.existing,});
+  const PostAdScreen({super.key, this.type = 'listing', this.existing});
 
   @override
   State<PostAdScreen> createState() => _PostAdScreenState();
@@ -77,7 +61,21 @@ class _PostAdScreenState extends State<PostAdScreen> {
       if (e.grade != null) {
         _selectedGrades.addAll(e.grade!.split(', '));
       }
+    } else {
+      // default category per type
+      _selectedCategory = _isAnnouncement
+          ? _announcementCategories[0]
+          : AppConstants.productCategories[0];
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _locationController.dispose();
+    super.dispose();
   }
 
   InputDecoration _inputDecoration({String? hint}) => InputDecoration(
@@ -109,6 +107,43 @@ class _PostAdScreenState extends State<PostAdScreen> {
     contentPadding:
     const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   );
+
+  Future<void> _pickImages() async {
+    final picker = ImagePicker();
+    final images = await picker.pickMultiImage();
+    if (images.isNotEmpty) {
+      setState(() => _selectedImages.addAll(images.map((x) => File(x.path))));
+    }
+  }
+
+  void _submitAd(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (!_formKey.currentState!.validate()) return;
+    if (!_isAnnouncement && _selectedImages.isEmpty && _existingImageUrls.isEmpty) {
+      Fluttertoast.showToast(msg: l10n.pleaseAddImage);
+      return;
+    }
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
+    context.read<MarketplaceBloc>().add(MarketplaceAdCreateRequested(
+      sellerId: authState.user.id,
+      sellerName: authState.user.name,
+      sellerPhone: authState.user.phone,
+      sellerProfilePic: authState.user.profilePicUrl,
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _selectedCategory,
+      price: double.parse(_priceController.text),
+      grade: _isAnnouncement
+          ? (_selectedGrades.isEmpty ? null : _selectedGrades.join(', '))
+          : null,
+      quantity: null,
+      location: _locationController.text.trim(),
+      images: _selectedImages,
+      type: widget.type,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +179,8 @@ class _PostAdScreenState extends State<PostAdScreen> {
                   color: Colors.white, fontWeight: FontWeight.w600),
             ),
             flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient),
+              decoration:
+              const BoxDecoration(gradient: AppColors.primaryGradient),
             ),
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -155,7 +190,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // ── Announcement banner (green, not orange) ──────────────
+                // Announcement banner
                 if (_isAnnouncement) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -183,7 +218,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ── Image picker — listings only ─────────────────────────
+                // Image picker — listings only
                 if (!_isAnnouncement) ...[
                   SizedBox(
                     height: 100,
@@ -249,21 +284,20 @@ class _PostAdScreenState extends State<PostAdScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ── Category ─────────────────────────────────────────────
+                // Category
                 DropdownButtonFormField<String>(
                   value: _selectedCategory,
                   decoration: _inputDecoration(hint: 'Category'),
                   items: (_isAnnouncement
                       ? _announcementCategories
                       : AppConstants.productCategories)
-                      .map((c) =>
-                      DropdownMenuItem(value: c, child: Text(c)))
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (v) => setState(() => _selectedCategory = v!),
                 ),
                 const SizedBox(height: 16),
 
-                // ── Title ────────────────────────────────────────────────
+                // Title
                 TextFormField(
                   controller: _titleController,
                   validator: (val) => Validators.validateRequired(val,
@@ -277,13 +311,13 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // ── Description ──────────────────────────────────────────
+                // Description
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 4,
                   validator: (val) => Validators.validateRequired(val,
-                      requiredMessage: l10n.validationFieldRequired(
-                          l10n.descriptionHint)),
+                      requiredMessage: l10n
+                          .validationFieldRequired(l10n.descriptionHint)),
                   decoration: _inputDecoration(
                     hint: _isAnnouncement
                         ? 'Describe what you are looking for, preferred quality, etc.'
@@ -292,7 +326,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // ── Price ────────────────────────────────────────────────
+                // Price
                 TextFormField(
                   controller: _priceController,
                   keyboardType: TextInputType.number,
@@ -307,29 +341,30 @@ class _PostAdScreenState extends State<PostAdScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // ── Grade multi-select ────────────────────────────────────
-                _GradeMultiSelect(
-                  selected: _selectedGrades,
-                  onChanged: (grades) =>
-                      setState(() {
-                        _selectedGrades
-                          ..clear()
-                          ..addAll(grades);
-                      }),
-                ),
-                const SizedBox(height: 16),
+                // Grade multi-select — announcements only
+                if (_isAnnouncement) ...[
+                  _GradeMultiSelect(
+                    selected: _selectedGrades,
+                    onChanged: (grades) => setState(() {
+                      _selectedGrades
+                        ..clear()
+                        ..addAll(grades);
+                    }),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
-                // ── Location ─────────────────────────────────────────────
+                // Location
                 TextFormField(
                   controller: _locationController,
                   validator: (val) => Validators.validateRequired(val,
-                      requiredMessage: l10n.validationFieldRequired(
-                          l10n.locationHint)),
+                      requiredMessage: l10n
+                          .validationFieldRequired(l10n.locationHint)),
                   decoration: _inputDecoration(hint: l10n.locationHint),
                 ),
                 const SizedBox(height: 32),
 
-                // ── Submit ────────────────────────────────────────────────
+                // Submit
                 BlocBuilder<MarketplaceBloc, MarketplaceState>(
                   builder: (context, state) {
                     final isLoading = state is MarketplaceAdCreating;
@@ -377,54 +412,9 @@ class _PostAdScreenState extends State<PostAdScreen> {
       ),
     );
   }
-
-  Future<void> _pickImages() async {
-    final picker = ImagePicker();
-    final images = await picker.pickMultiImage();
-    if (images.isNotEmpty) {
-      setState(
-              () => _selectedImages.addAll(images.map((x) => File(x.path))));
-    }
-  }
-
-  void _submitAd(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    if (!_formKey.currentState!.validate()) return;
-    if (!_isAnnouncement && _selectedImages.isEmpty) {
-      Fluttertoast.showToast(msg: l10n.pleaseAddImage);
-      return;
-    }
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) return;
-
-    context.read<MarketplaceBloc>().add(MarketplaceAdCreateRequested(
-      sellerId: authState.user.id,
-      sellerName: authState.user.name,
-      sellerPhone: authState.user.phone,
-      sellerProfilePic: authState.user.profilePicUrl,
-      title: _titleController.text.trim(),
-      description: _descriptionController.text.trim(),
-      category: _selectedCategory,
-      price: double.parse(_priceController.text),
-      grade: _selectedGrades.isEmpty ? null : _selectedGrades.join(', '),
-      quantity: null, // removed qty field
-      location: _locationController.text.trim(),
-      images: _selectedImages,
-      type: widget.type,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _priceController.dispose();
-    _locationController.dispose();
-    super.dispose();
-  }
 }
 
-// ── Grade multi-select widget ────────────────────────────────────────────────
+// ── Grade multi-select widget ─────────────────────────────────────────────────
 
 class _GradeMultiSelect extends StatelessWidget {
   final List<String> selected;
@@ -480,10 +470,12 @@ class _GradeMultiSelect extends StatelessWidget {
                       const Spacer(),
                       if (temp.isNotEmpty)
                         TextButton(
-                          onPressed: () => setSheetState(() => temp.clear()),
+                          onPressed: () =>
+                              setSheetState(() => temp.clear()),
                           child: Text(
                             'Clear all',
-                            style: TextStyle(color: Colors.grey.shade500),
+                            style:
+                            TextStyle(color: Colors.grey.shade500),
                           ),
                         ),
                     ],
@@ -503,7 +495,8 @@ class _GradeMultiSelect extends StatelessWidget {
                               ? temp.remove(grade)
                               : temp.add(grade)),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding:
+                            const EdgeInsets.symmetric(vertical: 14),
                             child: Row(
                               children: [
                                 Text(
@@ -559,7 +552,8 @@ class _GradeMultiSelect extends StatelessWidget {
                                 ? 'Confirm'
                                 : 'Confirm (${temp.length})',
                             style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w600),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -579,7 +573,8 @@ class _GradeMultiSelect extends StatelessWidget {
     return GestureDetector(
       onTap: () => _openSheet(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: const Color(0xFFF0F0F0),
           borderRadius: BorderRadius.circular(12),
@@ -623,7 +618,8 @@ class _GradeMultiSelect extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen
+                      .withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

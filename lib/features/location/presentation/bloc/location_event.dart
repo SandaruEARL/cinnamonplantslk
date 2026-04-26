@@ -28,3 +28,29 @@ class LocationDeleteRequested extends LocationEvent {
   final String locationId;
   const LocationDeleteRequested(this.locationId);
 }
+
+/// Submits an edit for an already-APPROVED location into the
+/// `pendingEdit` subcollection. Original stays on the map until approved.
+class LocationEditRequested extends LocationEvent {
+  final String locationId;
+  final String businessName;
+  final String description;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final String? openingHours;
+  final List<String> existingPhotoUrls;
+  final List<File> newPhotos;
+
+  const LocationEditRequested({
+    required this.locationId,
+    required this.businessName,
+    required this.description,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+    this.openingHours,
+    required this.existingPhotoUrls,
+    required this.newPhotos,
+  });
+}

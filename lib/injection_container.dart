@@ -22,6 +22,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/chat/domain/usecases/block_user.dart';
 import 'features/chat/domain/usecases/delete_chat.dart';
 import 'features/chat/domain/usecases/delete_message.dart';
+import 'features/location/domain/usecases/upload_location_photos.dart';
 import 'features/marketplace/data/datasources/marketplace_remote_datasource.dart';
 import 'features/marketplace/data/repositories/marketplace_repository_impl.dart';
 import 'features/marketplace/domain/repositories/marketplace_repository.dart';
@@ -29,6 +30,7 @@ import 'features/marketplace/domain/usecases/create_advertisement.dart';
 import 'features/marketplace/domain/usecases/get_advertisements.dart';
 import 'features/marketplace/domain/usecases/get_anouncements.dart';
 import 'features/marketplace/domain/usecases/get_user_advertisements.dart';
+import 'features/marketplace/domain/usecases/submit_ad_edit.dart';
 import 'features/marketplace/domain/usecases/toggle_favorite.dart';
 import 'features/marketplace/domain/usecases/update_advertisement.dart';
 import 'features/marketplace/domain/usecases/upload_images.dart';
@@ -109,7 +111,8 @@ Future<void> init() async {
     addToFavorites: sl(),
     removeFromFavorites: sl(),
     updateAdvertisement: sl(),
-    uploadImages: sl()
+    uploadImages: sl(),
+    submitAdEdit: sl(),
   ));
 
   sl.registerFactory(() => ChatBloc(
@@ -136,6 +139,8 @@ Future<void> init() async {
     getUserLocations: sl(),
     saveLocation: sl(),
     deleteLocation: sl(),
+    locationRepository: sl(),
+    uploadLocationPhotos: sl(),
   ));
 
   sl.registerFactory(() => NotificationBloc(
@@ -187,6 +192,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetUserLocations(sl()));
   sl.registerLazySingleton(() => SaveLocation(sl()));
   sl.registerLazySingleton(() => DeleteLocation(sl()));
+  sl.registerLazySingleton(() => UploadLocationPhotos(sl()));
+  sl.registerLazySingleton(() => SubmitAdEdit(sl()));
 
   // Notification
   sl.registerLazySingleton(() => GetNotifications(sl()));

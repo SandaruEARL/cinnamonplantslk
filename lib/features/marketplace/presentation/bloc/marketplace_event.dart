@@ -32,7 +32,7 @@ class MarketplaceAdCreateRequested extends MarketplaceEvent {
   final int? quantity;
   final String location;
   final List<File> images;
-  final String type; // 'listing' | 'announcement'
+  final String type;
 
   const MarketplaceAdCreateRequested({
     required this.sellerId,
@@ -51,6 +51,8 @@ class MarketplaceAdCreateRequested extends MarketplaceEvent {
   });
 }
 
+/// Used when the ad is still PENDING — edits replace the document in-place,
+/// no admin review needed.
 class MarketplaceAdUpdateRequested extends MarketplaceEvent {
   final String adId;
   final String title;
@@ -64,6 +66,34 @@ class MarketplaceAdUpdateRequested extends MarketplaceEvent {
   final String type;
 
   const MarketplaceAdUpdateRequested({
+    required this.adId,
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.price,
+    this.grade,
+    required this.location,
+    required this.existingImageUrls,
+    required this.newImages,
+    required this.type,
+  });
+}
+
+/// Used when the ad is already APPROVED/LIVE — edits are stored in a
+/// subcollection `pendingEdit` and require admin approval before going live.
+class MarketplaceAdEditRequested extends MarketplaceEvent {
+  final String adId;
+  final String title;
+  final String description;
+  final String category;
+  final double price;
+  final String? grade;
+  final String location;
+  final List<String> existingImageUrls;
+  final List<File> newImages;
+  final String type;
+
+  const MarketplaceAdEditRequested({
     required this.adId,
     required this.title,
     required this.description,

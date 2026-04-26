@@ -25,6 +25,11 @@ class LocationSaved extends LocationState {
   const LocationSaved();
 }
 
+/// Emitted after a live-location edit is submitted for admin review.
+class LocationEditSubmitted extends LocationState {
+  const LocationEditSubmitted();
+}
+
 class LocationDeleted extends LocationState {
   const LocationDeleted();
 }

@@ -44,7 +44,22 @@ class _MyLocationsView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: BlocBuilder<LocationBloc, LocationState>(
+      body: BlocConsumer<LocationBloc, LocationState>(
+        listener: (context, state) {
+          if (state is LocationEditSubmitted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Edit submitted for review. Your location stays on the map.',
+                ),
+              ),
+            );
+          } else if (state is LocationError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
         builder: (context, state) {
           final locations = state is LocationLoaded
               ? state.locations
@@ -53,7 +68,6 @@ class _MyLocationsView extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Register cards
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -64,8 +78,7 @@ class _MyLocationsView extends StatelessWidget {
                         description: l10n.plantationsDescription,
                         type: LocationType.nursery,
                         existing: locations
-                            .where((l) =>
-                        l.type == LocationType.nursery)
+                            .where((l) => l.type == LocationType.nursery)
                             .firstOrNull,
                       ),
                     ),
@@ -76,8 +89,7 @@ class _MyLocationsView extends StatelessWidget {
                         description: l10n.baleBuyersDescription,
                         type: LocationType.shop,
                         existing: locations
-                            .where(
-                                (l) => l.type == LocationType.shop)
+                            .where((l) => l.type == LocationType.shop)
                             .firstOrNull,
                       ),
                     ),
@@ -86,20 +98,17 @@ class _MyLocationsView extends StatelessWidget {
               ),
 
               Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(l10n.locationsReviewNotice,
                     style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500)),
+                        fontSize: 12, color: Colors.grey.shade500)),
               ),
 
               const SizedBox(height: 32),
 
               if (state is LocationLoading)
                 const Expanded(
-                    child: Center(
-                        child: CircularProgressIndicator()))
+                    child: Center(child: CircularProgressIndicator()))
               else if (locations.isEmpty)
                 Expanded(
                   child: Center(
@@ -107,8 +116,7 @@ class _MyLocationsView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.location_off,
-                            size: 72,
-                            color: Colors.grey.shade300),
+                            size: 72, color: Colors.grey.shade300),
                         const SizedBox(height: 16),
                         Text(l10n.noLocationsYet,
                             style: TextStyle(
@@ -121,13 +129,27 @@ class _MyLocationsView extends StatelessWidget {
               else
                 Expanded(
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: locations.length,
                     separatorBuilder: (_, __) =>
                     const SizedBox(height: 12),
-                    itemBuilder: (context, i) =>
-                        _LocationCard(location: locations[i]),
+                    itemBuilder: (context, i) => _LocationCard(
+                      location: locations[i],
+                      onTap: () {
+                        final bloc = context.read<LocationBloc>();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: bloc,
+                              child: RegisterLocationScreen(
+                                type: locations[i].type,
+                                existing: locations[i],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
             ],
@@ -180,8 +202,7 @@ class _RegisterCard extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(Icons.check_circle,
-                          size: 10,
-                          color: Colors.green.shade700),
+                          size: 10, color: Colors.green.shade700),
                       const SizedBox(width: 3),
                       Text(l10n.addedBadge,
                           style: TextStyle(
@@ -203,14 +224,20 @@ class _RegisterCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => RegisterLocationScreen(
-                    type: type,
-                    existing: existing,
+              onPressed: () {
+                final bloc = context.read<LocationBloc>();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: bloc,
+                      child: RegisterLocationScreen(
+                        type: type,
+                        existing: existing,
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
               icon: Icon(
                 hasExisting
                     ? Icons.edit_location_alt
@@ -238,65 +265,68 @@ class _RegisterCard extends StatelessWidget {
 
 class _LocationCard extends StatelessWidget {
   final BusinessLocationEntity location;
-  const _LocationCard({required this.location});
+  final VoidCallback onTap;
+  const _LocationCard({required this.location, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isNursery = location.type == LocationType.nursery;
 
-    return Card(
-      elevation: 0,
-      color: Colors.grey.shade50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        elevation: 0,
+        color: Colors.grey.shade50,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isNursery ? Icons.park : Icons.store,
+                  color: isNursery ? Colors.green : AppColors.primaryGreen,
+                ),
               ),
-              child: Icon(
-                isNursery ? Icons.park : Icons.store,
-                color: isNursery
-                    ? Colors.green
-                    : AppColors.primaryGreen,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(location.businessName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 2),
+                    Text(location.address,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 6),
+                    _StatusBadge(location: location),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(location.businessName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15)),
-                  const SizedBox(height: 2),
-                  Text(location.address,
-                      style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 6),
-                  _StatusBadge(location: location),
-                ],
+              const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+              IconButton(
+                icon: const Icon(Icons.location_off_outlined,
+                    color: Colors.grey),
+                tooltip: l10n.removeLocationTitle,
+                onPressed: () => _confirmDelete(context),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.location_off_outlined,
-                  color: Colors.grey),
-              tooltip: l10n.removeLocationTitle,
-              onPressed: () => _confirmDelete(context),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -318,9 +348,9 @@ class _LocationCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<LocationBloc>().add(
-                LocationDeleteRequested(location.id),
-              );
+              context
+                  .read<LocationBloc>()
+                  .add(LocationDeleteRequested(location.id));
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -355,7 +385,7 @@ class _StatusBadge extends StatelessWidget {
       fg = Colors.grey.shade600;
       label = l10n.statusPendingReview;
       icon = Icons.hourglass_top_rounded;
-    }else {
+    } else {
       bg = Colors.red.shade50;
       fg = Colors.red.shade700;
       label = location.rejectionReason ?? l10n.statusRejected;
@@ -363,10 +393,9 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding:
-      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-          color: bg, borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration:
+      BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

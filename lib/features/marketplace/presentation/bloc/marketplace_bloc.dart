@@ -7,6 +7,7 @@ import '../../domain/usecases/get_anouncements.dart';
 import '../../domain/usecases/get_user_advertisements.dart';
 import '../../domain/usecases/toggle_favorite.dart';
 import '../../domain/usecases/update_advertisement.dart';
+import '../../domain/usecases/submit_ad_edit.dart';
 import '../../domain/usecases/upload_images.dart';
 import 'marketplace_event.dart';
 import 'marketplace_state.dart';
@@ -19,6 +20,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
   final AddToFavorites addToFavorites;
   final RemoveFromFavorites removeFromFavorites;
   final UpdateAdvertisement updateAdvertisement;
+  final SubmitAdEdit submitAdEdit;
   final UploadImages uploadImages;
 
   StreamSubscription? _adsSubscription;
@@ -31,6 +33,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     required this.addToFavorites,
     required this.uploadImages,
     required this.updateAdvertisement,
+    required this.submitAdEdit,
     required this.removeFromFavorites,
   }) : super(const MarketplaceInitial()) {
     on<MarketplaceLoadRequested>(_onLoadRequested);
@@ -38,6 +41,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     on<MarketplaceUserAdsLoadRequested>(_onUserAdsLoadRequested);
     on<MarketplaceAdCreateRequested>(_onAdCreateRequested);
     on<MarketplaceAdUpdateRequested>(_onAdUpdateRequested);
+    on<MarketplaceAdEditRequested>(_onAdEditRequested);
     on<MarketplaceFavoriteToggled>(_onFavoriteToggled);
   }
 
@@ -72,24 +76,19 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     );
   }
 
+  /// PENDING ad edit — replaces fields in-place, no admin review.
   Future<void> _onAdUpdateRequested(
       MarketplaceAdUpdateRequested event,
       Emitter<MarketplaceState> emit,
       ) async {
     emit(const MarketplaceAdCreating());
 
-    List<String> newUrls = [];
-    if (event.newImages.isNotEmpty) {
-      final uploadResult = await uploadImages(event.newImages);
-      final failed = uploadResult.fold((f) => true, (_) => false);
-      if (failed) {
-        emit(MarketplaceError(uploadResult.fold((f) => f.message, (_) => '')));
-        return;
-      }
-      newUrls = uploadResult.fold((_) => [], (urls) => urls);
-    }
-
-    final allImages = [...event.existingImageUrls, ...newUrls];
+    final allImages = await _resolveImages(
+      emit: emit,
+      existingUrls: event.existingImageUrls,
+      newImages: event.newImages,
+    );
+    if (allImages == null) return; // upload failed, error already emitted
 
     final result = await updateAdvertisement(UpdateAdvertisementParams(
       adId: event.adId,
@@ -103,7 +102,6 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
         'imageUrls': allImages,
         'status': 'pending',
         'isActive': false,
-        'isUpdate': true,
         'updatedAt': DateTime.now().toIso8601String(),
       },
     ));
@@ -111,6 +109,43 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
     result.fold(
           (failure) => emit(MarketplaceError(failure.message)),
           (_) => emit(const MarketplaceAdUpdated()),
+    );
+  }
+
+  /// LIVE/APPROVED ad edit — writes to `pendingEdit` subcollection.
+  /// Original ad stays live until admin approves.
+  Future<void> _onAdEditRequested(
+      MarketplaceAdEditRequested event,
+      Emitter<MarketplaceState> emit,
+      ) async {
+    emit(const MarketplaceAdCreating());
+
+    final allImages = await _resolveImages(
+      emit: emit,
+      existingUrls: event.existingImageUrls,
+      newImages: event.newImages,
+    );
+    if (allImages == null) return;
+
+    final result = await submitAdEdit(SubmitAdEditParams(
+      adId: event.adId,
+      editData: {
+        'title': event.title,
+        'description': event.description,
+        'category': event.category,
+        'price': event.price,
+        'grade': event.grade,
+        'location': event.location,
+        'imageUrls': allImages,
+        'type': event.type,
+        'submittedAt': DateTime.now().toIso8601String(),
+        'status': 'pending',
+      },
+    ));
+
+    result.fold(
+          (failure) => emit(MarketplaceError(failure.message)),
+          (_) => emit(const MarketplaceAdEditSubmitted()),
     );
   }
 
@@ -172,6 +207,25 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
         FavoriteParams(userId: event.userId, adId: event.adId),
       );
     }
+  }
+
+  /// Uploads new images and merges with existing URLs.
+  /// Returns null and emits [MarketplaceError] on failure.
+  Future<List<String>?> _resolveImages({
+    required Emitter<MarketplaceState> emit,
+    required List<String> existingUrls,
+    required List<dynamic> newImages,
+  }) async {
+    if (newImages.isEmpty) return existingUrls;
+
+    final uploadResult = await uploadImages(newImages.cast());
+    return uploadResult.fold(
+          (failure) {
+        emit(MarketplaceError(failure.message));
+        return null;
+      },
+          (newUrls) => [...existingUrls, ...newUrls],
+    );
   }
 
   @override
