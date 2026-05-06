@@ -47,3 +47,8 @@ class AuthProfileUpdateRequested extends AuthEvent {
 class AuthSignOutRequested extends AuthEvent {
   const AuthSignOutRequested();
 }
+
+class AuthForgotPasswordRequested extends AuthEvent {
+  final String email;
+  const AuthForgotPasswordRequested({required this.email});
+}

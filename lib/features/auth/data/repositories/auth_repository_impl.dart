@@ -5,7 +5,6 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
-// This class bridges domain ↔ data. Catches data exceptions, returns domain failures.
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
 
@@ -84,6 +83,16 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.getCurrentUser();
       return Right(user);
+    } on ServerException catch (e) {
+      return Left(AuthFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> forgotPassword({required String email}) async {
+    try {
+      await remoteDataSource.forgotPassword(email: email);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(AuthFailure(e.message));
     }

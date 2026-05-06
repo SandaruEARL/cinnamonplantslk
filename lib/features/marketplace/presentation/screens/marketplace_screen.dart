@@ -288,16 +288,6 @@ class _SheetOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: AppColors.primaryGreen, size: 22),
-            ),
-            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,12 +368,6 @@ class _ListingsTab extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 80,
-                          color: AppColors.textSecondary.withOpacity(0.4),
-                        ),
-                        const SizedBox(height: 16),
                         Text(
                           l10n.noProductsFound,
                           style: const TextStyle(
@@ -449,25 +433,19 @@ class _AnnouncementsTab extends StatelessWidget {
         }
         if (state is MarketplaceAnnouncementsLoaded) {
           if (state.announcements.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.campaign_outlined,
-                    size: 80,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'No buying announcements yet',
                     style: TextStyle(
                       fontSize: 18,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'Be the first to post what you want to buy',
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
@@ -488,4 +466,3 @@ class _AnnouncementsTab extends StatelessWidget {
     );
   }
 }
-// sd

@@ -12,17 +12,15 @@ abstract class AuthRemoteDataSource {
     required String phone,
     required String userType,
   });
-
   Future<void> updateProfile({
     required String uid,
     String? name,
     String? phone,
     String? location,
   });
-
   Future<void> signOut();
   Future<UserModel?> getCurrentUser();
-
+  Future<void> forgotPassword({required String email});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -60,16 +58,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       final updates = <String, dynamic>{};
-      if (name != null)     updates['name']     = name;
-      if (phone != null)    updates['phone']    = phone;
+      if (name != null) updates['name'] = name;
+      if (phone != null) updates['phone'] = phone;
       if (location != null) updates['location'] = location;
-      if (updates.isEmpty)  return;
+      if (updates.isEmpty) return;
       await _firestore.collection('users').doc(uid).update(updates);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Failed to update profile');
     }
   }
-
 
   @override
   Future<UserModel> signUp({
@@ -91,12 +88,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         email: email,
         phone: phone,
         userType: userType,
-        blockedUsers: const[]
+        blockedUsers: const [],
       );
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .set(userModel.toFirestore());
+      await _firestore.collection('users').doc(uid).set(userModel.toFirestore());
       return userModel;
     } on FirebaseAuthException catch (e) {
       throw ServerException(e.message ?? 'Sign up failed');
@@ -117,6 +111,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser == null) return null;
     return _fetchUserModel(firebaseUser.uid);
+  }
+
+  @override
+  Future<void> forgotPassword({required String email}) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(e.message ?? 'Failed to send reset email');
+    }
   }
 
   Future<UserModel> _fetchUserModel(String uid) async {

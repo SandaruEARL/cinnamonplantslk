@@ -11,6 +11,7 @@ import 'data/services/notification/fcm_service.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
+import 'features/auth/domain/usecases/forgot_password.dart';
 import 'features/auth/domain/usecases/get_current_user.dart';
 import 'features/auth/domain/usecases/sign_in.dart';
 import 'features/auth/domain/usecases/sign_out.dart';
@@ -101,6 +102,7 @@ Future<void> init() async {
     signOut:        sl(),
     getCurrentUser: sl(),
     updateProfile:  sl(),
+    forgotPassword: sl(),
   ));
 
   sl.registerFactory(() => MarketplaceBloc(
@@ -161,6 +163,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateProfile(sl()));
   sl.registerLazySingleton(() => BlockUser(sl()));
   sl.registerLazySingleton(() => UnblockUser(sl()));
+  sl.registerLazySingleton(() => ForgotPassword(sl()));
 
   // Marketplace
   sl.registerLazySingleton(() => GetAdvertisements(sl()));

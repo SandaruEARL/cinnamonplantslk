@@ -287,39 +287,12 @@ class _LocationDetailSheet extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: (isNursery
-                            ? Colors.green
-                            : AppColors.primaryGreen)
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                              isNursery ? Icons.park : Icons.store,
-                              size: 14,
-                              color: isNursery
-                                  ? Colors.green
-                                  : AppColors.primaryGreen),
-                          const SizedBox(width: 4),
-                          Text(
-                            isNursery
-                                ? l10n.nurseryBadge
-                                : l10n.baleBuyerBadge,
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: isNursery
-                                    ? Colors.green
-                                    : AppColors.primaryGreen,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      isNursery ? l10n.nurseryBadge : l10n.baleBuyerBadge,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: isNursery ? Colors.green : AppColors.primaryGreen,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
