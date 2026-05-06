@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import '../../../../core/error/exceptions.dart';
 import '../../../../data/services/cloudinary/cloudinary_service.dart';
 import '../../../../data/services/firebase/storage_service.dart';
@@ -17,7 +20,6 @@ abstract class ChatRemoteDataSource {
   Future<void> unblockUser(String currentUserId, String targetUserId);
   Future<String> uploadChatImage(String chatId, File image, {void Function(double)? onProgress});
   Future<void> deleteChat(String chatId, String userId);
-
 }
 
 class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
@@ -56,18 +58,74 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }
 
   @override
+  Future<void> sendMessage(MessageModel message, String chatId) async {
+    try {
+      final chatRef = _firestore.collection('chats').doc(chatId);
+
+      await chatRef.set({
+        'participants': ([message.senderId, message.receiverId]..sort()),
+        'lastMessage': message.text ?? '',
+        'lastMessageSender': message.senderId,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'readBy': [message.senderId],
+        'hiddenFor': [],
+      }, SetOptions(merge: true));
+
+      await chatRef.collection('messages').add(message.toFirestore());
+
+      // Send push notification to receiver
+      await _sendChatNotification(
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        text: message.text ?? '',
+      );
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  Future<void> _sendChatNotification({
+    required String senderId,
+    required String receiverId,
+    required String text,
+  }) async {
+    try {
+      final senderDoc = await _firestore.collection('users').doc(senderId).get();
+      final senderName = senderDoc.data()?['name'] as String? ?? 'Someone';
+
+      final secret = dotenv.env['NOTIFY_SECRET'] ?? '';
+      final url = dotenv.env['NOTIFY_URL'] ?? '';
+
+      if (url.isEmpty) return;
+
+      await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $secret',
+        },
+        body: jsonEncode({
+          'userId': receiverId,
+          'type': 'chat',
+          'title': senderName,
+          'body': text.length > 50 ? '${text.substring(0, 50)}...' : text,
+        }),
+      );
+    } catch (_) {
+      // Fail silently — message is already saved
+    }
+  }
+
+  @override
   Future<void> deleteChat(String chatId, String userId) async {
     try {
       final chatRef = _firestore.collection('chats').doc(chatId);
       final chatDoc = await chatRef.get();
       if (!chatDoc.exists) return;
 
-      final hiddenFor = (chatDoc.data()?['hiddenFor'] as List?)
-          ?.cast<String>() ?? [];
-      final participants = (chatDoc.data()?['participants'] as List?)
-          ?.cast<String>() ?? [];
+      final hiddenFor = (chatDoc.data()?['hiddenFor'] as List?)?.cast<String>() ?? [];
+      final participants = (chatDoc.data()?['participants'] as List?)?.cast<String>() ?? [];
 
-      // Mark all messages deletedFor this user
       final messages = await chatRef.collection('messages').get();
       if (messages.docs.isNotEmpty) {
         final batch = _firestore.batch();
@@ -79,12 +137,10 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         await batch.commit();
       }
 
-      // Check if other user already deleted
       final updatedHiddenFor = {...hiddenFor, userId};
       final allHidden = participants.every((id) => updatedHiddenFor.contains(id));
 
       if (allHidden) {
-        // Both deleted — wipe everything
         final allMessages = await chatRef.collection('messages').get();
         final deleteBatch = _firestore.batch();
         for (final doc in allMessages.docs) {
@@ -93,7 +149,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         deleteBatch.delete(chatRef);
         await deleteBatch.commit();
       } else {
-        // Just hide for this user — participants stays intact
         await chatRef.update({
           'hiddenFor': FieldValue.arrayUnion([userId]),
         });
@@ -124,7 +179,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       throw ServerException(e.toString());
     }
   }
-
 
   @override
   Stream<List<MessageModel>> getMessages(String chatId) {
@@ -173,26 +227,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }
 
   @override
-  Future<void> sendMessage(MessageModel message, String chatId) async {
-    try {
-      final chatRef = _firestore.collection('chats').doc(chatId);
-
-      await chatRef.set({
-        'participants': ([message.senderId, message.receiverId]..sort()),
-        'lastMessage': message.text ?? '',
-        'lastMessageSender': message.senderId,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'readBy': [message.senderId],
-        'hiddenFor': [],
-      }, SetOptions(merge: true));
-
-      await chatRef.collection('messages').add(message.toFirestore());
-    } catch (e) {
-      throw ServerException(e.toString());
-    }
-  }
-
-  @override
   Future<String> uploadChatImage(
       String chatId,
       File imageFile, {
@@ -214,7 +248,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
     try {
       final chatRef = _firestore.collection('chats').doc(chatId);
 
-      // Mark individual messages as read
       final messages = await chatRef
           .collection('messages')
           .where('receiverId', isEqualTo: userId)
@@ -225,8 +258,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       for (final doc in messages.docs) {
         batch.update(doc.reference, {'status': 'read'});
       }
-
-      // also update readBy on the chat doc so tile updates immediately
       batch.update(chatRef, {
         'readBy': FieldValue.arrayUnion([userId]),
       });

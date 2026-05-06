@@ -3,9 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../data/services/notification/fcm_service.dart';
+import '../../../injection_container.dart' as di;
 import '../../locale/presentation/bloc/locale_bloc.dart';
 import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_event.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +21,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
   String _selectedLanguage = 'English';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreference();
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final enabled = await di.sl<FcmService>().isNotificationsEnabled();
+    if (mounted) setState(() => _notificationsEnabled = enabled);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +86,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(l10n.pushNotificationsLabel),
             subtitle: Text(l10n.pushNotificationsSubtitle),
             value: _notificationsEnabled,
-            activeColor: Colors.grey,
-            onChanged: (val) =>
-                setState(() => _notificationsEnabled = val),
+            activeColor: AppColors.primaryGreen,
+            onChanged: (val) async {
+              setState(() => _notificationsEnabled = val);
+              final authState = context.read<AuthBloc>().state;
+              if (authState is AuthAuthenticated) {
+                await di.sl<FcmService>().setNotificationsEnabled(
+                  authState.user.id,
+                  val,
+                );
+              }
+            },
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -85,7 +107,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: AppColors.textSecondary)),
           ),
           ListTile(
-            leading: const Icon(Icons.privacy_tip, color: Colors.grey),
+            leading:
+            const Icon(Icons.privacy_tip, color: Colors.grey),
             title: Text(l10n.privacyPolicyLabel),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {},
@@ -144,9 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       groupValue: _selectedLanguage,
       onChanged: (val) {
         setState(() => _selectedLanguage = val!);
-        context
-            .read<LocaleBloc>()
-            .add(LocaleChanged(Locale(val!)));
+        context.read<LocaleBloc>().add(LocaleChanged(Locale(val!)));
         Navigator.pop(dialogContext);
       },
     );

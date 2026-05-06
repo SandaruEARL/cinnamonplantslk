@@ -34,63 +34,64 @@ class ProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Optimized Image - Use thumbnail URL
           Expanded(
-            child: _buildOptimizedImage(
-              size: 400, // Thumbnail size
-              aspectRatio: 1.0,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final size = (constraints.maxWidth *
+                    MediaQuery.of(context).devicePixelRatio)
+                    .toInt()
+                    .clamp(200, 800);
+                return _buildOptimizedImage(
+                  size: size,
+                  aspectRatio: 1.0,
+                );
+              },
             ),
           ),
-
-          // Product Info
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  ad.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF2C2C2C),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Rs. ${ad.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 12,
-                      color: Colors.grey[600],
+          SizedBox(
+            height: 100,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ad.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C2C2C),
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        ad.location,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Rs. ${ad.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryGreen,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 12, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          ad.location,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -109,17 +110,24 @@ class ProductCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Optimized Image - Use thumbnail URL
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: _buildOptimizedImage(
-              size: 240, // 2x for retina
-              aspectRatio: 1.0,
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = MediaQuery.of(context).size.width;
+              final imageWidth = (screenWidth * 0.3).clamp(100.0, 160.0);
+              final pixelSize =
+              (imageWidth * MediaQuery.of(context).devicePixelRatio)
+                  .toInt()
+                  .clamp(200, 600);
+              return SizedBox(
+                width: imageWidth,
+                height: imageWidth,
+                child: _buildOptimizedImage(
+                  size: pixelSize,
+                  aspectRatio: 1.0,
+                ),
+              );
+            },
           ),
-
-          // Product Info
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -187,7 +195,6 @@ class ProductCard extends StatelessWidget {
       return _buildPlaceholder(aspectRatio);
     }
 
-    // USE CLOUDINARY THUMBNAIL - significantly faster loading
     final thumbnailUrl = CloudinaryService.getThumbnailUrl(imageUrl, size: size);
     final placeholderUrl = CloudinaryService.getPlaceholderUrl(imageUrl);
 
@@ -196,14 +203,10 @@ class ProductCard extends StatelessWidget {
       child: CachedNetworkImage(
         imageUrl: thumbnailUrl,
         fit: BoxFit.cover,
-
-        // Memory cache optimization - reduce memory usage
         memCacheWidth: size,
         memCacheHeight: size,
         maxWidthDiskCache: size,
         maxHeightDiskCache: size,
-
-        // Instant blur placeholder
         placeholder: (context, url) => Image.network(
           placeholderUrl,
           fit: BoxFit.cover,
@@ -217,10 +220,7 @@ class ProductCard extends StatelessWidget {
             );
           },
         ),
-
         errorWidget: (context, url, error) => _buildErrorWidget(),
-
-        // Fast fade animation
         fadeInDuration: const Duration(milliseconds: 200),
         fadeOutDuration: const Duration(milliseconds: 100),
       ),

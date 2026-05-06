@@ -81,7 +81,6 @@ class _MarketplaceViewState extends State<_MarketplaceView>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Drag handle
               Center(
                 child: Container(
                   width: 36,
@@ -93,8 +92,6 @@ class _MarketplaceViewState extends State<_MarketplaceView>
                   ),
                 ),
               ),
-
-              // Title
               const Text(
                 'Create a post',
                 style: TextStyle(
@@ -112,8 +109,6 @@ class _MarketplaceViewState extends State<_MarketplaceView>
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Listing option
               _SheetOption(
                 icon: Icons.storefront_outlined,
                 title: 'Listing',
@@ -126,8 +121,6 @@ class _MarketplaceViewState extends State<_MarketplaceView>
                 },
               ),
               const SizedBox(height: 10),
-
-              // Announcement option
               _SheetOption(
                 icon: Icons.campaign_outlined,
                 title: 'Buying announcement',
@@ -163,7 +156,6 @@ class _MarketplaceViewState extends State<_MarketplaceView>
           const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         actions: [
-          // Profile
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               if (state is AuthAuthenticated) {
@@ -199,28 +191,36 @@ class _MarketplaceViewState extends State<_MarketplaceView>
               );
             },
           ),
-
           BlocBuilder<NotificationBloc, NotificationState>(
             builder: (context, state) {
-              final unread = state is NotificationLoaded ? state.unreadCount : 0;
+              final unread =
+              state is NotificationLoaded ? state.unreadCount : 0;
               return Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.notifications, color: Colors.white),
-                    onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                    icon: const Icon(Icons.notifications,
+                        color: Colors.white),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen()),
                     ),
                   ),
                   if (unread > 0)
                     Positioned(
-                      right: 8, top: 8,
+                      right: 8,
+                      top: 8,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Colors.red, shape: BoxShape.circle,
+                          color: Colors.red,
+                          shape: BoxShape.circle,
                         ),
-                        child: Text('$unread',
-                            style: const TextStyle(color: Colors.white, fontSize: 10)),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 10),
+                        ),
                       ),
                     ),
                 ],
@@ -295,8 +295,7 @@ class _SheetOption extends StatelessWidget {
                 color: AppColors.primaryGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon,
-                  color: AppColors.primaryGreen, size: 22),
+              child: Icon(icon, color: AppColors.primaryGreen, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -322,8 +321,7 @@ class _SheetOption extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                color: Colors.grey.shade400, size: 20),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
           ],
         ),
       ),
@@ -331,10 +329,19 @@ class _SheetOption extends StatelessWidget {
   }
 }
 
-// ── Listings tab ────────────────────────────────────────────────────────────
+// ── Listings tab ─────────────────────────────────────────────────────────────
 
 class _ListingsTab extends StatelessWidget {
   const _ListingsTab();
+
+  double _getAspectRatio(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // card width accounts for outer padding (16*2) and spacing between cards (16)
+    final cardWidth = (screenWidth - 48) / 2;
+    // image is square (cardWidth x cardWidth) + ~100dp for info section
+    final cardHeight = cardWidth + 100;
+    return cardWidth / cardHeight;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -371,14 +378,19 @@ class _ListingsTab extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined,
-                            size: 80,
-                            color: AppColors.textSecondary.withOpacity(0.4)),
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 80,
+                          color: AppColors.textSecondary.withOpacity(0.4),
+                        ),
                         const SizedBox(height: 16),
-                        Text(l10n.noProductsFound,
-                            style: const TextStyle(
-                                fontSize: 18,
-                                color: AppColors.textSecondary)),
+                        Text(
+                          l10n.noProductsFound,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -386,27 +398,28 @@ class _ListingsTab extends StatelessWidget {
               }
               return SliverPadding(
                 padding: const EdgeInsets.all(16),
-                sliver: SliverGrid(
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                      final ad = state.ads[index];
-                      return GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailsScreen(ad: ad),
+                sliver: Builder(
+                  builder: (context) => SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: _getAspectRatio(context),
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        final ad = state.ads[index];
+                        return GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ProductDetailsScreen(ad: ad),
+                            ),
                           ),
-                        ),
-                        child: ProductCard(ad: ad),
-                      );
-                    },
-                    childCount: state.ads.length,
+                          child: ProductCard(ad: ad),
+                        );
+                      },
+                      childCount: state.ads.length,
+                    ),
                   ),
                 ),
               );
@@ -419,7 +432,7 @@ class _ListingsTab extends StatelessWidget {
   }
 }
 
-// ── Announcements tab ───────────────────────────────────────────────────────
+// ── Announcements tab ────────────────────────────────────────────────────────
 
 class _AnnouncementsTab extends StatelessWidget {
   const _AnnouncementsTab();
@@ -440,16 +453,24 @@ class _AnnouncementsTab extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.campaign_outlined,
-                      size: 80,
-                      color: Colors.grey.shade400),
+                  Icon(
+                    Icons.campaign_outlined,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(height: 16),
-                  const Text('No buying announcements yet',
-                      style: TextStyle(
-                          fontSize: 18, color: AppColors.textSecondary)),
+                  const Text(
+                    'No buying announcements yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  const Text('Be the first to post what you want to buy',
-                      style: TextStyle(color: AppColors.textSecondary)),
+                  const Text(
+                    'Be the first to post what you want to buy',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
                 ],
               ),
             );

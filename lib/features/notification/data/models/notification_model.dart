@@ -20,8 +20,14 @@ class NotificationModel extends NotificationEntity {
       body: map['body'] ?? '',
       type: map['type'] ?? '',
       isRead: map['isRead'] ?? false,
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: _parseDate(map['createdAt']),
     );
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
   }
 
   NotificationEntity toEntity() => NotificationEntity(
