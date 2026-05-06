@@ -22,6 +22,7 @@ abstract class ChatRepository {
     required String receiverId,
     required String text,
     String? imageUrl,
+    String? localId,
   });
 
 

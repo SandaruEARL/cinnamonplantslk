@@ -4,6 +4,7 @@ enum MessageStatus { sending, sent, delivered, read }
 
 class MessageEntity extends Equatable {
   final String id;
+  final String localId;
   final String senderId;
   final String receiverId;
   final String text;
@@ -14,6 +15,7 @@ class MessageEntity extends Equatable {
 
   const MessageEntity({
     required this.id,
+    this.localId = '',
     required this.senderId,
     required this.receiverId,
     required this.text,

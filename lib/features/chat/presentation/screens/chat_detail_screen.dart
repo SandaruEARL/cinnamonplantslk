@@ -167,10 +167,9 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                 if (state is ChatMessagesLoaded) {
                   setState(() {
                     _pendingMessages.removeWhere((p) {
-                      if (_pendingImagePaths.containsKey(p.id)) return false; // images handled above
+                      if (_pendingImagePaths.containsKey(p.id)) return false;
                       return state.messages.any((m) =>
-                      m.senderId == p.senderId &&
-                          (m.timestamp.difference(p.timestamp).inSeconds.abs() < 30) &&
+                      m.localId == p.id &&
                           !m.deletedFor.contains(widget.currentUserId));
                     });
                   });
@@ -236,14 +235,15 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
 
                     final stillPending = _pendingMessages
                         .where((p) => !visibleMessages.any((m) =>
-                    m.senderId == p.senderId &&
-                        (m.timestamp.difference(p.timestamp).inSeconds.abs() < 30)))
+                    m.localId == p.id &&
+                        !m.deletedFor.contains(widget.currentUserId) &&
+                        !m.id.startsWith('pending_')))
                         .toList();
 
                     final allMessages = [
-                      ...stillPending.reversed,
+                      ...stillPending,
                       ...visibleMessages,
-                    ];
+                    ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
                     if (allMessages.isEmpty) {
                       return const Center(
@@ -274,6 +274,7 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                     });
 
                     final groupedItems = <dynamic>[];
+
                     int i = 0;
                     while (i < allMessages.length) {
                       final msg = allMessages[i];
@@ -453,8 +454,11 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    final localId = 'pending_${DateTime.now().millisecondsSinceEpoch}';
+
     final optimistic = MessageEntity(
-      id: 'pending_${DateTime.now().millisecondsSinceEpoch}',
+      id: localId,
+      localId: localId,
       senderId: widget.currentUserId,
       receiverId: widget.otherUserId,
       text: text,
@@ -467,6 +471,7 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
       senderId: widget.currentUserId,
       receiverId: widget.otherUserId,
       text: text,
+      localId: localId,
     ));
 
     _messageController.clear();

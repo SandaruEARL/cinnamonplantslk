@@ -135,6 +135,7 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Failure, void>> sendMessage({
     required String senderId,
     required String receiverId,
+    String? localId,
     required String text,
     String? imageUrl,
   }) async {
@@ -145,6 +146,7 @@ class ChatRepositoryImpl implements ChatRepository {
         senderId: senderId,
         receiverId: receiverId,
         text: text,
+          localId: localId ?? '',
         imageUrl: imageUrl,
           deletedFor: const [],
         timestamp: DateTime.now(),

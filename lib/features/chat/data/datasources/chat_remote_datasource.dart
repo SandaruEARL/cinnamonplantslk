@@ -71,7 +71,11 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         'hiddenFor': [],
       }, SetOptions(merge: true));
 
-      await chatRef.collection('messages').add(message.toFirestore());
+      await chatRef.collection('messages').add({
+        ...message.toFirestore(),
+        'timestamp': FieldValue.serverTimestamp(),
+        'localId': message.localId,
+      });
 
       // Send push notification to receiver
       await _sendChatNotification(

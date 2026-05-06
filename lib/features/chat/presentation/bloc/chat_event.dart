@@ -22,10 +22,12 @@ class ChatMessageSendRequested extends ChatEvent {
   final String senderId;
   final String receiverId;
   final String text;
+  final String localId;
   const ChatMessageSendRequested({
     required this.senderId,
     required this.receiverId,
     required this.text,
+    required this.localId,
   });
 }
 

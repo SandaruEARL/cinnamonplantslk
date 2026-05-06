@@ -15,6 +15,7 @@ class SendMessage extends UseCase<void, SendMessageParams> {
       receiverId: params.receiverId,
       text: params.text,
       imageUrl: params.imageUrl,
+      localId: params.localId,
     );
   }
 }
@@ -47,12 +48,14 @@ class SendMessageParams {
   final String receiverId;
   final String text;
   final String? imageUrl;
+  final String? localId;
 
   const SendMessageParams({
     required this.senderId,
     required this.receiverId,
     required this.text,
     this.imageUrl,
+    this.localId,
   });
 }
 

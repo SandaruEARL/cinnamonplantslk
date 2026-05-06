@@ -7,6 +7,7 @@ class MessageModel extends MessageEntity {
     required super.senderId,
     required super.receiverId,
     required super.text,
+    required super.localId,
     required super.deletedFor,
     super.imageUrl,
     required super.timestamp,
@@ -15,13 +16,21 @@ class MessageModel extends MessageEntity {
 
   factory MessageModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
+    // Server timestamp is null on the first pending-write snapshot
+    final ts = data['timestamp'];
+    final timestamp = ts != null
+        ? (ts as Timestamp).toDate()
+        : DateTime.now();
+
     return MessageModel(
       id: doc.id,
       senderId: data['senderId'] ?? '',
       receiverId: data['receiverId'] ?? '',
       text: data['text'] ?? '',
       imageUrl: data['imageUrl'],
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      localId: data['localId'] ?? '',
+      timestamp: timestamp,
       status: MessageStatus.values.firstWhere(
             (s) => s.name == (data['status'] ?? 'sent'),
         orElse: () => MessageStatus.sent,
@@ -35,6 +44,7 @@ class MessageModel extends MessageEntity {
     'receiverId': receiverId,
     'text': text,
     'imageUrl': imageUrl,
+    'localId': localId,
     'timestamp': Timestamp.fromDate(timestamp),
     'status': status.name,
     'deletedFor': deletedFor,
