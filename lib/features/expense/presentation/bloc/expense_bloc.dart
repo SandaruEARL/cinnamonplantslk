@@ -30,6 +30,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
         userId: event.userId,
         startDate: event.startDate,
         endDate: event.endDate,
+        farmerType: event.farmerType,
       )),
       onData: (result) => result.fold(
             (failure) => ExpenseError(failure.message),
@@ -47,7 +48,10 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       ) async {
     emit(const ExpenseLoading());
     await emit.forEach(
-      getUserExpenses(event.userId),
+      getUserExpenses(GetUserExpensesParams(
+        userId: event.userId,
+        farmerType: event.farmerType,
+      )),
       onData: (result) => result.fold(
             (failure) => ExpenseError(failure.message),
             (expenses) => ExpenseLoaded(

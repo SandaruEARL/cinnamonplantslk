@@ -14,7 +14,6 @@ import '../bloc/expense_bloc.dart';
 import '../bloc/expense_event.dart';
 import '../bloc/expense_state.dart';
 
-
 class ExpenseDashboardScreen extends StatefulWidget {
   final FarmerTypeConfig? initialFarmerType;
   const ExpenseDashboardScreen({super.key, this.initialFarmerType});
@@ -24,27 +23,42 @@ class ExpenseDashboardScreen extends StatefulWidget {
       _ExpenseDashboardScreenState();
 }
 
-class _ExpenseDashboardScreenState
-    extends State<ExpenseDashboardScreen> {
+class _ExpenseDashboardScreenState extends State<ExpenseDashboardScreen> {
   DateTime _selectedMonth = DateTime.now();
   late FarmerTypeConfig _farmerType;
+
+  // ← ADDED: key forces BlocProvider to recreate bloc when farmerType changes
+  Key _blocKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
-    _farmerType =
-        widget.initialFarmerType ?? FarmerTypeConfig.landOwner;
+    _farmerType = widget.initialFarmerType ?? FarmerTypeConfig.landOwner;
   }
 
   void _loadExpenses(BuildContext context, String userId) {
-    final start = DateTime(
-        _selectedMonth.year, _selectedMonth.month, 1);
-    final end = DateTime(
-        _selectedMonth.year, _selectedMonth.month + 1, 0);
+    final start =
+    DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+    final end =
+    DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
     context.read<ExpenseBloc>().add(ExpenseLoadByDateRange(
       userId: userId,
       startDate: start,
       endDate: end,
+      farmerType: _farmerType.typeKey, // ← ADDED
+    ));
+  }
+
+  void _loadExpensesWithBloc(ExpenseBloc bloc, String userId) {
+    final start =
+    DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+    final end =
+    DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+    bloc.add(ExpenseLoadByDateRange(
+      userId: userId,
+      startDate: start,
+      endDate: end,
+      farmerType: _farmerType.typeKey, // ← ADDED
     ));
   }
 
@@ -54,12 +68,11 @@ class _ExpenseDashboardScreenState
     final authState = context.read<AuthBloc>().state;
 
     if (authState is! AuthAuthenticated) {
-      return Scaffold(
-        body: Center(child: Text(l10n.pleaseLogin)),
-      );
+      return Scaffold(body: Center(child: Text(l10n.pleaseLogin)));
     }
 
     return BlocProvider(
+      key: _blocKey, // ← ADDED: new key = new bloc = fresh load for new farmerType
       create: (ctx) {
         final bloc = sl<ExpenseBloc>();
         _loadExpensesWithBloc(bloc, authState.user.id);
@@ -70,23 +83,26 @@ class _ExpenseDashboardScreenState
         appBar: AppBar(
           title: Text(l10n.expenseTrackerTitle),
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient),
+            decoration:
+            const BoxDecoration(gradient: AppColors.primaryGradient),
           ),
           actions: [
             PopupMenuButton<FarmerType>(
               tooltip: l10n.switchFarmerType,
               icon: const Icon(Icons.arrow_drop_down),
-              onSelected: (type) => setState(() {
-                switch (type) {
-                  case FarmerType.landOwner:
-                    _farmerType = FarmerTypeConfig.landOwner;
-                  case FarmerType.nurseryOwner:
-                    _farmerType = FarmerTypeConfig.nurseryOwner;
-                  case FarmerType.baleBuyer:
-                    _farmerType = FarmerTypeConfig.baleBuyer;
-                }
-              }),
+              onSelected: (type) {
+                setState(() {
+                  switch (type) {
+                    case FarmerType.landOwner:
+                      _farmerType = FarmerTypeConfig.landOwner;
+                    case FarmerType.nurseryOwner:
+                      _farmerType = FarmerTypeConfig.nurseryOwner;
+                    case FarmerType.baleBuyer:
+                      _farmerType = FarmerTypeConfig.baleBuyer;
+                  }
+                  _blocKey = UniqueKey(); // ← ADDED: forces bloc recreation with correct farmerType
+                });
+              },
               itemBuilder: (_) => [
                 PopupMenuItem(
                     value: FarmerType.landOwner,
@@ -103,8 +119,8 @@ class _ExpenseDashboardScreenState
               icon: const Icon(Icons.history),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ExpenseHistoryScreen(
-                      farmerType: _farmerType),
+                  builder: (_) =>
+                      ExpenseHistoryScreen(farmerType: _farmerType),
                 ),
               ),
             ),
@@ -113,8 +129,7 @@ class _ExpenseDashboardScreenState
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             await Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) =>
-                  AddExpenseScreen(farmerType: _farmerType),
+              builder: (_) => AddExpenseScreen(farmerType: _farmerType),
             ));
             if (context.mounted) {
               _loadExpenses(context, authState.user.id);
@@ -130,6 +145,8 @@ class _ExpenseDashboardScreenState
               return const Center(child: CircularProgressIndicator());
             }
 
+            // ← UI filter now redundant (Firestore already scopes by farmerType)
+            // but kept as a safety net
             final expenses = state is ExpenseLoaded
                 ? state.expenses
                 .where((e) =>
@@ -145,16 +162,15 @@ class _ExpenseDashboardScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Month selector
                   _MonthSelector(
                     selectedMonth: _selectedMonth,
                     onPrevious: () {
                       setState(() => _selectedMonth = DateTime(
-                          _selectedMonth.year,
-                          _selectedMonth.month - 1));
+                          _selectedMonth.year, _selectedMonth.month - 1));
                       _loadExpenses(context, authState.user.id);
                     },
-                    onNext: _selectedMonth.month != DateTime.now().month
+                    onNext:
+                    _selectedMonth.month != DateTime.now().month
                         ? () {
                       setState(() => _selectedMonth = DateTime(
                           _selectedMonth.year,
@@ -164,7 +180,6 @@ class _ExpenseDashboardScreenState
                         : null,
                   ),
 
-                  // Total card
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: Container(
@@ -197,10 +212,8 @@ class _ExpenseDashboardScreenState
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(
-                                  Icons.receipt_long_outlined,
-                                  color: Colors.white60,
-                                  size: 13),
+                              const Icon(Icons.receipt_long_outlined,
+                                  color: Colors.white60, size: 13),
                               const SizedBox(width: 4),
                               Text(
                                   l10n.transactionsThisMonth(
@@ -215,7 +228,6 @@ class _ExpenseDashboardScreenState
                     ),
                   ),
 
-                  // Recent transactions
                   const SizedBox(height: 24),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -234,8 +246,7 @@ class _ExpenseDashboardScreenState
                         child: Column(
                           children: [
                             Icon(Icons.receipt_long_outlined,
-                                size: 48,
-                                color: Colors.grey.shade300),
+                                size: 48, color: Colors.grey.shade300),
                             const SizedBox(height: 16),
                             Text(l10n.noExpensesThisMonth,
                                 style: TextStyle(
@@ -266,15 +277,6 @@ class _ExpenseDashboardScreenState
       ),
     );
   }
-
-  void _loadExpensesWithBloc(ExpenseBloc bloc, String userId) {
-    final start = DateTime(
-        _selectedMonth.year, _selectedMonth.month, 1);
-    final end = DateTime(
-        _selectedMonth.year, _selectedMonth.month + 1, 0);
-    bloc.add(ExpenseLoadByDateRange(
-        userId: userId, startDate: start, endDate: end));
-  }
 }
 
 class _MonthSelector extends StatelessWidget {
@@ -297,8 +299,7 @@ class _MonthSelector extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-              icon: const Icon(Icons.chevron_left),
-              onPressed: onPrevious),
+              icon: const Icon(Icons.chevron_left), onPressed: onPrevious),
           Text(
             DateFormat('MMMM yyyy').format(selectedMonth),
             style: const TextStyle(
@@ -323,8 +324,7 @@ class _ExpenseTile extends StatelessWidget {
   final ExpenseEntity expense;
   final FarmerTypeConfig config;
 
-  const _ExpenseTile(
-      {required this.expense, required this.config});
+  const _ExpenseTile({required this.expense, required this.config});
 
   @override
   Widget build(BuildContext context) {
@@ -363,8 +363,7 @@ class _ExpenseTile extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: Colors.grey)),
               const SizedBox(height: 2),
-              Text(
-                  DateFormat('MMM dd, yyyy').format(expense.date),
+              Text(DateFormat('MMM dd, yyyy').format(expense.date),
                   style: const TextStyle(
                       fontSize: 11, color: Colors.grey)),
             ],

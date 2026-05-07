@@ -2,6 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/message_entity.dart';
 
 class MessageModel extends MessageEntity {
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
+
   const MessageModel({
     required super.id,
     required super.senderId,
@@ -12,16 +17,16 @@ class MessageModel extends MessageEntity {
     super.imageUrl,
     required super.timestamp,
     super.status,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 
   factory MessageModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-
-    // Server timestamp is null on the first pending-write snapshot
     final ts = data['timestamp'];
-    final timestamp = ts != null
-        ? (ts as Timestamp).toDate()
-        : DateTime.now();
+    final timestamp = ts != null ? (ts as Timestamp).toDate() : DateTime.now();
 
     return MessageModel(
       id: doc.id,
@@ -36,6 +41,10 @@ class MessageModel extends MessageEntity {
         orElse: () => MessageStatus.sent,
       ),
       deletedFor: List<String>.from(data['deletedFor'] ?? []),
+      adId: data['adId'] ?? '',
+      adTitle: data['adTitle'] ?? '',
+      adImageUrl: data['adImageUrl'],
+      adPrice: (data['adPrice'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -48,5 +57,9 @@ class MessageModel extends MessageEntity {
     'timestamp': Timestamp.fromDate(timestamp),
     'status': status.name,
     'deletedFor': deletedFor,
+    'adId': adId,
+    'adTitle': adTitle,
+    'adImageUrl': adImageUrl,
+    'adPrice': adPrice,
   };
 }

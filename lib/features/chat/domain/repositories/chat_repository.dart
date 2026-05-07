@@ -15,6 +15,7 @@ abstract class ChatRepository {
   Stream<Either<Failure, List<MessageEntity>>> getMessages(
       String currentUserId,
       String otherUserId,
+      String adId,
       );
 
   Future<Either<Failure, void>> sendMessage({
@@ -23,8 +24,11 @@ abstract class ChatRepository {
     required String text,
     String? imageUrl,
     String? localId,
+    required String adId,
+    required String adTitle,
+    String? adImageUrl,
+    required double adPrice,
   });
-
 
   Future<Either<Failure, String>> uploadChatImage({
     required String chatId,
@@ -32,10 +36,7 @@ abstract class ChatRepository {
     void Function(double)? onProgress,
   });
 
-  Future<Either<Failure, void>> markAsRead(
-      String chatId,
-      String userId,
-      );
+  Future<Either<Failure, void>> markAsRead(String chatId, String userId);
 
-  String getChatId(String userId1, String userId2);
+  String getChatId(String userId1, String userId2, String adId); // ✅ added adId
 }

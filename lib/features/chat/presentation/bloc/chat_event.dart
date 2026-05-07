@@ -12,9 +12,11 @@ class ChatListLoadRequested extends ChatEvent {
 class ChatMessagesLoadRequested extends ChatEvent {
   final String currentUserId;
   final String otherUserId;
+  final String adId; // ✅ added
   const ChatMessagesLoadRequested({
     required this.currentUserId,
     required this.otherUserId,
+    required this.adId, // ✅ added
   });
 }
 
@@ -23,11 +25,20 @@ class ChatMessageSendRequested extends ChatEvent {
   final String receiverId;
   final String text;
   final String localId;
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
+
   const ChatMessageSendRequested({
     required this.senderId,
     required this.receiverId,
     required this.text,
     required this.localId,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 }
 
@@ -37,12 +48,21 @@ class ChatImageSendRequested extends ChatEvent {
   final String chatId;
   final String pendingId;
   final File image;
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
+
   const ChatImageSendRequested({
     required this.senderId,
     required this.pendingId,
     required this.receiverId,
     required this.chatId,
     required this.image,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 }
 

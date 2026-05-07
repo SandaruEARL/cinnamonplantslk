@@ -7,9 +7,13 @@ abstract class ExpenseRemoteDataSource {
       String userId,
       DateTime startDate,
       DateTime endDate,
+      String farmerType,
       );
 
-  Stream<List<ExpenseModel>> getUserExpenses(String userId);
+  Stream<List<ExpenseModel>> getUserExpenses(
+      String userId,
+      String farmerType,
+      );
 
   Future<void> createExpense(ExpenseModel expense);
 
@@ -17,45 +21,46 @@ abstract class ExpenseRemoteDataSource {
 }
 
 class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
-  final FirebaseFirestore _firestore;
-  ExpenseRemoteDataSourceImpl({required FirebaseFirestore firestore})
-      : _firestore = firestore;
+  final FirebaseFirestore firestore;
+  ExpenseRemoteDataSourceImpl({required this.firestore});
 
   @override
   Stream<List<ExpenseModel>> getExpensesByDateRange(
       String userId,
       DateTime startDate,
       DateTime endDate,
+      String farmerType,
       ) {
     try {
-      return _firestore
+      return firestore
           .collection('expenses')
           .where('userId', isEqualTo: userId)
-          .where('date',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('date',
-          isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+          .where('farmerType', isEqualTo: farmerType)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .orderBy('date', descending: true)
           .snapshots()
-          .map((snap) => snap.docs
-          .map((doc) => ExpenseModel.fromFirestore(doc))
-          .toList());
+          .map((snapshot) =>
+          snapshot.docs.map((doc) => ExpenseModel.fromFirestore(doc)).toList());
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Stream<List<ExpenseModel>> getUserExpenses(String userId) {
+  Stream<List<ExpenseModel>> getUserExpenses(
+      String userId,
+      String farmerType,
+      ) {
     try {
-      return _firestore
+      return firestore
           .collection('expenses')
           .where('userId', isEqualTo: userId)
+          .where('farmerType', isEqualTo: farmerType)
           .orderBy('date', descending: true)
           .snapshots()
-          .map((snap) => snap.docs
-          .map((doc) => ExpenseModel.fromFirestore(doc))
-          .toList());
+          .map((snapshot) =>
+          snapshot.docs.map((doc) => ExpenseModel.fromFirestore(doc)).toList());
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -64,7 +69,10 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
   @override
   Future<void> createExpense(ExpenseModel expense) async {
     try {
-      await _firestore.collection('expenses').add(expense.toFirestore());
+      await firestore
+          .collection('expenses')
+          .doc(expense.id)
+          .set(expense.toFirestore());
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -73,7 +81,7 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
   @override
   Future<void> deleteExpense(String expenseId) async {
     try {
-      await _firestore.collection('expenses').doc(expenseId).delete();
+      await firestore.collection('expenses').doc(expenseId).delete();
     } catch (e) {
       throw ServerException(e.toString());
     }

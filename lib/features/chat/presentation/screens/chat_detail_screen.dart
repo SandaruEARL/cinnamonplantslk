@@ -19,12 +19,20 @@ class ChatDetailScreen extends StatelessWidget {
   final String otherUserId;
   final String otherUserName;
   final String? otherUserImage;
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
 
   const ChatDetailScreen({
     super.key,
     required this.otherUserId,
     required this.otherUserName,
     this.otherUserImage,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 
   @override
@@ -39,12 +47,17 @@ class ChatDetailScreen extends StatelessWidget {
         ..add(ChatMessagesLoadRequested(
           currentUserId: authState.user.id,
           otherUserId: otherUserId,
+          adId: adId, // ✅ adId passed
         )),
       child: _ChatDetailView(
         currentUserId: authState.user.id,
         otherUserId: otherUserId,
         otherUserName: otherUserName,
         otherUserImage: otherUserImage,
+        adId: adId,
+        adTitle: adTitle,
+        adImageUrl: adImageUrl,
+        adPrice: adPrice,
       ),
     );
   }
@@ -55,12 +68,20 @@ class _ChatDetailView extends StatefulWidget {
   final String otherUserId;
   final String otherUserName;
   final String? otherUserImage;
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
 
   const _ChatDetailView({
     required this.currentUserId,
     required this.otherUserId,
     required this.otherUserName,
     this.otherUserImage,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 
   @override
@@ -73,7 +94,13 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
   bool _isTyping = false;
   final List<MessageEntity> _pendingMessages = [];
   final Map<String, String> _pendingImagePaths = {};
-  ChatMessagesLoaded? _lastMessagesState; // ← cache field
+  ChatMessagesLoaded? _lastMessagesState;
+
+  // ✅ Single source of truth for chatId within this screen
+  String get _chatId {
+    final ids = [widget.currentUserId, widget.otherUserId]..sort();
+    return '${ids.join('_')}_${widget.adId}';
+  }
 
   @override
   void initState() {
@@ -88,24 +115,15 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(widget.otherUserName,
-                  style: const TextStyle(fontSize: 18)),
-            ),
-          ],
-        ),
+        title: Text(widget.otherUserName,
+            style: const TextStyle(fontSize: 18)),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        // actions unchanged — uses AuthBloc correctly
         actions: [
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, authState) {
-              if (authState is! AuthAuthenticated) {
-                return const SizedBox.shrink();
-              }
+              if (authState is! AuthAuthenticated) return const SizedBox.shrink();
               final isBlocked =
               authState.user.blockedUsers.contains(widget.otherUserId);
               return PopupMenuButton<String>(
@@ -128,17 +146,14 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                     value: isBlocked ? 'unblock' : 'block',
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.block,
-                          color: isBlocked ? Colors.green : Colors.red,
-                          size: 20,
-                        ),
+                        Icon(Icons.block,
+                            color: isBlocked ? Colors.green : Colors.red,
+                            size: 20),
                         const SizedBox(width: 8),
                         Text(
                           isBlocked ? 'Unblock User' : 'Block User',
                           style: TextStyle(
-                            color: isBlocked ? Colors.green : Colors.red,
-                          ),
+                              color: isBlocked ? Colors.green : Colors.red),
                         ),
                       ],
                     ),
@@ -154,16 +169,12 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
           Expanded(
             child: BlocConsumer<ChatBloc, ChatState>(
               listener: (context, state) {
-
-                // Image bubble removed deterministically by pendingId
                 if (state is ChatImageSent) {
                   setState(() {
                     _pendingMessages.removeWhere((p) => p.id == state.pendingId);
                     _pendingImagePaths.remove(state.pendingId);
                   });
                 }
-
-                // Text message pending cleanup only (skip image pending entries)
                 if (state is ChatMessagesLoaded) {
                   setState(() {
                     _pendingMessages.removeWhere((p) {
@@ -174,12 +185,12 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                     });
                   });
                 }
-
                 if (state is ChatUserBlocked) {
                   context.read<AuthBloc>().add(const AuthCheckRequested());
                   context.read<ChatBloc>().add(ChatMessagesLoadRequested(
                     currentUserId: widget.currentUserId,
                     otherUserId: widget.otherUserId,
+                    adId: widget.adId, // ✅
                   ));
                   Fluttertoast.showToast(
                     msg: 'User blocked',
@@ -189,12 +200,12 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                     textColor: Colors.white,
                   );
                 }
-
                 if (state is ChatUserUnblocked) {
                   context.read<AuthBloc>().add(const AuthCheckRequested());
                   context.read<ChatBloc>().add(ChatMessagesLoadRequested(
                     currentUserId: widget.currentUserId,
                     otherUserId: widget.otherUserId,
+                    adId: widget.adId, // ✅
                   ));
                   Fluttertoast.showToast(
                     msg: 'User unblocked',
@@ -205,20 +216,16 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                   );
                 }
               },
-              // Fixed builder — caches last messages state
               builder: (context, chatState) {
                 if (chatState is ChatMessagesLoaded) {
                   _lastMessagesState = chatState;
                 }
-
                 if (chatState is ChatLoading && _lastMessagesState == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 final effectiveState = chatState is ChatMessagesLoaded
                     ? chatState
                     : _lastMessagesState;
-
                 if (effectiveState == null) return const SizedBox.shrink();
 
                 return BlocBuilder<AuthBloc, AuthState>(
@@ -264,23 +271,18 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!mounted) return;
-                      final chatId =
-                      ([widget.currentUserId, widget.otherUserId]..sort())
-                          .join('_');
                       context.read<ChatBloc>().add(ChatMarkAsReadRequested(
-                        chatId: chatId,
+                        chatId: _chatId, // ✅ uses getter
                         userId: widget.currentUserId,
                       ));
                     });
 
                     final groupedItems = <dynamic>[];
-
                     int i = 0;
                     while (i < allMessages.length) {
                       final msg = allMessages[i];
                       final isImage = msg.imageUrl != null ||
                           _pendingImagePaths.containsKey(msg.id);
-
                       if (isImage) {
                         final group = <MessageEntity>[msg];
                         int j = i + 1;
@@ -296,9 +298,9 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                           }
                         }
                         if (group.length >= 5) {
-                          groupedItems.add(group); // render as grid
+                          groupedItems.add(group);
                         } else {
-                          groupedItems.addAll(group); // render individually
+                          groupedItems.addAll(group);
                         }
                         i = j;
                       } else {
@@ -310,29 +312,30 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                     return ListView.builder(
                       controller: _scrollController,
                       reverse: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 16),
                       itemCount: groupedItems.length,
                       itemBuilder: (context, index) {
                         final item = groupedItems[index];
-
                         if (item is List<MessageEntity>) {
-                          final isMe = item.first.senderId == widget.currentUserId;
+                          final isMe =
+                              item.first.senderId == widget.currentUserId;
                           return _ImageGridBubble(
                             messages: item,
                             isMe: isMe,
                             pendingImagePaths: _pendingImagePaths,
                           );
                         }
-
                         final message = item as MessageEntity;
                         final isMe = message.senderId == widget.currentUserId;
                         return _ChatBubble(
                           message: message,
                           isMe: isMe,
                           currentUserId: widget.currentUserId,
-                          chatId: ([widget.currentUserId, widget.otherUserId]..sort()).join('_'),
+                          chatId: _chatId, // ✅ uses getter
                           localImagePath: _pendingImagePaths[message.id],
-                          onLongPress: isMe && !message.id.startsWith('pending_')
+                          onLongPress: isMe &&
+                              !message.id.startsWith('pending_')
                               ? () => _showDeleteOptions(context, message)
                               : null,
                         );
@@ -343,8 +346,6 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
               },
             ),
           ),
-
-          // Input bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.white,
@@ -410,8 +411,6 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
   }
 
   void _showDeleteOptions(BuildContext context, MessageEntity message) {
-    final chatId =
-    ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(
@@ -424,7 +423,7 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
               onTap: () {
                 Navigator.pop(context);
                 context.read<ChatBloc>().add(ChatMessageDeleteForMeRequested(
-                  chatId: chatId,
+                  chatId: _chatId, // ✅ uses getter
                   messageId: message.id,
                   userId: widget.currentUserId,
                 ));
@@ -438,7 +437,7 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
                 Navigator.pop(context);
                 context.read<ChatBloc>().add(
                     ChatMessageDeleteForEveryoneRequested(
-                      chatId: chatId,
+                      chatId: _chatId, // ✅ uses getter
                       messageId: message.id,
                       senderId: widget.currentUserId,
                     ));
@@ -472,6 +471,10 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
       receiverId: widget.otherUserId,
       text: text,
       localId: localId,
+      adId: widget.adId,
+      adTitle: widget.adTitle,
+      adImageUrl: widget.adImageUrl,
+      adPrice: widget.adPrice,
     ));
 
     _messageController.clear();
@@ -483,8 +486,6 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
     final image = await picker.pickImage(source: source);
     if (image == null) return;
 
-    final chatId =
-    ([widget.currentUserId, widget.otherUserId]..sort()).join('_');
     final pendingId = 'pending_${DateTime.now().millisecondsSinceEpoch}';
 
     final optimistic = MessageEntity(
@@ -507,9 +508,13 @@ class _ChatDetailViewState extends State<_ChatDetailView> {
       context.read<ChatBloc>().add(ChatImageSendRequested(
         senderId: widget.currentUserId,
         receiverId: widget.otherUserId,
-        chatId: chatId,
+        chatId: _chatId, // ✅ uses getter
         image: File(image.path),
         pendingId: pendingId,
+        adId: widget.adId,
+        adTitle: widget.adTitle,
+        adImageUrl: widget.adImageUrl,
+        adPrice: widget.adPrice,
       ));
     }
   }
@@ -548,7 +553,8 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isImageBubble = message.imageUrl != null || localImagePath != null;
+    final bool isImageBubble =
+        message.imageUrl != null || localImagePath != null;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -565,7 +571,9 @@ class _ChatBubble extends StatelessWidget {
                     ? EdgeInsets.zero
                     : const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  gradient: isMe && !isImageBubble ? AppColors.primaryGradient : null,
+                  gradient: isMe && !isImageBubble
+                      ? AppColors.primaryGradient
+                      : null,
                   color: isMe || isImageBubble ? null : AppColors.background,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(16),
@@ -579,7 +587,8 @@ class _ChatBubble extends StatelessWidget {
                   children: [
                     if (message.imageUrl != null)
                       GestureDetector(
-                        onTap: () => _showFullScreen(context, imageUrl: message.imageUrl),
+                        onTap: () =>
+                            _showFullScreen(context, imageUrl: message.imageUrl),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: Stack(
@@ -590,7 +599,6 @@ class _ChatBubble extends StatelessWidget {
                                 fit: BoxFit.cover,
                                 memCacheWidth: 400,
                               ),
-                              // timestamp + status bottom-left of image
                               Positioned(
                                 left: 8,
                                 bottom: 6,
@@ -602,7 +610,8 @@ class _ChatBubble extends StatelessWidget {
                       )
                     else if (localImagePath != null)
                       GestureDetector(
-                        onTap: () => _showFullScreen(context, localPath: localImagePath),
+                        onTap: () =>
+                            _showFullScreen(context, localPath: localImagePath),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: Stack(
@@ -614,13 +623,15 @@ class _ChatBubble extends StatelessWidget {
                                 height: 200,
                                 fit: BoxFit.cover,
                                 cacheWidth: 400,
-                                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                                  if (wasSynchronouslyLoaded || frame != null) return child;
+                                frameBuilder: (context, child, frame,
+                                    wasSynchronouslyLoaded) {
+                                  if (wasSynchronouslyLoaded || frame != null) {
+                                    return child;
+                                  }
                                   return Container(
-                                    width: 200,
-                                    height: 200,
-                                    color: Colors.grey[200],
-                                  );
+                                      width: 200,
+                                      height: 200,
+                                      color: Colors.grey[200]);
                                 },
                               ),
                               Positioned(
@@ -629,11 +640,11 @@ class _ChatBubble extends StatelessWidget {
                                 bottom: 0,
                                 child: LinearProgressIndicator(
                                   backgroundColor: Colors.transparent,
-                                  valueColor: AlwaysStoppedAnimation(Colors.white.withOpacity(0.8)),
+                                  valueColor: AlwaysStoppedAnimation(
+                                      Colors.white.withOpacity(0.8)),
                                   minHeight: 3,
                                 ),
                               ),
-                              // timestamp + status bottom-left of image
                               Positioned(
                                 left: 8,
                                 bottom: 6,
@@ -646,7 +657,8 @@ class _ChatBubble extends StatelessWidget {
                     if (message.text != '📷 Photo')
                       Padding(
                         padding: isImageBubble
-                            ? const EdgeInsets.symmetric(horizontal: 10, vertical: 4)
+                            ? const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4)
                             : EdgeInsets.zero,
                         child: Text(
                           message.text,
@@ -656,8 +668,6 @@ class _ChatBubble extends StatelessWidget {
                           ),
                         ),
                       ),
-
-                    // Only show timestamp row outside for non-image bubbles
                     if (!isImageBubble)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -713,7 +723,8 @@ class _ChatBubble extends StatelessWidget {
     );
   }
 
-  void _showFullScreen(BuildContext context, {String? imageUrl, String? localPath}) {
+  void _showFullScreen(BuildContext context,
+      {String? imageUrl, String? localPath}) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => Scaffold(
         backgroundColor: Colors.black,
@@ -777,7 +788,6 @@ class _ImageGridBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Max 4 shown, rest hidden behind +N
     final visibleCount = messages.length > 4 ? 4 : messages.length;
     final hiddenCount = messages.length - visibleCount;
 
@@ -828,7 +838,6 @@ class _ImageGridBubble extends StatelessWidget {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              // Image
                               if (msg.imageUrl != null)
                                 CachedNetworkImage(
                                   imageUrl: msg.imageUrl!,
@@ -842,14 +851,11 @@ class _ImageGridBubble extends StatelessWidget {
                                   cacheWidth: 200,
                                   frameBuilder: (context, child, frame,
                                       wasSynchronouslyLoaded) {
-                                    if (wasSynchronouslyLoaded || frame != null) {
-                                      return child;
-                                    }
+                                    if (wasSynchronouslyLoaded ||
+                                        frame != null) return child;
                                     return Container(color: Colors.grey[200]);
                                   },
                                 ),
-
-                              // Upload progress bar
                               if (localPath != null)
                                 Positioned(
                                   left: 0,
@@ -862,8 +868,6 @@ class _ImageGridBubble extends StatelessWidget {
                                     minHeight: 2,
                                   ),
                                 ),
-
-                              // +N overlay on last visible tile
                               if (showCounter)
                                 Container(
                                   color: Colors.black54,
@@ -878,8 +882,6 @@ class _ImageGridBubble extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-
-                              // Timestamp on last tile (no counter)
                               if (isLastVisible && !showCounter)
                                 Positioned(
                                   left: 6,
@@ -914,7 +916,6 @@ class _ImageGridBubble extends StatelessWidget {
   }
 }
 
-// Full-screen PageView gallery
 class _ImageGalleryViewer extends StatefulWidget {
   final List<MessageEntity> messages;
   final Map<String, String> pendingImagePaths;
@@ -933,7 +934,7 @@ class _ImageGalleryViewer extends StatefulWidget {
 class _ImageGalleryViewerState extends State<_ImageGalleryViewer> {
   late PageController _pageController;
   late int _currentIndex;
-  bool _isZoomed = false; // track zoom at parent level
+  bool _isZoomed = false;
 
   @override
   void initState() {
@@ -966,7 +967,8 @@ class _ImageGalleryViewerState extends State<_ImageGalleryViewer> {
           if (_isZoomed) return;
           const threshold = 200.0;
           final velocity = details.primaryVelocity ?? 0;
-          if (velocity < -threshold && _currentIndex < widget.messages.length - 1) {
+          if (velocity < -threshold &&
+              _currentIndex < widget.messages.length - 1) {
             _pageController.nextPage(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -988,80 +990,35 @@ class _ImageGalleryViewerState extends State<_ImageGalleryViewer> {
           itemBuilder: (context, index) {
             final msg = widget.messages[index];
             final localPath = widget.pendingImagePaths[msg.id];
-
             final imageProvider = msg.imageUrl != null
                 ? CachedNetworkImageProvider(msg.imageUrl!)
                 : localPath != null
                 ? FileImage(File(localPath)) as ImageProvider
                 : null;
-
             if (imageProvider == null) return const SizedBox.shrink();
-
-            return PhotoView(
-              imageProvider: imageProvider,
-              minScale: PhotoViewComputedScale.contained,
-              maxScale: PhotoViewComputedScale.covered * 4,
-              initialScale: PhotoViewComputedScale.contained,
-              backgroundDecoration: const BoxDecoration(color: Colors.black),
-              // immediately tells PageView to own the gesture at scale 1
-              scaleStateChangedCallback: (state) {
-                final zoomed = state != PhotoViewScaleState.initial &&
-                    state != PhotoViewScaleState.zoomedOut;
-                setState(() => _isZoomed = zoomed);
-              },
-              loadingBuilder: (context, event) => const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+            return SizedBox(
+              width: size.width,
+              height: size.height,
+              child: PhotoView(
+                imageProvider: imageProvider,
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 4,
+                initialScale: PhotoViewComputedScale.contained,
+                backgroundDecoration:
+                const BoxDecoration(color: Colors.black),
+                scaleStateChangedCallback: (state) {
+                  final zoomed = state != PhotoViewScaleState.initial &&
+                      state != PhotoViewScaleState.zoomedOut;
+                  setState(() => _isZoomed = zoomed);
+                },
+                loadingBuilder: (context, event) => const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
               ),
             );
           },
         ),
       ),
-    );
-  }
-}
-
-class _ZoomableImage extends StatefulWidget {
-  final Widget child;
-  final void Function(bool isZoomed) onZoomChanged;
-
-  const _ZoomableImage({
-    required this.child,
-    required this.onZoomChanged,
-  });
-
-  @override
-  State<_ZoomableImage> createState() => _ZoomableImageState();
-}
-
-class _ZoomableImageState extends State<_ZoomableImage> {
-  final TransformationController _controller = TransformationController();
-  bool _isZoomed = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InteractiveViewer(
-      transformationController: _controller,
-      minScale: 1.0,
-      maxScale: 4.0,
-      panEnabled: _isZoomed,
-      onInteractionEnd: (_) {
-        final scale = _controller.value.getMaxScaleOnAxis();
-        final zoomed = scale > 1.05;
-        if (zoomed != _isZoomed) {
-          setState(() => _isZoomed = zoomed);
-          widget.onZoomChanged(zoomed); // tell PageView to lock/unlock
-        }
-        if (!zoomed) {
-          _controller.value = Matrix4.identity();
-        }
-      },
-      child: Center(child: widget.child),
     );
   }
 }

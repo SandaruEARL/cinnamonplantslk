@@ -13,7 +13,7 @@ abstract class ChatRemoteDataSource {
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(MessageModel message, String chatId);
   Future<void> markAsRead(String chatId, String userId);
-  String getChatId(String userId1, String userId2);
+  String getChatId(String userId1, String userId2, String adId); // ✅ adId added
   Future<void> deleteMessageForMe(String chatId, String messageId, String userId);
   Future<void> deleteMessageForEveryone(String chatId, String messageId);
   Future<void> blockUser(String currentUserId, String targetUserId);
@@ -34,9 +34,9 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         _storage = storage;
 
   @override
-  String getChatId(String userId1, String userId2) {
+  String getChatId(String userId1, String userId2, String adId) { // ✅ fixed
     final ids = [userId1, userId2]..sort();
-    return ids.join('_');
+    return '${ids.join('_')}_$adId';
   }
 
   @override
@@ -69,6 +69,10 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         'lastMessageTime': FieldValue.serverTimestamp(),
         'readBy': [message.senderId],
         'hiddenFor': [],
+        'adId': message.adId,
+        'adTitle': message.adTitle,
+        'adImageUrl': message.adImageUrl,
+        'adPrice': message.adPrice,
       }, SetOptions(merge: true));
 
       await chatRef.collection('messages').add({
@@ -77,7 +81,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         'localId': message.localId,
       });
 
-      // Send push notification to receiver
       await _sendChatNotification(
         senderId: message.senderId,
         receiverId: message.receiverId,
@@ -94,7 +97,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
     required String text,
   }) async {
     try {
-      final senderDoc = await _firestore.collection('users').doc(senderId).get();
+      final senderDoc =
+      await _firestore.collection('users').doc(senderId).get();
       final senderName = senderDoc.data()?['name'] as String? ?? 'Someone';
 
       final secret = dotenv.env['NOTIFY_SECRET'] ?? '';
@@ -127,8 +131,10 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       final chatDoc = await chatRef.get();
       if (!chatDoc.exists) return;
 
-      final hiddenFor = (chatDoc.data()?['hiddenFor'] as List?)?.cast<String>() ?? [];
-      final participants = (chatDoc.data()?['participants'] as List?)?.cast<String>() ?? [];
+      final hiddenFor =
+          (chatDoc.data()?['hiddenFor'] as List?)?.cast<String>() ?? [];
+      final participants =
+          (chatDoc.data()?['participants'] as List?)?.cast<String>() ?? [];
 
       final messages = await chatRef.collection('messages').get();
       if (messages.docs.isNotEmpty) {
@@ -142,7 +148,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       }
 
       final updatedHiddenFor = {...hiddenFor, userId};
-      final allHidden = participants.every((id) => updatedHiddenFor.contains(id));
+      final allHidden =
+      participants.every((id) => updatedHiddenFor.contains(id));
 
       if (allHidden) {
         final allMessages = await chatRef.collection('messages').get();
@@ -201,7 +208,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }
 
   @override
-  Future<void> deleteMessageForMe(String chatId, String messageId, String userId) async {
+  Future<void> deleteMessageForMe(
+      String chatId, String messageId, String userId) async {
     try {
       await _firestore
           .collection('chats')
@@ -217,7 +225,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }
 
   @override
-  Future<void> deleteMessageForEveryone(String chatId, String messageId) async {
+  Future<void> deleteMessageForEveryone(
+      String chatId, String messageId) async {
     try {
       await _firestore
           .collection('chats')

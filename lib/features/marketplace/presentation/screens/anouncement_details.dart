@@ -42,7 +42,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                           color: AppColors.primaryGreen.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Text(
+                        child: const Text(
                           'BUYING',
                           style: TextStyle(
                             fontSize: 11,
@@ -150,7 +150,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                           ad.sellerName.isNotEmpty
                               ? ad.sellerName[0].toUpperCase()
                               : '?',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.primaryGreen,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,

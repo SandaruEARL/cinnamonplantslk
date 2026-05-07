@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/expense_entity.dart';
 
 class ExpenseModel extends ExpenseEntity {
   const ExpenseModel({
     required super.id,
     required super.userId,
+    required super.farmerType,
     required super.category,
     required super.amount,
     required super.description,
@@ -17,6 +19,7 @@ class ExpenseModel extends ExpenseEntity {
     return ExpenseModel(
       id: doc.id,
       userId: data['userId'] ?? '',
+      farmerType: data['farmerType'] ?? 'landOwner',
       category: data['category'] ?? '',
       amount: (data['amount'] ?? 0).toDouble(),
       description: data['description'] ?? '',
@@ -27,6 +30,7 @@ class ExpenseModel extends ExpenseEntity {
 
   Map<String, dynamic> toFirestore() => {
     'userId': userId,
+    'farmerType': farmerType,
     'category': category,
     'amount': amount,
     'description': description,

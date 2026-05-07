@@ -20,8 +20,7 @@ class ExpenseHistoryScreen extends StatefulWidget {
       _ExpenseHistoryScreenState();
 }
 
-class _ExpenseHistoryScreenState
-    extends State<ExpenseHistoryScreen> {
+class _ExpenseHistoryScreenState extends State<ExpenseHistoryScreen> {
   String? _selectedCategoryKey;
 
   @override
@@ -34,7 +33,10 @@ class _ExpenseHistoryScreenState
 
     return BlocProvider(
       create: (_) => sl<ExpenseBloc>()
-        ..add(ExpenseHistoryLoadRequested(authState.user.id)),
+        ..add(ExpenseHistoryLoadRequested(
+          authState.user.id,
+          widget.farmerType.typeKey, // ← ADDED: scopes history to correct farmerType
+        )),
       child: Scaffold(
         appBar: AppBar(
           title: Text('${widget.farmerType.emoji} History'),
@@ -51,8 +53,7 @@ class _ExpenseHistoryScreenState
               }),
               itemBuilder: (_) => [
                 const PopupMenuItem(
-                    value: 'All',
-                    child: Text('All Categories')),
+                    value: 'All', child: Text('All Categories')),
                 const PopupMenuDivider(),
                 ...widget.farmerType.expenseCategories.map((cat) =>
                     PopupMenuItem(
@@ -76,17 +77,12 @@ class _ExpenseHistoryScreenState
               return Center(child: Text(state.message));
             }
             if (state is ExpenseLoaded) {
-              var expenses = state.expenses
-                  .where((e) => widget.farmerType.categoryKeys
-                  .contains(e.category))
-                  .toList();
-
-              if (_selectedCategoryKey != null) {
-                expenses = expenses
-                    .where(
-                        (e) => e.category == _selectedCategoryKey)
-                    .toList();
-              }
+              // ← UI category filter only (farmerType already filtered by Firestore)
+              var expenses = _selectedCategoryKey != null
+                  ? state.expenses
+                  .where((e) => e.category == _selectedCategoryKey)
+                  .toList()
+                  : state.expenses;
 
               if (expenses.isEmpty) {
                 return Center(
@@ -105,11 +101,9 @@ class _ExpenseHistoryScreenState
                 );
               }
 
-              // Group by month
               final grouped = <String, List<ExpenseEntity>>{};
               for (final e in expenses) {
-                final key =
-                DateFormat('MMMM yyyy').format(e.date);
+                final key = DateFormat('MMMM yyyy').format(e.date);
                 grouped.putIfAbsent(key, () => []).add(e);
               }
 
@@ -117,8 +111,7 @@ class _ExpenseHistoryScreenState
                 padding: const EdgeInsets.all(16),
                 itemCount: grouped.length,
                 itemBuilder: (context, index) {
-                  final monthKey =
-                  grouped.keys.elementAt(index);
+                  final monthKey = grouped.keys.elementAt(index);
                   final monthExpenses = grouped[monthKey]!;
                   final monthTotal = monthExpenses.fold<double>(
                       0, (sum, e) => sum + e.amount);
@@ -148,8 +141,7 @@ class _ExpenseHistoryScreenState
                         ),
                       ),
                       ...monthExpenses.map((e) => _ExpenseTile(
-                          expense: e,
-                          config: widget.farmerType)),
+                          expense: e, config: widget.farmerType)),
                       const SizedBox(height: 16),
                     ],
                   );
@@ -168,8 +160,7 @@ class _ExpenseTile extends StatelessWidget {
   final ExpenseEntity expense;
   final FarmerTypeConfig config;
 
-  const _ExpenseTile(
-      {required this.expense, required this.config});
+  const _ExpenseTile({required this.expense, required this.config});
 
   @override
   Widget build(BuildContext context) {

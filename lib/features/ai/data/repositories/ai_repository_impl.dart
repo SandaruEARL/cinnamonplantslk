@@ -21,6 +21,12 @@ class AiRepositoryImpl implements AiRepository {
         district: district,
         grade: grade,
       );
+
+      // Inject modelUpdatedAt from the datasource into the raw map
+      // so fromMap can pick it up. The TFLiteService knows the timestamp
+      // but predictPrices() doesn't include it in its return map.
+      raw['model_updated_at'] ??= datasource.getModelUpdatedAt();
+
       final entity = PricePredictionModel.fromMap(raw);
       return Right(entity);
     } catch (e) {

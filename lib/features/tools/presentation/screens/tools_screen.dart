@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../expense/presentation/screens/expense_dashboard_screen.dart';
 
 
@@ -38,9 +41,18 @@ class ToolsScreen extends StatelessWidget {
                 title: l10n.expenseTracker,
                 color: const Color(0xFF358841),
                 description: l10n.expenseTrackerDescription,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const ExpenseDashboardScreen()),
-                ),
+                onTap: () {
+                  final authState = context.read<AuthBloc>().state;
+                  if (authState is AuthAuthenticated) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const ExpenseDashboardScreen()),
+                    );
+                  } else {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 12),
               _ToolCard(

@@ -15,11 +15,12 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       String userId,
       DateTime startDate,
       DateTime endDate,
+      String farmerType,
       ) {
     try {
       return remoteDataSource
-          .getExpensesByDateRange(userId, startDate, endDate)
-          .map((expenses) => Right(expenses));
+          .getExpensesByDateRange(userId, startDate, endDate, farmerType)
+          .map((expenses) => Right<Failure, List<ExpenseEntity>>(expenses));
     } on ServerException catch (e) {
       return Stream.value(Left(ServerFailure(e.message)));
     }
@@ -28,11 +29,12 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   @override
   Stream<Either<Failure, List<ExpenseEntity>>> getUserExpenses(
       String userId,
+      String farmerType,
       ) {
     try {
       return remoteDataSource
-          .getUserExpenses(userId)
-          .map((expenses) => Right(expenses));
+          .getUserExpenses(userId, farmerType)
+          .map((expenses) => Right<Failure, List<ExpenseEntity>>(expenses));
     } on ServerException catch (e) {
       return Stream.value(Left(ServerFailure(e.message)));
     }
@@ -44,6 +46,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       final model = ExpenseModel(
         id: expense.id,
         userId: expense.userId,
+        farmerType: expense.farmerType,
         category: expense.category,
         amount: expense.amount,
         description: expense.description,

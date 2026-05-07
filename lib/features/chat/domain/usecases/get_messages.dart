@@ -13,6 +13,7 @@ class GetMessages {
     return repository.getMessages(
       params.currentUserId,
       params.otherUserId,
+      params.adId,
     );
   }
 }
@@ -20,8 +21,11 @@ class GetMessages {
 class GetMessagesParams {
   final String currentUserId;
   final String otherUserId;
+  final String adId;
+
   const GetMessagesParams({
     required this.currentUserId,
     required this.otherUserId,
+    required this.adId,
   });
 }

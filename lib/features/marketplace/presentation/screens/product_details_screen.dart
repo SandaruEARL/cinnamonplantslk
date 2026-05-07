@@ -347,6 +347,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         otherUserId: widget.ad.sellerId,
         otherUserName: widget.ad.sellerName,
         otherUserImage: widget.ad.sellerProfilePic,
+        adId: widget.ad.id,
+        adTitle: widget.ad.title,
+        adImageUrl: widget.ad.imageUrls.isNotEmpty
+            ? widget.ad.imageUrls.first
+            : null,
+        adPrice: widget.ad.price,
       ),
     ));
   }

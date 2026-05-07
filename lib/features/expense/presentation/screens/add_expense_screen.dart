@@ -31,8 +31,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedCategoryKey =
-        widget.farmerType.expenseCategories.first.key;
+    _selectedCategoryKey = widget.farmerType.expenseCategories.first.key;
   }
 
   ExpenseCategory get _selectedCategory =>
@@ -74,7 +73,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Category chips
                 Text(l10n.categoryLabel,
                     style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15)),
@@ -82,13 +80,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children:
-                  widget.farmerType.expenseCategories.map((cat) {
-                    final isSelected =
-                        cat.key == _selectedCategoryKey;
+                  children: widget.farmerType.expenseCategories.map((cat) {
+                    final isSelected = cat.key == _selectedCategoryKey;
                     return GestureDetector(
-                      onTap: () => setState(
-                              () => _selectedCategoryKey = cat.key),
+                      onTap: () =>
+                          setState(() => _selectedCategoryKey = cat.key),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
@@ -121,32 +117,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   }).toList(),
                 ),
 
-                if (_selectedCategory.hint.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(8)),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.lightbulb_outline,
-                            size: 16, color: Colors.blue),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(_selectedCategory.hint,
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.blueGrey)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
 
                 const SizedBox(height: 20),
 
-                // Amount
                 TextFormField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
@@ -159,13 +132,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 const SizedBox(height: 16),
 
-                // Date
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Date'),
                   subtitle: Text(
-                      DateFormat('MMMM dd, yyyy')
-                          .format(_selectedDate)),
+                      DateFormat('MMMM dd, yyyy').format(_selectedDate)),
                   leading: const Icon(Icons.calendar_today),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _selectDate,
@@ -177,12 +148,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 const SizedBox(height: 16),
 
-                // Description
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 3,
-                  validator: (val) => Validators.validateRequired(
-                      val,
+                  validator: (val) => Validators.validateRequired(val,
                       requiredMessage: l10n.validationFieldRequired(
                           l10n.descriptionHint)),
                   decoration: const InputDecoration(
@@ -194,14 +163,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 const SizedBox(height: 32),
 
-                // Save button
                 BlocBuilder<ExpenseBloc, ExpenseState>(
                   builder: (context, state) {
                     final isLoading = state is ExpenseCreating;
                     return ElevatedButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => _saveExpense(context),
+                      onPressed:
+                      isLoading ? null : () => _saveExpense(context),
                       style: ElevatedButton.styleFrom(
                         padding:
                         const EdgeInsets.symmetric(vertical: 16),
@@ -248,6 +215,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final expense = ExpenseEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userId: authState.user.id,
+      farmerType: widget.farmerType.typeKey,
       category: _selectedCategoryKey,
       amount: double.parse(_amountController.text),
       description: _descriptionController.text.trim(),

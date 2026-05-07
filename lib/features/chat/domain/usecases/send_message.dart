@@ -16,6 +16,10 @@ class SendMessage extends UseCase<void, SendMessageParams> {
       text: params.text,
       imageUrl: params.imageUrl,
       localId: params.localId,
+      adId: params.adId,
+      adTitle: params.adTitle,
+      adImageUrl: params.adImageUrl,
+      adPrice: params.adPrice,
     );
   }
 }
@@ -38,6 +42,10 @@ class SendImageMessage extends UseCase<void, SendImageParams> {
         receiverId: params.receiverId,
         text: '📷 Photo',
         imageUrl: imageUrl,
+        adId: params.adId,
+        adTitle: params.adTitle,
+        adImageUrl: params.adImageUrl,
+        adPrice: params.adPrice,
       ),
     );
   }
@@ -49,6 +57,10 @@ class SendMessageParams {
   final String text;
   final String? imageUrl;
   final String? localId;
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
 
   const SendMessageParams({
     required this.senderId,
@@ -56,6 +68,10 @@ class SendMessageParams {
     required this.text,
     this.imageUrl,
     this.localId,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 }
 
@@ -66,12 +82,21 @@ class SendImageParams {
   final String pendingId;
   final File image;
   final void Function(double)? onProgress;
+  final String adId;
+  final String adTitle;
+  final String? adImageUrl;
+  final double adPrice;
+
   const SendImageParams({
     required this.senderId,
     required this.receiverId,
     required this.chatId,
     this.onProgress,
     required this.image,
-    required this.pendingId
+    required this.pendingId,
+    required this.adId,
+    required this.adTitle,
+    this.adImageUrl,
+    required this.adPrice,
   });
 }

@@ -68,6 +68,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       getMessages(GetMessagesParams(
         currentUserId: event.currentUserId,
         otherUserId: event.otherUserId,
+        adId: event.adId, // ✅ added
       )),
       onData: (result) => result.fold(
             (failure) => ChatError(failure.message),
@@ -86,7 +87,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ));
     result.fold(
           (failure) => emit(ChatError(failure.message)),
-          (_) => null, // stream auto-updates the list
+          (_) => null,
     );
   }
 
@@ -99,6 +100,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       receiverId: event.receiverId,
       text: event.text,
       localId: event.localId,
+      adId: event.adId,
+      adTitle: event.adTitle,
+      adImageUrl: event.adImageUrl,
+      adPrice: event.adPrice,
     ));
     result.fold(
           (failure) => emit(ChatError(failure.message)),
@@ -110,8 +115,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ChatImageSendRequested event,
       Emitter<ChatState> emit,
       ) async {
-    print('🟡 IMAGE SEND STARTED: ${event.pendingId}');
-
     final result = await sendImageMessage(SendImageParams(
       senderId: event.senderId,
       receiverId: event.receiverId,
@@ -119,29 +122,22 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       image: event.image,
       pendingId: event.pendingId,
       onProgress: (progress) {
-        print('🔵 UPLOAD PROGRESS: $progress');
         if (!emit.isDone) {
           emit(ChatImageUploadProgress(
             pendingId: event.pendingId,
             progress: progress,
           ));
-        } else {
-          print('🔴 EMIT IS DONE — progress blocked');
         }
       },
+      adId: event.adId,
+      adTitle: event.adTitle,
+      adImageUrl: event.adImageUrl,
+      adPrice: event.adPrice,
     ));
 
-    print('🟠 UPLOAD RESULT: $result');
-
     result.fold(
-          (failure) {
-        print('🔴 UPLOAD FAILED: ${failure.message}');
-        emit(ChatError(failure.message));
-      },
-          (_) {
-        print('🟢 EMITTING ChatImageSent: ${event.pendingId}');
-        emit(ChatImageSent(pendingId: event.pendingId));
-      },
+          (failure) => emit(ChatError(failure.message)),
+          (_) => emit(ChatImageSent(pendingId: event.pendingId)),
     );
   }
 
@@ -192,7 +188,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ChatMessageDeleteForEveryoneRequested event,
       Emitter<ChatState> emit,
       ) async {
-    final result = await deleteMessageForEveryone(DeleteMessageForEveryoneParams(
+    final result =
+    await deleteMessageForEveryone(DeleteMessageForEveryoneParams(
       chatId: event.chatId,
       messageId: event.messageId,
     ));

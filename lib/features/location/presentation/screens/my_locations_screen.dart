@@ -287,17 +287,6 @@ class _LocationCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  isNursery ? Icons.park : Icons.store,
-                  color: isNursery ? Colors.green : AppColors.primaryGreen,
-                ),
-              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

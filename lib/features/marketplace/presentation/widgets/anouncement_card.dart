@@ -36,21 +36,13 @@ class AnnouncementCard extends StatelessWidget {
             // ── Top row: badge + time ─────────────────────────────────
             Row(
               children: [
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'BUYING',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryGreen,
-                      letterSpacing: 0.5,
-                    ),
+                const Text(
+                  'BUYING',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryGreen,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const Spacer(),
@@ -81,7 +73,7 @@ class AnnouncementCard extends StatelessWidget {
               children: [
                 _MetaItem(
                   label: 'LKR ${ad.price.toStringAsFixed(0)}/kg',
-                  color: AppColors.primaryGreen,
+                  color: AppColors.textSecondary,
                 ),
                 if (ad.grade != null) ...[
                   const SizedBox(width: 10),
@@ -100,19 +92,6 @@ class AnnouncementCard extends StatelessWidget {
             // ── Seller row ────────────────────────────────────────────
             Row(
               children: [
-                CircleAvatar(
-                  radius: 13,
-                  backgroundColor: Colors.grey.shade100,
-                  child: Text(
-                    ad.sellerName.isNotEmpty
-                        ? ad.sellerName[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                        color: AppColors.primaryGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
                 const SizedBox(width: 6),
                 Text(
                   ad.sellerName,

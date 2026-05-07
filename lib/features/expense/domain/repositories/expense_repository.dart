@@ -7,9 +7,13 @@ abstract class ExpenseRepository {
       String userId,
       DateTime startDate,
       DateTime endDate,
+      String farmerType,
       );
 
-  Stream<Either<Failure, List<ExpenseEntity>>> getUserExpenses(String userId);
+  Stream<Either<Failure, List<ExpenseEntity>>> getUserExpenses(
+      String userId,
+      String farmerType,
+      );
 
   Future<Either<Failure, void>> createExpense(ExpenseEntity expense);
 

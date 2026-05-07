@@ -12,7 +12,6 @@ import '../bloc/chat_event.dart';
 import '../bloc/chat_state.dart';
 import '../../domain/entities/chat_entity.dart';
 
-
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
@@ -41,8 +40,7 @@ class _UnauthenticatedView extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.messagesTitle),
         flexibleSpace: Container(
-          decoration:
-          const BoxDecoration(gradient: AppColors.primaryGradient),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
       ),
       body: Center(child: Text(l10n.pleaseLoginToViewMessages)),
@@ -66,8 +64,7 @@ class _ChatListView extends StatelessWidget {
         ),
         title: Text(l10n.messagesTitle),
         flexibleSpace: Container(
-          decoration:
-          const BoxDecoration(gradient: AppColors.primaryGradient),
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
       ),
       body: BlocBuilder<ChatBloc, ChatState>(
@@ -86,18 +83,15 @@ class _ChatListView extends StatelessWidget {
                   children: [
                     Icon(Icons.chat_bubble_outline,
                         size: 80,
-                        color: AppColors.textSecondary
-                            .withValues(alpha: 0.5)),
+                        color: AppColors.textSecondary.withValues(alpha: 0.5)),
                     const SizedBox(height: 16),
                     Text(l10n.noMessagesYet,
                         style: const TextStyle(
-                            fontSize: 18,
-                            color: AppColors.textSecondary)),
+                            fontSize: 18, color: AppColors.textSecondary)),
                     const SizedBox(height: 8),
                     Text(l10n.startTheConversation,
                         style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary)),
+                            fontSize: 14, color: AppColors.textSecondary)),
                   ],
                 ),
               );
@@ -135,82 +129,209 @@ class _ChatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return InkWell(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => ChatDetailScreen(
           otherUserId: chat.otherUserId,
           otherUserName: chat.otherUserName,
           otherUserImage: chat.otherUserImage,
+          adId: chat.adId,
+          adTitle: chat.adTitle,
+          adImageUrl: chat.adImageUrl,
+          adPrice: chat.adPrice,
         ),
       )),
       onLongPress: () => _showDeleteDialog(context),
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: AppColors.primaryGreen,
-            backgroundImage: chat.otherUserImage != null
-                ? CachedNetworkImageProvider(chat.otherUserImage!)
-                : null,
-            child: chat.otherUserImage == null
-                ? Text(chat.otherUserName[0].toUpperCase(),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold))
-                : null,
-          ),
-          if (isUnread)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: const BoxDecoration(
-                    color: AppColors.accentGreen,
-                    shape: BoxShape.circle),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // ── Left: ad thumbnail + user avatar overlay ─────────────
+            SizedBox(
+              width: 60,
+              height: 60,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Ad thumbnail fills the slot
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: chat.adImageUrl != null
+                        ? CachedNetworkImage(
+                      imageUrl: chat.adImageUrl!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          _adImageFallback(size: 56),
+                    )
+                        : _adImageFallback(size: 56),
+                  ),
+
+                  // Unread dot — top-left corner
+                  if (isUnread)
+                    Positioned(
+                      left: -2,
+                      top: -2,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGreen,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                    ),
+
+                  // User avatar — small circle at bottom-right
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 13,
+                        backgroundColor: AppColors.primaryGreen,
+                        backgroundImage: chat.otherUserImage != null
+                            ? CachedNetworkImageProvider(chat.otherUserImage!)
+                            : null,
+                        child: chat.otherUserImage == null
+                            ? Text(
+                          chat.otherUserName[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                            : null,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(chat.otherUserName,
-                style: TextStyle(
-                    fontWeight: isUnread
-                        ? FontWeight.bold
-                        : FontWeight.normal)),
-          ),
-          if (chat.isVerified)
-            const Icon(Icons.verified,
-                color: AppColors.accentGreen, size: 16),
-        ],
-      ),
-      subtitle: Text(
-        chat.lastMessage,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontWeight:
-          isUnread ? FontWeight.w600 : FontWeight.normal,
-          color: isUnread
-              ? AppColors.textPrimary
-              : AppColors.textSecondary,
+
+            const SizedBox(width: 16),
+
+            // ── Middle: name + time / ad info / last message ─────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Row 1: user name + verified badge + timestamp
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                chat.otherUserName,
+                                style: TextStyle(
+                                  fontWeight: isUnread
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (chat.isVerified)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4),
+                                child: Icon(Icons.verified,
+                                    color: AppColors.accentGreen, size: 14),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        _formatTime(chat.lastMessageTime),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isUnread
+                              ? AppColors.primaryGreen
+                              : AppColors.textSecondary,
+                          fontWeight:
+                          isUnread ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 2),
+
+                  // Row 2: ad title + price
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          chat.adTitle,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Rs.${chat.adPrice.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 3),
+
+                  // Row 3: last message preview
+                  Text(
+                    chat.lastMessage,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight:
+                      isUnread ? FontWeight.w600 : FontWeight.normal,
+                      color: isUnread
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      trailing: Text(
-        _formatTime(chat.lastMessageTime),
-        style: TextStyle(
-          fontSize: 12,
-          color: isUnread
-              ? AppColors.primaryGreen
-              : AppColors.textSecondary,
-          fontWeight:
-          isUnread ? FontWeight.bold : FontWeight.normal,
-        ),
+    );
+  }
+
+  Widget _adImageFallback({required double size}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(10),
       ),
+      child: const Icon(Icons.image_not_supported, size: 20, color: Colors.grey),
     );
   }
 

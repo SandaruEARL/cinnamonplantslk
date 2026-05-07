@@ -12,7 +12,7 @@ import '../models/message_model.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final ChatRemoteDataSource remoteDataSource;
-  final AuthService authService; // only for fetching other user's profile
+  final AuthService authService;
 
   ChatRepositoryImpl({
     required this.remoteDataSource,
@@ -20,8 +20,8 @@ class ChatRepositoryImpl implements ChatRepository {
   });
 
   @override
-  String getChatId(String userId1, String userId2) {
-    return remoteDataSource.getChatId(userId1, userId2);
+  String getChatId(String userId1, String userId2, String adId) { // ✅ adId added
+    return remoteDataSource.getChatId(userId1, userId2, adId);
   }
 
   @override
@@ -57,12 +57,18 @@ class ChatRepositoryImpl implements ChatRepository {
               lastMessageSender: chat['lastMessageSender'] as String? ?? '',
               lastMessageTime: chat['lastMessageTime'] is Timestamp
                   ? (chat['lastMessageTime'] as Timestamp).toDate()
-                  : DateTime.tryParse(chat['lastMessageTime'] as String? ?? '') ?? DateTime.now(),
+                  : DateTime.tryParse(
+                  chat['lastMessageTime'] as String? ?? '') ??
+                  DateTime.now(),
               otherUserId: otherUserId,
               otherUserName: otherUser['name'] as String? ?? '',
               otherUserImage: otherUser['profilePicUrl'] as String?,
               isVerified: otherUser['isVerified'] as bool? ?? false,
               readBy: (chat['readBy'] as List?)?.cast<String>() ?? [],
+              adId: chat['adId'] as String? ?? '',
+              adTitle: chat['adTitle'] as String? ?? '',
+              adImageUrl: chat['adImageUrl'] as String?,
+              adPrice: (chat['adPrice'] as num?)?.toDouble() ?? 0.0,
             ));
           } catch (_) {
             continue;
@@ -76,7 +82,8 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteMessageForMe(String chatId, String messageId, String userId) async {
+  Future<Either<Failure, void>> deleteMessageForMe(
+      String chatId, String messageId, String userId) async {
     try {
       await remoteDataSource.deleteMessageForMe(chatId, messageId, userId);
       return const Right(null);
@@ -86,7 +93,8 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteMessageForEveryone(String chatId, String messageId) async {
+  Future<Either<Failure, void>> deleteMessageForEveryone(
+      String chatId, String messageId) async {
     try {
       await remoteDataSource.deleteMessageForEveryone(chatId, messageId);
       return const Right(null);
@@ -95,9 +103,9 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
-
   @override
-  Future<Either<Failure, void>> blockUser(String currentUserId, String targetUserId) async {
+  Future<Either<Failure, void>> blockUser(
+      String currentUserId, String targetUserId) async {
     try {
       await remoteDataSource.blockUser(currentUserId, targetUserId);
       return const Right(null);
@@ -107,7 +115,8 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, void>> unblockUser(String currentUserId, String targetUserId) async {
+  Future<Either<Failure, void>> unblockUser(
+      String currentUserId, String targetUserId) async {
     try {
       await remoteDataSource.unblockUser(currentUserId, targetUserId);
       return const Right(null);
@@ -120,9 +129,10 @@ class ChatRepositoryImpl implements ChatRepository {
   Stream<Either<Failure, List<MessageEntity>>> getMessages(
       String currentUserId,
       String otherUserId,
+      String adId, // ✅ adId added
       ) {
     try {
-      final chatId = getChatId(currentUserId, otherUserId);
+      final chatId = getChatId(currentUserId, otherUserId, adId); // ✅ passes adId
       return remoteDataSource
           .getMessages(chatId)
           .map((messages) => Right(messages));
@@ -135,22 +145,30 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Failure, void>> sendMessage({
     required String senderId,
     required String receiverId,
-    String? localId,
     required String text,
     String? imageUrl,
+    String? localId,
+    required String adId,
+    required String adTitle,
+    String? adImageUrl,
+    required double adPrice,
   }) async {
     try {
-      final chatId = getChatId(senderId, receiverId);
+      final chatId = getChatId(senderId, receiverId, adId); // ✅ passes adId
       final message = MessageModel(
         id: '',
         senderId: senderId,
         receiverId: receiverId,
         text: text,
-          localId: localId ?? '',
+        localId: localId ?? '',
         imageUrl: imageUrl,
-          deletedFor: const [],
+        deletedFor: const [],
         timestamp: DateTime.now(),
-          status: MessageStatus.sent
+        status: MessageStatus.sent,
+        adId: adId,
+        adTitle: adTitle,
+        adImageUrl: adImageUrl,
+        adPrice: adPrice,
       );
       await remoteDataSource.sendMessage(message, chatId);
       return const Right(null);
@@ -158,7 +176,6 @@ class ChatRepositoryImpl implements ChatRepository {
       return Left(ServerFailure(e.message));
     }
   }
-
 
   @override
   Future<Either<Failure, String>> uploadChatImage({
@@ -179,7 +196,8 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteChat(String chatId, String userId) async {
+  Future<Either<Failure, void>> deleteChat(
+      String chatId, String userId) async {
     try {
       await remoteDataSource.deleteChat(chatId, userId);
       return const Right(null);
@@ -190,9 +208,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<Either<Failure, void>> markAsRead(
-      String chatId,
-      String userId,
-      ) async {
+      String chatId, String userId) async {
     try {
       await remoteDataSource.markAsRead(chatId, userId);
       return const Right(null);

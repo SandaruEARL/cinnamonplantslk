@@ -7,7 +7,16 @@ class GetUserExpenses {
   final ExpenseRepository repository;
   GetUserExpenses(this.repository);
 
-  Stream<Either<Failure, List<ExpenseEntity>>> call(String userId) {
-    return repository.getUserExpenses(userId);
+  Stream<Either<Failure, List<ExpenseEntity>>> call(GetUserExpensesParams params) {
+    return repository.getUserExpenses(params.userId, params.farmerType);
   }
+}
+
+class GetUserExpensesParams {
+  final String userId;
+  final String farmerType;
+  const GetUserExpensesParams({
+    required this.userId,
+    required this.farmerType,
+  });
 }

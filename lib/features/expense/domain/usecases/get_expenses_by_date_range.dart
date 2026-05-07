@@ -14,6 +14,7 @@ class GetExpensesByDateRange {
       params.userId,
       params.startDate,
       params.endDate,
+      params.farmerType,
     );
   }
 }
@@ -22,9 +23,11 @@ class GetExpensesByDateRangeParams {
   final String userId;
   final DateTime startDate;
   final DateTime endDate;
+  final String farmerType;
   const GetExpensesByDateRangeParams({
     required this.userId,
     required this.startDate,
     required this.endDate,
+    required this.farmerType,
   });
 }

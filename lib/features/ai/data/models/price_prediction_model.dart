@@ -40,6 +40,7 @@ class PricePredictionModel extends PricePredictionEntity {
       isWeekly: map['isWeekly'] as bool? ?? true,
       isMock: map['mock'] as bool? ?? false,
       modelVersion: map['model_version'] as String?,
+      modelUpdatedAt: map['model_updated_at'] as String?,
     );
   }
 }

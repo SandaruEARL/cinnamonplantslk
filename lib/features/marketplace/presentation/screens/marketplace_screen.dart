@@ -46,7 +46,7 @@ class _MarketplaceViewState extends State<_MarketplaceView>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) return;
+      if (_tabController.indexIsChanging) return;
       final bloc = context.read<MarketplaceBloc>();
       if (_tabController.index == 0) {
         bloc.add(const MarketplaceLoadRequested());
