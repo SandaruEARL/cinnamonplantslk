@@ -1195,7 +1195,7 @@ abstract class AppLocalizations {
   /// No description provided for @addExpenseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Add Expense — {farmerType}'**
+  /// **'Add Expense - {farmerType}'**
   String addExpenseTitle(String farmerType);
 
   /// No description provided for @categoryLabel.

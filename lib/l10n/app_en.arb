@@ -280,7 +280,7 @@
   "analyticsDescription": "View insights and statistics about your farm",
   "comingSoon": "Coming soon!",
 
-  "addExpenseTitle": "Add Expense — {farmerType}",
+  "addExpenseTitle": "Add Expense - {farmerType}",
   "@addExpenseTitle": {
     "placeholders": { "farmerType": { "type": "String" } }
   },

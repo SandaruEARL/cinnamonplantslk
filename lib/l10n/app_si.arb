@@ -279,7 +279,7 @@
   "analyticsDescription": "ඔබේ ගොවිපල පිළිබඳ තොරතුරු සහ සංඛ්‍යාලේඛන බලන්න",
   "comingSoon": "ඉක්මනින් එනවා!",
 
-  "addExpenseTitle": "වියදම් එක් කරන්න — {farmerType}",
+  "addExpenseTitle": "වියදම් එක් කරන්න - {farmerType}",
   "@addExpenseTitle": {
     "placeholders": { "farmerType": { "type": "String" } }
   },

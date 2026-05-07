@@ -604,7 +604,7 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String addExpenseTitle(String farmerType) {
-    return 'වියදම් එක් කරන්න — $farmerType';
+    return 'වියදම් එක් කරන්න - $farmerType';
   }
 
   @override

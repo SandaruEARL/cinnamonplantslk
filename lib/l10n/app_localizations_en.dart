@@ -607,7 +607,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String addExpenseTitle(String farmerType) {
-    return 'Add Expense — $farmerType';
+    return 'Add Expense - $farmerType';
   }
 
   @override

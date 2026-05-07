@@ -278,7 +278,7 @@
   "analyticsDescription": "உங்கள் பண்ணையின் தகவல்கள் மற்றும் புள்ளிவிவரங்களை பாருங்கள்",
   "comingSoon": "விரைவில் வருகிறது!",
 
-  "addExpenseTitle": "செலவு சேர்க்கவும் — {farmerType}",
+  "addExpenseTitle": "செலவு சேர்க்கவும் - {farmerType}",
   "@addExpenseTitle": {
     "placeholders": { "farmerType": { "type": "String" } }
   },

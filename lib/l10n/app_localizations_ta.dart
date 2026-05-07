@@ -609,7 +609,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String addExpenseTitle(String farmerType) {
-    return 'செலவு சேர்க்கவும் — $farmerType';
+    return 'செலவு சேர்க்கவும் - $farmerType';
   }
 
   @override
