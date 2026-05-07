@@ -167,36 +167,42 @@ class _ExpenseTile extends StatelessWidget {
     final cat = config.expenseCategories
         .where((c) => c.key == expense.category)
         .firstOrNull;
-    final color = cat?.color ?? AppColors.primaryGreen;
-    final icon = cat?.icon ?? Icons.receipt;
     final label = cat?.label ?? expense.category;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200, width: 0.8),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text(
+                  '${expense.description}  ·  ${DateFormat('MMM dd, yyyy').format(expense.date)}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-          child: Icon(icon, color: color),
-        ),
-        title: Text(label,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(
-          '${expense.description}\n${DateFormat('MMM dd, yyyy').format(expense.date)}',
-        ),
-        trailing: Text(
-          'Rs. ${expense.amount.toStringAsFixed(2)}',
-          style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppColors.accentRed),
-        ),
-        isThreeLine: true,
+          const SizedBox(width: 12),
+          Text(
+            'Rs. ${expense.amount.toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ],
       ),
     );
   }
