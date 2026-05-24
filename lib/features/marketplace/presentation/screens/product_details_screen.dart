@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../data/services/cloudinary/cloudinary_service.dart';
-import '../../../../injection_container.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../features/chat/presentation/screens/chat_detail_screen.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -97,7 +98,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   size: 60, color: Colors.grey),
                             );
                           }
-                          // ✅ tap opens full screen
+                          // tap opens full screen
                           return GestureDetector(
                             onTap: () => _openFullScreen(index),
                             child: _buildImage(widget.ad.imageUrls[index]),
@@ -129,7 +130,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             ),
                           ),
                         ),
-
                     ],
                   ),
                 ),
@@ -146,7 +146,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
-                    Text('Rs.${widget.ad.price.toStringAsFixed(0)}',
+                  Text('${l10n.priceHint}${widget.ad.price.toStringAsFixed(0)}',
                         style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -251,26 +251,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: _openWhatsApp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB8E98D),
-                    foregroundColor: AppColors.textPrimary,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                    side:
-                    const BorderSide(color: Colors.black, width: 1.5),
-                  ),
-                  child: Text(l10n.whatsappButton,
-                      style:
-                      const TextStyle(fontWeight: FontWeight.w600)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _chatWithSeller(context),
                   icon: const Icon(Icons.chat_bubble_outline,
@@ -319,27 +299,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
-  void _openWhatsApp() async {
-    final phone =
-    widget.ad.sellerPhone.replaceAll(RegExp(r'[^\d+]'), '');
-    final msg = Uri.encodeComponent(
-        'Hi, I\'m interested in: ${widget.ad.title}');
-    final uri = Uri.parse('https://wa.me/$phone?text=$msg');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
   void _chatWithSeller(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please login to chat')));
+      Fluttertoast.showToast(msg: l10n.pleaseLoginToChat);
       return;
     }
     if (widget.ad.sellerId == authState.user.id) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You cannot chat with yourself')));
+      Fluttertoast.showToast(msg: l10n.cannotChatWithSelf);
       return;
     }
     Navigator.of(context).push(MaterialPageRoute(

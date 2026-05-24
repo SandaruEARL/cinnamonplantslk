@@ -12,11 +12,11 @@ class ChatListLoadRequested extends ChatEvent {
 class ChatMessagesLoadRequested extends ChatEvent {
   final String currentUserId;
   final String otherUserId;
-  final String adId; // ✅ added
+  final String adId;
   const ChatMessagesLoadRequested({
     required this.currentUserId,
     required this.otherUserId,
-    required this.adId, // ✅ added
+    required this.adId,
   });
 }
 

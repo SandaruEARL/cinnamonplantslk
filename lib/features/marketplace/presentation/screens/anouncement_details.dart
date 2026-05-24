@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/advertisement_entity.dart';
 
 class AnnouncementDetailScreen extends StatelessWidget {
@@ -8,13 +9,14 @@ class AnnouncementDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Buying Announcement',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          l10n.buyingAnnouncementTitle,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         flexibleSpace: Container(
           decoration:
@@ -42,9 +44,9 @@ class AnnouncementDetailScreen extends StatelessWidget {
                           color: AppColors.primaryGreen.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'BUYING',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.buyingBadge,
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primaryGreen,
@@ -85,16 +87,16 @@ class AnnouncementDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _DetailRow(
-                    label: 'Offered Price',
+                    label: l10n.offeredPrice,
                     value: 'LKR ${ad.price.toStringAsFixed(0)} / kg',
                     valueColor: AppColors.primaryGreen,
                   ),
                   if (ad.grade != null) ...[
                     _Divider(),
-                    _DetailRow(label: 'Grade', value: ad.grade!),
+                    _DetailRow(label: l10n.gradeHint, value: ad.grade!),
                   ],
                   _Divider(),
-                  _DetailRow(label: 'Location', value: ad.location),
+                  _DetailRow(label: l10n.locationDetailLabel, value: ad.location),
                 ],
               ),
             ),
@@ -105,9 +107,9 @@ class AnnouncementDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Details',
-                    style: TextStyle(
+                  Text(
+                    l10n.detailsLabel,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
@@ -132,9 +134,9 @@ class AnnouncementDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Posted by',
-                    style: TextStyle(
+                  Text(
+                    l10n.postedByLabel,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,

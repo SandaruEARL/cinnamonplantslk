@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../injection_container.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -156,7 +156,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
           if (state is MarketplaceAdCreated) {
             Fluttertoast.showToast(
               msg: _isAnnouncement
-                  ? 'Announcement posted successfully!'
+                  ? l10n.announcementPostedSuccess
                   : l10n.adPostedSuccess,
               backgroundColor: AppColors.accentGreen,
               textColor: Colors.white,
@@ -174,7 +174,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
           appBar: AppBar(
             iconTheme: const IconThemeData(color: Colors.white),
             title: Text(
-              _isAnnouncement ? 'Post Buying Announcement' : l10n.postAd,
+              _isAnnouncement ? l10n.postBuyingAnnouncementTitle: l10n.postAd,
               style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w600),
             ),
@@ -198,18 +198,18 @@ class _PostAdScreenState extends State<PostAdScreen> {
                       color: AppColors.primaryGreen.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppColors.primaryGreen.withOpacity(0.25)),
+                          color: Colors.grey.withOpacity(0.25)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline,
-                            color: AppColors.primaryGreen, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.info_outline,
+                            color: Colors.grey, size: 18),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'You\'re posting a buying announcement. Sellers will contact you directly.',
-                            style: TextStyle(
-                                color: AppColors.primaryGreen, fontSize: 13),
+                            l10n.announcementInfoBanner,
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 13),
                           ),
                         ),
                       ],
@@ -228,21 +228,21 @@ class _PostAdScreenState extends State<PostAdScreen> {
                         GestureDetector(
                           onTap: _pickImages,
                           child: Container(
-                            width: 100,
+                            width: 150,
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF0F0F0),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Column(
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_photo_alternate_outlined,
+                                const Icon(Icons.add_photo_alternate_outlined,
                                     size: 32, color: Color(0xFFAAAAAA)),
-                                SizedBox(height: 6),
-                                Text('Add image',
+                                const SizedBox(height: 6),
+                                Text(l10n.addImage,
                                     style:
-                                    TextStyle(color: Color(0xFFAAAAAA))),
+                                    const TextStyle(color: Color(0xFFAAAAAA))),
                               ],
                             ),
                           ),
@@ -305,7 +305,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                       l10n.validationFieldRequired(l10n.titleHint)),
                   decoration: _inputDecoration(
                     hint: _isAnnouncement
-                        ? 'e.g. Looking for Alba grade cinnamon bales'
+                        ? l10n.announcementTitleHint
                         : l10n.titleHint,
                   ),
                 ),
@@ -320,7 +320,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                           .validationFieldRequired(l10n.descriptionHint)),
                   decoration: _inputDecoration(
                     hint: _isAnnouncement
-                        ? 'Describe what you are looking for, preferred quality, etc.'
+                        ? l10n.announcementDescriptionHint
                         : l10n.descriptionHint,
                   ),
                 ),
@@ -335,7 +335,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                       invalidMessage: l10n.validationPriceInvalid),
                   decoration: _inputDecoration(
                     hint: _isAnnouncement
-                        ? 'Offered price (LKR/kg)'
+                        ? l10n.offeredPriceHint
                         : l10n.priceHint,
                   ),
                 ),
@@ -394,7 +394,7 @@ class _PostAdScreenState extends State<PostAdScreen> {
                         )
                             : Text(
                           _isAnnouncement
-                              ? 'Post Announcement'
+                              ? l10n.postAnnouncementButton
                               : l10n.submitForReview,
                           style: const TextStyle(
                               fontSize: 16,
@@ -427,7 +427,7 @@ class _GradeMultiSelect extends StatelessWidget {
 
   void _openSheet(BuildContext context) {
     final temp = List<String>.from(selected);
-
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -459,9 +459,9 @@ class _GradeMultiSelect extends StatelessWidget {
                   ),
                   Row(
                     children: [
-                      const Text(
-                        'Select Grades',
-                        style: TextStyle(
+                      Text(
+                        l10n.selectGradesLabel,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -473,7 +473,7 @@ class _GradeMultiSelect extends StatelessWidget {
                           onPressed: () =>
                               setSheetState(() => temp.clear()),
                           child: Text(
-                            'Clear all',
+                            l10n.clearAll,
                             style:
                             TextStyle(color: Colors.grey.shade500),
                           ),
@@ -549,8 +549,8 @@ class _GradeMultiSelect extends StatelessWidget {
                           },
                           child: Text(
                             temp.isEmpty
-                                ? 'Confirm'
-                                : 'Confirm (${temp.length})',
+                                ? l10n.confirmButton
+                                : '${l10n.confirmButton} (${temp.length})',
                             style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600),
@@ -570,6 +570,7 @@ class _GradeMultiSelect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => _openSheet(context),
       child: Container(
@@ -582,9 +583,9 @@ class _GradeMultiSelect extends StatelessWidget {
         child: selected.isEmpty
             ? Row(
           children: [
-            const Text(
-              'Select grades',
-              style: TextStyle(color: Color(0xFFAAAAAA)),
+            Text(
+              l10n.selectGradesLabel,
+              style: const TextStyle(color: Color(0xFFAAAAAA)),
             ),
             const Spacer(),
             Icon(Icons.keyboard_arrow_down,

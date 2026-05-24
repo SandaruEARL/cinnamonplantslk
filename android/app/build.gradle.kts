@@ -1,6 +1,5 @@
 import java.util.Properties
 import java.io.FileInputStream
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -37,6 +36,9 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled =  true
+        testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
+        testInstrumentationRunnerArguments["timeout_msec"] = "600000"
     }
 
     dexOptions {
@@ -69,6 +71,12 @@ android {
             }
         }
     }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        animationsDisabled = true
+    }
+
 }
 
 flutter {
@@ -78,4 +86,5 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.multidex:multidex:2.0.1")
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
 }

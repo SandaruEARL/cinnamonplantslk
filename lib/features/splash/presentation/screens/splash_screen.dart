@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/app_colors.dart';
 import '../../../../data/services/ai/tflite_service.dart';
-import '../../../../injection_container.dart' as di;
+import '../../../../core/di/injection_container.dart' as di;
 import '../bloc/splash_bloc.dart';
 import '../bloc/splash_event.dart';
 

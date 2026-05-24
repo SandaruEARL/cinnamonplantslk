@@ -824,4 +824,120 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get profileUpdatedSuccess =>
       'சுயவிவரம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!';
+
+  @override
+  String get tabListings => 'பட்டியல்கள்';
+
+  @override
+  String get tabAnnouncements => 'அறிவிப்புகள்';
+
+  @override
+  String get locationDetailLabel => 'இடம்';
+
+  @override
+  String get createPostTitle => 'இடுகையை உருவாக்கு';
+
+  @override
+  String get createPostSubtitle => 'நீங்கள் இட விரும்புவதை தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get postTypeListing => 'பட்டியல்';
+
+  @override
+  String get postTypeListingSubtitle =>
+      'உங்கள் இலவங்கப்பட்டை பொருட்களை விற்கவும்';
+
+  @override
+  String get postTypeAnnouncement => 'வாங்கும் அறிவிப்பு';
+
+  @override
+  String get postTypeAnnouncementSubtitle =>
+      'நீங்கள் வாங்க விரும்புவதை அறிவிக்கவும்';
+
+  @override
+  String get noBuyingAnnouncementsYet => 'இன்னும் வாங்கும் அறிவிப்புகள் இல்லை';
+
+  @override
+  String get beFirstToPostAnnouncement =>
+      'நீங்கள் வாங்க விரும்புவதை முதலில் இடுங்கள்';
+
+  @override
+  String get buyingAnnouncementTitle => 'வாங்கும் அறிவிப்பு';
+
+  @override
+  String get buyingBadge => 'வாங்குகிறோம்';
+
+  @override
+  String get offeredPrice => 'வழங்கப்பட்ட விலை';
+
+  @override
+  String get detailsLabel => 'விவரங்கள்';
+
+  @override
+  String get postedByLabel => 'இடுகையிட்டவர்';
+
+  @override
+  String get contactBuyerButton => 'வாங்குவோரை தொடர்பு கொள்ளுங்கள்';
+
+  @override
+  String get postBuyingAnnouncementTitle => 'வாங்கும் அறிவிப்பை இடுக';
+
+  @override
+  String get announcementInfoBanner =>
+      'நீங்கள் வாங்கும் அறிவிப்பை இடுகிறீர்கள். விற்பனையாளர்கள் உங்களை நேரடியாக தொடர்பு கொள்வார்கள்.';
+
+  @override
+  String get categoryHint => 'வகை';
+
+  @override
+  String get announcementTitleHint =>
+      'எ.கா. Alba தர இலவங்கப்பட்டை கட்டுகள் தேவை';
+
+  @override
+  String get announcementDescriptionHint =>
+      'நீங்கள் தேடுவதை, விரும்பிய தரம் போன்றவற்றை விவரிக்கவும்.';
+
+  @override
+  String get offeredPriceHint => 'வழங்கப்பட்ட விலை (ரூ/kg)';
+
+  @override
+  String get selectGradesLabel => 'தரங்களை தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get selectGradesTitle => 'தரங்களை தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get clearAll => 'அனைத்தையும் அழி';
+
+  @override
+  String get confirmButton => 'உறுதிப்படுத்து';
+
+  @override
+  String confirmWithCount(int count) {
+    return 'உறுதிப்படுத்து ($count)';
+  }
+
+  @override
+  String get postAnnouncementButton => 'அறிவிப்பை இடுக';
+
+  @override
+  String get announcementPostedSuccess => 'அறிவிப்பு வெற்றிகரமாக இடப்பட்டது!';
+
+  @override
+  String gradesSelectedLabel(int count) {
+    return '$count தரங்கள் தேர்ந்தெடுக்கப்பட்டன';
+  }
+
+  @override
+  String get notificationsTitle => 'அறிவிப்புகள்';
+
+  @override
+  String get pleaseLoginToViewNotifications =>
+      'அறிவிப்புகளை பார்க்க உள்நுழையவும்';
+
+  @override
+  String get markAllRead => 'அனைத்தையும் படித்ததாக குறி';
+
+  @override
+  String get noNotificationsYet => 'இன்னும் அறிவிப்புகள் இல்லை';
 }

@@ -4,7 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../injection_container.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';

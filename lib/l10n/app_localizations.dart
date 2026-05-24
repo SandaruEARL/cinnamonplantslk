@@ -1587,6 +1587,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile updated successfully!'**
   String get profileUpdatedSuccess;
+
+  /// No description provided for @tabListings.
+  ///
+  /// In en, this message translates to:
+  /// **'Listings'**
+  String get tabListings;
+
+  /// No description provided for @tabAnnouncements.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcements'**
+  String get tabAnnouncements;
+
+  /// No description provided for @locationDetailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get locationDetailLabel;
+
+  /// No description provided for @createPostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a post'**
+  String get createPostTitle;
+
+  /// No description provided for @createPostSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what you want to post'**
+  String get createPostSubtitle;
+
+  /// No description provided for @postTypeListing.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing'**
+  String get postTypeListing;
+
+  /// No description provided for @postTypeListingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell your cinnamon products'**
+  String get postTypeListingSubtitle;
+
+  /// No description provided for @postTypeAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Buying announcement'**
+  String get postTypeAnnouncement;
+
+  /// No description provided for @postTypeAnnouncementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Announce what cinnamon you want to buy'**
+  String get postTypeAnnouncementSubtitle;
+
+  /// No description provided for @noBuyingAnnouncementsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No buying announcements yet'**
+  String get noBuyingAnnouncementsYet;
+
+  /// No description provided for @beFirstToPostAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to post what you want to buy'**
+  String get beFirstToPostAnnouncement;
+
+  /// No description provided for @buyingAnnouncementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buying Announcement'**
+  String get buyingAnnouncementTitle;
+
+  /// No description provided for @buyingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'BUYING'**
+  String get buyingBadge;
+
+  /// No description provided for @offeredPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Offered Price'**
+  String get offeredPrice;
+
+  /// No description provided for @detailsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsLabel;
+
+  /// No description provided for @postedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted by'**
+  String get postedByLabel;
+
+  /// No description provided for @contactBuyerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Buyer'**
+  String get contactBuyerButton;
+
+  /// No description provided for @postBuyingAnnouncementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Buying Announcement'**
+  String get postBuyingAnnouncementTitle;
+
+  /// No description provided for @announcementInfoBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re posting a buying announcement. Sellers will contact you directly.'**
+  String get announcementInfoBanner;
+
+  /// No description provided for @categoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get categoryHint;
+
+  /// No description provided for @announcementTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Looking for Alba grade cinnamon bales'**
+  String get announcementTitleHint;
+
+  /// No description provided for @announcementDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what you are looking for, preferred quality, etc.'**
+  String get announcementDescriptionHint;
+
+  /// No description provided for @offeredPriceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Offered price (LKR/kg)'**
+  String get offeredPriceHint;
+
+  /// No description provided for @selectGradesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select grades'**
+  String get selectGradesLabel;
+
+  /// No description provided for @selectGradesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Grades'**
+  String get selectGradesTitle;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAll;
+
+  /// No description provided for @confirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmButton;
+
+  /// No description provided for @confirmWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm ({count})'**
+  String confirmWithCount(int count);
+
+  /// No description provided for @postAnnouncementButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Announcement'**
+  String get postAnnouncementButton;
+
+  /// No description provided for @announcementPostedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement posted successfully!'**
+  String get announcementPostedSuccess;
+
+  /// No description provided for @gradesSelectedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, =1{grade} other{grades}} selected'**
+  String gradesSelectedLabel(int count);
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @pleaseLoginToViewNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in to view notifications'**
+  String get pleaseLoginToViewNotifications;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
+
+  /// No description provided for @noNotificationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get noNotificationsYet;
 }
 
 class _AppLocalizationsDelegate

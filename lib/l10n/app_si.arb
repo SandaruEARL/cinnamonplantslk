@@ -370,5 +370,50 @@
   "locationLabel": "ස්ථානය",
   "locationHintEdit": "උදා: මාතලේ, මධ්‍යම පළාත",
   "saveChanges": "වෙනස්කම් සුරකින්න",
-  "profileUpdatedSuccess": "පැතිකඩ සාර්ථකව යාවත්කාලීන කරන ලදී!"
+  "profileUpdatedSuccess": "පැතිකඩ සාර්ථකව යාවත්කාලීන කරන ලදී!",
+
+  "tabListings": "ලැයිස්තු",
+    "tabAnnouncements": "නිවේදන",
+    "locationDetailLabel": "ස්ථානය",
+    "createPostTitle": "පළ කිරීමක් සාදන්න",
+    "createPostSubtitle": "ඔබට පළ කිරීමට අවශ්‍ය දේ තෝරන්න",
+    "postTypeListing": "ලැයිස්තුව",
+    "postTypeListingSubtitle": "ඔබේ කුරුඳු නිෂ්පාදන විකුණන්න",
+    "postTypeAnnouncement": "මිලදී ගැනීමේ නිවේදනය",
+    "postTypeAnnouncementSubtitle": "ඔබට මිලදී ගැනීමට අවශ්‍ය කුරුඳු නිවේදනය කරන්න",
+    "noBuyingAnnouncementsYet": "තවම මිලදී ගැනීමේ නිවේදන නැත",
+    "beFirstToPostAnnouncement": "ඔබට මිලදී ගැනීමට අවශ්‍ය දේ පළ කිරීමට පළමු වන්න",
+
+    "buyingAnnouncementTitle": "මිලදී ගැනීමේ නිවේදනය",
+    "buyingBadge": "ගැනීම",
+    "offeredPrice": "ඉදිරිපත් කළ මිල",
+    "detailsLabel": "විස්තර",
+    "postedByLabel": "පළ කළේ",
+    "contactBuyerButton": "ගැනුම්කරු අමතන්න",
+
+    "postBuyingAnnouncementTitle": "මිලදී ගැනීමක් පළ කරන්න",
+    "announcementInfoBanner": "ඔබ මිලදී ගැනීමේ නිවේදනයක් පළ කරමින් සිටී. විකුණුම්කරුවන් ඔබව සෘජුවම අමතනු ඇත.",
+    "categoryHint": "වර්ගය",
+    "announcementTitleHint": "උදා: Alba ශ්‍රේණියේ කුරුඳු මිටි සොයයි",
+    "announcementDescriptionHint": "ඔබ සොයන දේ, කැමති ගුණත්වය ආදිය විස්තර කරන්න.",
+    "offeredPriceHint": "ඉදිරිපත් කළ මිල (රු/kg)",
+    "selectGradesLabel": "ශ්‍රේණි තෝරන්න",
+    "selectGradesTitle": "ශ්‍රේණි තෝරන්න",
+    "clearAll": "සියල්ල මකන්න",
+    "confirmButton": "තහවුරු කරන්න",
+    "confirmWithCount": "තහවුරු කරන්න ({count})",
+    "@confirmWithCount": {
+      "placeholders": { "count": { "type": "int" } }
+    },
+    "postAnnouncementButton": "නිවේදනය පළ කරන්න",
+    "announcementPostedSuccess": "නිවේදනය සාර්ථකව පළ කරන ලදී!",
+    "gradesSelectedLabel": "{count} ශ්‍රේණි තෝරා ගන්නා ලදී",
+    "@gradesSelectedLabel": {
+      "placeholders": { "count": { "type": "int" } }
+    },
+
+    "notificationsTitle": "දැනුම්දීම්",
+    "pleaseLoginToViewNotifications": "දැනුම්දීම් බැලීමට කරුණාකර පිවිසෙන්න",
+    "markAllRead": "සියල්ල කියවූ බව සලකුණු කරන්න",
+    "noNotificationsYet": "තවම දැනුම්දීම් නැත"
 }

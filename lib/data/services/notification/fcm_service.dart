@@ -13,6 +13,7 @@ class FcmService {
   static const _channelName = 'Cinnamon Marketplace';
   static const _prefKey = 'notifications_enabled';
 
+
   Future<void> initialize() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -41,9 +42,13 @@ class FcmService {
       if (!enabled) return;
 
       final n = message.notification;
+      final type = message.data['type'] ?? '';
+      final senderId = message.data['senderId'] ?? '';
+      final int notifId = type == 'chat' ? senderId.hashCode : 1;
+
       if (n != null) {
         await _local.show(
-          id: n.hashCode,
+          id: notifId,
           title: n.title,
           body: n.body,
           notificationDetails: const NotificationDetails(

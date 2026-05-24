@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/app_colors.dart';
-import '../../../../injection_container.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../features/marketplace/presentation/screens/post_ad_screen.dart';
 import '../../../../features/marketplace/presentation/screens/product_details_screen.dart';
@@ -63,6 +63,7 @@ class _MarketplaceViewState extends State<_MarketplaceView>
   }
 
   void _showPostTypeSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) {
       Navigator.pushNamed(context, '/login');
@@ -92,9 +93,9 @@ class _MarketplaceViewState extends State<_MarketplaceView>
                   ),
                 ),
               ),
-              const Text(
-                'Create a post',
-                style: TextStyle(
+              Text(
+                l10n.createPostTitle,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -102,7 +103,7 @@ class _MarketplaceViewState extends State<_MarketplaceView>
               ),
               const SizedBox(height: 4),
               Text(
-                'Choose what you want to post',
+                l10n.createPostSubtitle,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade500,
@@ -111,8 +112,8 @@ class _MarketplaceViewState extends State<_MarketplaceView>
               const SizedBox(height: 20),
               _SheetOption(
                 icon: Icons.storefront_outlined,
-                title: 'Listing',
-                subtitle: 'Sell your cinnamon products',
+                title: l10n.postTypeListing,
+                subtitle: l10n.postTypeListingSubtitle,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.of(context).push(MaterialPageRoute(
@@ -123,8 +124,8 @@ class _MarketplaceViewState extends State<_MarketplaceView>
               const SizedBox(height: 10),
               _SheetOption(
                 icon: Icons.campaign_outlined,
-                title: 'Buying announcement',
-                subtitle: 'Announce what cinnamon you want to buy',
+                title: l10n.postTypeAnnouncement,
+                subtitle: l10n.postTypeAnnouncementSubtitle,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.of(context).push(MaterialPageRoute(
@@ -233,9 +234,9 @@ class _MarketplaceViewState extends State<_MarketplaceView>
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(text: 'Listings'),
-            Tab(text: 'Announcements'),
+          tabs: [
+            Tab(text: l10n.tabListings),
+            Tab(text: l10n.tabAnnouncements),
           ],
         ),
       ),
@@ -423,6 +424,7 @@ class _AnnouncementsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<MarketplaceBloc, MarketplaceState>(
       builder: (context, state) {
         if (state is MarketplaceLoading) {
@@ -433,21 +435,21 @@ class _AnnouncementsTab extends StatelessWidget {
         }
         if (state is MarketplaceAnnouncementsLoaded) {
           if (state.announcements.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'No buying announcements yet',
-                    style: TextStyle(
+                    l10n.noBuyingAnnouncementsYet,
+                    style: const TextStyle(
                       fontSize: 18,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Be the first to post what you want to buy',
-                    style: TextStyle(color: AppColors.textSecondary),
+                    l10n.beFirstToPostAnnouncement,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                 ],
               ),

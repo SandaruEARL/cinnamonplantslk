@@ -1,4 +1,4 @@
-import 'package:cinnamon_marketplace_app/features/ai/domain/entities/price_prediction_entity.dart';
+import 'package:cinnamonmarketplace/features/ai/domain/entities/price_prediction_entity.dart';
 
 
 class PricePredictionEntity {

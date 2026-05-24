@@ -6,7 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../core/app_colors.dart';
 import '../../../../core/utils/constants.dart';
-import '../../../../injection_container.dart' as di;
+import '../../../../core/di/injection_container.dart' as di;
 import '../../../ai/presentation/bloc/ai_bloc.dart';
 import '../../../ai/presentation/screens/price_prediction_screen.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -36,16 +36,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  late List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const MarketplaceScreen(),
-    const ChatListScreen(),
-    BlocProvider(
-      create: (_) => di.sl<AiBloc>(),
-      child: const PricePredictionScreen(),
-    ),
-    const ToolsScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const MarketplaceScreen(),
+      const ChatListScreen(),
+      BlocProvider(
+        create: (_) => di.sl<AiBloc>(),
+        child: const PricePredictionScreen(),
+      ),
+      const ToolsScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

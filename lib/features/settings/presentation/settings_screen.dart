@@ -4,7 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../data/services/notification/fcm_service.dart';
-import '../../../injection_container.dart' as di;
+import '../../../core/di/injection_container.dart' as di;
 import '../../locale/presentation/bloc/locale_bloc.dart';
 import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_event.dart';

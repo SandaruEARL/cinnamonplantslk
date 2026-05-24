@@ -1,4 +1,4 @@
-import 'package:cinnamon_marketplace_app/features/auth/presentation/screens/register_screen.dart';
+import 'package:cinnamonmarketplace/features/auth/presentation/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';

@@ -1,4 +1,4 @@
-name: cinnamon_marketplace_app
+name: cinnamonmarketplace
 description: A complete marketplace app for Sri Lankan cinnamon industry
 publish_to: 'none'
 version: 1.0.0+1
@@ -44,7 +44,6 @@ dependencies:
   # UI Components
   cached_network_image: ^3.3.1
   image_picker: ^1.2.1
-  fl_chart: ^0.66.0
   google_fonts: ^6.2.1
   animations: ^2.0.11
   shimmer: ^3.0.0
@@ -62,7 +61,6 @@ dependencies:
   dartz: ^0.10.1
   photo_view: ^0.15.0
 
-
   # Maps
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
@@ -78,18 +76,46 @@ dependencies:
   http: ^1.2.0
   crypto: ^3.0.3
 
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/icon.png"
+  adaptive_icon_foreground: "assets/images/icon.png"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # Integration testing
+  integration_test:
+    sdk: flutter
+  patrol: ^4.5.0
+
   build_runner: ^2.4.8
   injectable_generator: ^2.4.1
   flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
+  bloc_test: ^9.1.0
+  mocktail: ^1.0.0
 
 flutter:
 
   uses-material-design: true
   generate: true
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
 
   assets:
     - .env

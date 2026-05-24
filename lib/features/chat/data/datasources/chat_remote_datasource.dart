@@ -117,6 +117,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           'type': 'chat',
           'title': senderName,
           'body': text.length > 50 ? '${text.substring(0, 50)}...' : text,
+          'metadata': {'senderId': senderId},
         }),
       );
     } catch (_) {

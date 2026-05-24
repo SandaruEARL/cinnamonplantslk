@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/advertisement_entity.dart';
 import '../screens/anouncement_details.dart';
 
@@ -36,9 +37,9 @@ class AnnouncementCard extends StatelessWidget {
             // ── Top row: badge + time ─────────────────────────────────
             Row(
               children: [
-                const Text(
-                  'BUYING',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.buyingBadge,
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryGreen,

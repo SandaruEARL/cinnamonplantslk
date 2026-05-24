@@ -1,6 +1,6 @@
 // splash_bloc.dart
 
-import 'package:cinnamon_marketplace_app/features/splash/presentation/bloc/splash_event.dart';
+import 'package:cinnamonmarketplace/features/splash/presentation/bloc/splash_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
