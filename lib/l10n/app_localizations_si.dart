@@ -604,7 +604,7 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String addExpenseTitle(String farmerType) {
-    return 'වියදම් එක් කරන්න — $farmerType';
+    return 'වියදම් එක් කරන්න - $farmerType';
   }
 
   @override
@@ -816,4 +816,118 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get profileUpdatedSuccess => 'පැතිකඩ සාර්ථකව යාවත්කාලීන කරන ලදී!';
+
+  @override
+  String get tabListings => 'ලැයිස්තු';
+
+  @override
+  String get tabAnnouncements => 'නිවේදන';
+
+  @override
+  String get locationDetailLabel => 'ස්ථානය';
+
+  @override
+  String get createPostTitle => 'පළ කිරීමක් සාදන්න';
+
+  @override
+  String get createPostSubtitle => 'ඔබට පළ කිරීමට අවශ්‍ය දේ තෝරන්න';
+
+  @override
+  String get postTypeListing => 'ලැයිස්තුව';
+
+  @override
+  String get postTypeListingSubtitle => 'ඔබේ කුරුඳු නිෂ්පාදන විකුණන්න';
+
+  @override
+  String get postTypeAnnouncement => 'මිලදී ගැනීමේ නිවේදනය';
+
+  @override
+  String get postTypeAnnouncementSubtitle =>
+      'ඔබට මිලදී ගැනීමට අවශ්‍ය කුරුඳු නිවේදනය කරන්න';
+
+  @override
+  String get noBuyingAnnouncementsYet => 'තවම මිලදී ගැනීමේ නිවේදන නැත';
+
+  @override
+  String get beFirstToPostAnnouncement =>
+      'ඔබට මිලදී ගැනීමට අවශ්‍ය දේ පළ කිරීමට පළමු වන්න';
+
+  @override
+  String get buyingAnnouncementTitle => 'මිලදී ගැනීමේ නිවේදනය';
+
+  @override
+  String get buyingBadge => 'ගැනීම';
+
+  @override
+  String get offeredPrice => 'ඉදිරිපත් කළ මිල';
+
+  @override
+  String get detailsLabel => 'විස්තර';
+
+  @override
+  String get postedByLabel => 'පළ කළේ';
+
+  @override
+  String get contactBuyerButton => 'ගැනුම්කරු අමතන්න';
+
+  @override
+  String get postBuyingAnnouncementTitle => 'මිලදී ගැනීමක් පළ කරන්න';
+
+  @override
+  String get announcementInfoBanner =>
+      'ඔබ මිලදී ගැනීමේ නිවේදනයක් පළ කරමින් සිටී. විකුණුම්කරුවන් ඔබව සෘජුවම අමතනු ඇත.';
+
+  @override
+  String get categoryHint => 'වර්ගය';
+
+  @override
+  String get announcementTitleHint => 'උදා: Alba ශ්‍රේණියේ කුරුඳු මිටි සොයයි';
+
+  @override
+  String get announcementDescriptionHint =>
+      'ඔබ සොයන දේ, කැමති ගුණත්වය ආදිය විස්තර කරන්න.';
+
+  @override
+  String get offeredPriceHint => 'ඉදිරිපත් කළ මිල (රු/kg)';
+
+  @override
+  String get selectGradesLabel => 'ශ්‍රේණි තෝරන්න';
+
+  @override
+  String get selectGradesTitle => 'ශ්‍රේණි තෝරන්න';
+
+  @override
+  String get clearAll => 'සියල්ල මකන්න';
+
+  @override
+  String get confirmButton => 'තහවුරු කරන්න';
+
+  @override
+  String confirmWithCount(int count) {
+    return 'තහවුරු කරන්න ($count)';
+  }
+
+  @override
+  String get postAnnouncementButton => 'නිවේදනය පළ කරන්න';
+
+  @override
+  String get announcementPostedSuccess => 'නිවේදනය සාර්ථකව පළ කරන ලදී!';
+
+  @override
+  String gradesSelectedLabel(int count) {
+    return '$count ශ්‍රේණි තෝරා ගන්නා ලදී';
+  }
+
+  @override
+  String get notificationsTitle => 'දැනුම්දීම්';
+
+  @override
+  String get pleaseLoginToViewNotifications =>
+      'දැනුම්දීම් බැලීමට කරුණාකර පිවිසෙන්න';
+
+  @override
+  String get markAllRead => 'සියල්ල කියවූ බව සලකුණු කරන්න';
+
+  @override
+  String get noNotificationsYet => 'තවම දැනුම්දීම් නැත';
 }

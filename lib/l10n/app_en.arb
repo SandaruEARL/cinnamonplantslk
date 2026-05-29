@@ -280,7 +280,7 @@
   "analyticsDescription": "View insights and statistics about your farm",
   "comingSoon": "Coming soon!",
 
-  "addExpenseTitle": "Add Expense — {farmerType}",
+  "addExpenseTitle": "Add Expense - {farmerType}",
   "@addExpenseTitle": {
     "placeholders": { "farmerType": { "type": "String" } }
   },
@@ -371,5 +371,51 @@
   "locationLabel": "Location",
   "locationHintEdit": "e.g., Matale, Central Province",
   "saveChanges": "Save Changes",
-  "profileUpdatedSuccess": "Profile updated successfully!"
+  "profileUpdatedSuccess": "Profile updated successfully!",
+
+  "tabListings": "Listings",
+    "tabAnnouncements": "Announcements",
+    "locationDetailLabel": "Location",
+    "createPostTitle": "Create a post",
+    "createPostSubtitle": "Choose what you want to post",
+    "postTypeListing": "Listing",
+    "postTypeListingSubtitle": "Sell your cinnamon products",
+    "postTypeAnnouncement": "Buying announcement",
+    "postTypeAnnouncementSubtitle": "Announce what cinnamon you want to buy",
+    "noBuyingAnnouncementsYet": "No buying announcements yet",
+    "beFirstToPostAnnouncement": "Be the first to post what you want to buy",
+
+    "buyingAnnouncementTitle": "Buying Announcement",
+    "buyingBadge": "BUYING",
+    "offeredPrice": "Offered Price",
+    "detailsLabel": "Details",
+    "postedByLabel": "Posted by",
+    "contactBuyerButton": "Contact Buyer",
+
+    "postBuyingAnnouncementTitle": "Post Buying Announcement",
+    "announcementInfoBanner": "You're posting a buying announcement. Sellers will contact you directly.",
+    "categoryHint": "Category",
+    "announcementTitleHint": "e.g. Looking for Alba grade cinnamon bales",
+    "announcementDescriptionHint": "Describe what you are looking for, preferred quality, etc.",
+    "offeredPriceHint": "Offered price (LKR/kg)",
+    "selectGradesLabel": "Select grades",
+    "selectGradesTitle": "Select Grades",
+    "clearAll": "Clear all",
+    "confirmButton": "Confirm",
+    "confirmWithCount": "Confirm ({count})",
+    "@confirmWithCount": {
+      "placeholders": { "count": { "type": "int" } }
+    },
+    "postAnnouncementButton": "Post Announcement",
+    "announcementPostedSuccess": "Announcement posted successfully!",
+    "gradesSelectedLabel": "{count} {count, plural, =1{grade} other{grades}} selected",
+    "@gradesSelectedLabel": {
+      "placeholders": { "count": { "type": "int" } }
+    },
+
+    "notificationsTitle": "Notifications",
+    "pleaseLoginToViewNotifications": "Please log in to view notifications",
+    "markAllRead": "Mark all read",
+    "noNotificationsYet": "No notifications yet"
+
 }

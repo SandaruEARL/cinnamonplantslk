@@ -47,7 +47,6 @@ class ModelUpdateService {
   /// Check if a model update is available
   Future<ModelUpdateInfo?> checkForUpdate() async {
     try {
-      // Rate limiting
       if (!_shouldCheckForUpdate()) {
         debugPrint('⏭️  Skipping check (checked recently)');
         return null;
@@ -55,7 +54,6 @@ class ModelUpdateService {
 
       debugPrint('🔍 Checking for model updates...');
 
-      // Try jsdelivr CDN first, fallback to GitHub raw
       final remoteVersion = await _fetchRemoteVersion()
           .timeout(const Duration(seconds: 15));
 
@@ -67,11 +65,9 @@ class ModelUpdateService {
       final currentVersion = _prefs.getString(_keyCurrentVersion);
       final currentHash = _prefs.getString(_keyModelHash);
 
-      // Save check time
       await _prefs.setString(_keyLastCheck, DateTime.now().toIso8601String());
       await _prefs.setString(_keyUpdatedAt, remoteVersion.updatedAt);
 
-      // Check if update needed
       if (currentVersion != null &&
           currentVersion == remoteVersion.version &&
           currentHash == remoteVersion.modelHash) {
@@ -107,31 +103,23 @@ class ModelUpdateService {
 
       final modelFile = await _getLocalModelFile();
 
-      // IMPORTANT: Add cache-busting timestamp to avoid CDN cache issues
       final cacheBuster = DateTime.now().millisecondsSinceEpoch;
       final mainUrl = '${updateInfo.downloadUrl}?_t=$cacheBuster';
       final fallbackUrl = updateInfo.fallbackUrl != null
           ? '${updateInfo.fallbackUrl}?_t=$cacheBuster'
           : null;
 
-      // Try main URL first
       http.Response? response;
       String usedUrl = mainUrl;
 
       try {
-        response = await _downloadWithProgress(
-          mainUrl,
-          onProgress: onProgress,
-        );
+        response = await _downloadWithProgress(mainUrl, onProgress: onProgress);
       } catch (e) {
         debugPrint('⚠️  Main URL failed: $e');
         if (fallbackUrl != null) {
           debugPrint('🔄 Trying fallback URL...');
           usedUrl = fallbackUrl;
-          response = await _downloadWithProgress(
-            fallbackUrl,
-            onProgress: onProgress,
-          );
+          response = await _downloadWithProgress(fallbackUrl, onProgress: onProgress);
         } else {
           rethrow;
         }
@@ -145,26 +133,20 @@ class ModelUpdateService {
       final modelBytes = response.bodyBytes;
       debugPrint('📊 Downloaded ${modelBytes.length} bytes from $usedUrl');
 
-      // Calculate hash of downloaded file
       final downloadedHash = sha256.convert(modelBytes).toString();
       debugPrint('🔐 Downloaded hash: $downloadedHash');
       debugPrint('🔐 Expected hash:   ${updateInfo.modelHash}');
 
-      // Verify hash with retries (CDN might be stale)
       if (downloadedHash != updateInfo.modelHash) {
         debugPrint('❌ Hash mismatch on first attempt!');
         debugPrint('   Expected: ${updateInfo.modelHash}');
         debugPrint('   Got:      $downloadedHash');
 
-        // If using CDN, try fallback URL (GitHub raw)
         if (usedUrl.contains('jsdelivr') && fallbackUrl != null) {
           debugPrint('🔄 CDN cache issue detected, trying GitHub raw...');
 
           try {
-            response = await _downloadWithProgress(
-              fallbackUrl,
-              onProgress: onProgress,
-            );
+            response = await _downloadWithProgress(fallbackUrl, onProgress: onProgress);
 
             if (response.statusCode == 200) {
               final retryBytes = response.bodyBytes;
@@ -174,10 +156,10 @@ class ModelUpdateService {
 
               if (retryHash == updateInfo.modelHash) {
                 debugPrint('✅ Hash matched on retry!');
-                // Use the retry bytes
                 await modelFile.writeAsBytes(retryBytes);
                 await _prefs.setString(_keyCurrentVersion, updateInfo.newVersion);
                 await _prefs.setString(_keyModelHash, retryHash);
+                await _prefs.setString(_keyUpdatedAt, updateInfo.updateDate); // ✅ was missing
                 debugPrint('✅ Model v${updateInfo.newVersion} installed');
                 return true;
               }
@@ -188,16 +170,11 @@ class ModelUpdateService {
         }
 
         debugPrint('❌ Hash verification failed after all attempts');
-        debugPrint('   This usually means:');
-        debugPrint('   1. CDN hasn\'t fully propagated (wait 5-10 minutes)');
-        debugPrint('   2. version.json and model file are out of sync');
         return false;
       }
 
-      // Save to local storage
+      // Happy path
       await modelFile.writeAsBytes(modelBytes);
-
-      // Update metadata with actual downloaded hash
       await _prefs.setString(_keyCurrentVersion, updateInfo.newVersion);
       await _prefs.setString(_keyModelHash, downloadedHash);
       await _prefs.setString(_keyUpdatedAt, updateInfo.updateDate);
@@ -246,11 +223,9 @@ class ModelUpdateService {
     }
   }
 
-  /// Get local model file
   Future<File> getModelFile() async {
     return await _getLocalModelFile();
   }
-
 
   /// Download preprocessing.json
   Future<bool> downloadPreprocessing() async {
@@ -314,65 +289,49 @@ class ModelUpdateService {
     }
   }
 
-  /// Get preprocessing file
   Future<File> _getPreprocessingFile() async {
     final appDir = await getApplicationDocumentsDirectory();
     final modelDir = Directory('${appDir.path}/models');
-    if (!await modelDir.exists()) {
-      await modelDir.create(recursive: true);
-    }
+    if (!await modelDir.exists()) await modelDir.create(recursive: true);
     return File('${modelDir.path}/preprocessing.json');
   }
 
-  /// Get recent data file
   Future<File> _getRecentDataFile() async {
     final appDir = await getApplicationDocumentsDirectory();
     final modelDir = Directory('${appDir.path}/models');
-    if (!await modelDir.exists()) {
-      await modelDir.create(recursive: true);
-    }
+    if (!await modelDir.exists()) await modelDir.create(recursive: true);
     return File('${modelDir.path}/recent_data.csv');
   }
 
-  /// Get current version
   Future<String?> getCurrentVersion() async {
     return _prefs.getString(_keyCurrentVersion);
   }
 
-  /// Force check (bypass rate limiting)
   Future<ModelUpdateInfo?> forceCheckForUpdate() async {
     await _prefs.remove(_keyLastCheck);
     return checkForUpdate();
   }
 
-  /// Clear model data
   Future<void> clearModelData() async {
     await _prefs.remove(_keyCurrentVersion);
     await _prefs.remove(_keyLastCheck);
     await _prefs.remove(_keyModelHash);
+    await _prefs.remove(_keyUpdatedAt); // ✅ also clear timestamp on full reset
 
     final modelFile = await _getLocalModelFile();
-    if (await modelFile.exists()) {
-      await modelFile.delete();
-    }
+    if (await modelFile.exists()) await modelFile.delete();
 
     debugPrint('🗑️  Model data cleared');
   }
 
-  // Private helpers
-
   bool _shouldCheckForUpdate() {
     final lastCheckStr = _prefs.getString(_keyLastCheck);
     if (lastCheckStr == null) return true;
-
     final lastCheck = DateTime.parse(lastCheckStr);
-    final timeSinceCheck = DateTime.now().difference(lastCheck);
-
-    return timeSinceCheck >= _checkInterval;
+    return DateTime.now().difference(lastCheck) >= _checkInterval;
   }
 
   Future<RemoteVersionInfo?> _fetchRemoteVersion() async {
-    // Try GitHub raw first (no cache issues)
     try {
       debugPrint('📡 Trying GitHub raw...');
       final cacheBuster = DateTime.now().millisecondsSinceEpoch;
@@ -387,14 +346,12 @@ class ModelUpdateService {
 
       if (response.statusCode == 200) {
         debugPrint('✅ Got version from GitHub raw');
-        final json = jsonDecode(response.body);
-        return RemoteVersionInfo.fromJson(json);
+        return RemoteVersionInfo.fromJson(jsonDecode(response.body));
       }
     } catch (e) {
       debugPrint('⚠️  GitHub raw failed: $e');
     }
 
-    // Fallback to jsdelivr CDN
     try {
       debugPrint('📡 Trying jsdelivr CDN...');
       final cacheBuster = DateTime.now().millisecondsSinceEpoch;
@@ -409,8 +366,7 @@ class ModelUpdateService {
 
       if (response.statusCode == 200) {
         debugPrint('✅ Got version from jsdelivr CDN');
-        final json = jsonDecode(response.body);
-        return RemoteVersionInfo.fromJson(json);
+        return RemoteVersionInfo.fromJson(jsonDecode(response.body));
       }
     } catch (e) {
       debugPrint('⚠️  jsdelivr CDN failed: $e');
@@ -422,11 +378,7 @@ class ModelUpdateService {
   Future<File> _getLocalModelFile() async {
     final appDir = await getApplicationDocumentsDirectory();
     final modelDir = Directory('${appDir.path}/models');
-
-    if (!await modelDir.exists()) {
-      await modelDir.create(recursive: true);
-    }
-
+    if (!await modelDir.exists()) await modelDir.create(recursive: true);
     return File('${modelDir.path}/price_predictor.tflite');
   }
 }

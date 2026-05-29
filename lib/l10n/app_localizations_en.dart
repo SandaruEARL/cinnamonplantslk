@@ -607,7 +607,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String addExpenseTitle(String farmerType) {
-    return 'Add Expense — $farmerType';
+    return 'Add Expense - $farmerType';
   }
 
   @override
@@ -819,4 +819,125 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileUpdatedSuccess => 'Profile updated successfully!';
+
+  @override
+  String get tabListings => 'Listings';
+
+  @override
+  String get tabAnnouncements => 'Announcements';
+
+  @override
+  String get locationDetailLabel => 'Location';
+
+  @override
+  String get createPostTitle => 'Create a post';
+
+  @override
+  String get createPostSubtitle => 'Choose what you want to post';
+
+  @override
+  String get postTypeListing => 'Listing';
+
+  @override
+  String get postTypeListingSubtitle => 'Sell your cinnamon products';
+
+  @override
+  String get postTypeAnnouncement => 'Buying announcement';
+
+  @override
+  String get postTypeAnnouncementSubtitle =>
+      'Announce what cinnamon you want to buy';
+
+  @override
+  String get noBuyingAnnouncementsYet => 'No buying announcements yet';
+
+  @override
+  String get beFirstToPostAnnouncement =>
+      'Be the first to post what you want to buy';
+
+  @override
+  String get buyingAnnouncementTitle => 'Buying Announcement';
+
+  @override
+  String get buyingBadge => 'BUYING';
+
+  @override
+  String get offeredPrice => 'Offered Price';
+
+  @override
+  String get detailsLabel => 'Details';
+
+  @override
+  String get postedByLabel => 'Posted by';
+
+  @override
+  String get contactBuyerButton => 'Contact Buyer';
+
+  @override
+  String get postBuyingAnnouncementTitle => 'Post Buying Announcement';
+
+  @override
+  String get announcementInfoBanner =>
+      'You\'re posting a buying announcement. Sellers will contact you directly.';
+
+  @override
+  String get categoryHint => 'Category';
+
+  @override
+  String get announcementTitleHint =>
+      'e.g. Looking for Alba grade cinnamon bales';
+
+  @override
+  String get announcementDescriptionHint =>
+      'Describe what you are looking for, preferred quality, etc.';
+
+  @override
+  String get offeredPriceHint => 'Offered price (LKR/kg)';
+
+  @override
+  String get selectGradesLabel => 'Select grades';
+
+  @override
+  String get selectGradesTitle => 'Select Grades';
+
+  @override
+  String get clearAll => 'Clear all';
+
+  @override
+  String get confirmButton => 'Confirm';
+
+  @override
+  String confirmWithCount(int count) {
+    return 'Confirm ($count)';
+  }
+
+  @override
+  String get postAnnouncementButton => 'Post Announcement';
+
+  @override
+  String get announcementPostedSuccess => 'Announcement posted successfully!';
+
+  @override
+  String gradesSelectedLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'grades',
+      one: 'grade',
+    );
+    return '$count $_temp0 selected';
+  }
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get pleaseLoginToViewNotifications =>
+      'Please log in to view notifications';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get noNotificationsYet => 'No notifications yet';
 }

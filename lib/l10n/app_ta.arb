@@ -278,7 +278,7 @@
   "analyticsDescription": "உங்கள் பண்ணையின் தகவல்கள் மற்றும் புள்ளிவிவரங்களை பாருங்கள்",
   "comingSoon": "விரைவில் வருகிறது!",
 
-  "addExpenseTitle": "செலவு சேர்க்கவும் — {farmerType}",
+  "addExpenseTitle": "செலவு சேர்க்கவும் - {farmerType}",
   "@addExpenseTitle": {
     "placeholders": { "farmerType": { "type": "String" } }
   },
@@ -369,5 +369,50 @@
   "locationLabel": "இடம்",
   "locationHintEdit": "எ.கா., மாத்தளை, மத்திய மாகாணம்",
   "saveChanges": "மாற்றங்களை சேமிக்கவும்",
-  "profileUpdatedSuccess": "சுயவிவரம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!"
+  "profileUpdatedSuccess": "சுயவிவரம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!",
+
+  "tabListings": "பட்டியல்கள்",
+    "tabAnnouncements": "அறிவிப்புகள்",
+    "locationDetailLabel": "இடம்",
+    "createPostTitle": "இடுகையை உருவாக்கு",
+    "createPostSubtitle": "நீங்கள் இட விரும்புவதை தேர்ந்தெடுக்கவும்",
+    "postTypeListing": "பட்டியல்",
+    "postTypeListingSubtitle": "உங்கள் இலவங்கப்பட்டை பொருட்களை விற்கவும்",
+    "postTypeAnnouncement": "வாங்கும் அறிவிப்பு",
+    "postTypeAnnouncementSubtitle": "நீங்கள் வாங்க விரும்புவதை அறிவிக்கவும்",
+    "noBuyingAnnouncementsYet": "இன்னும் வாங்கும் அறிவிப்புகள் இல்லை",
+    "beFirstToPostAnnouncement": "நீங்கள் வாங்க விரும்புவதை முதலில் இடுங்கள்",
+
+    "buyingAnnouncementTitle": "வாங்கும் அறிவிப்பு",
+    "buyingBadge": "வாங்குகிறோம்",
+    "offeredPrice": "வழங்கப்பட்ட விலை",
+    "detailsLabel": "விவரங்கள்",
+    "postedByLabel": "இடுகையிட்டவர்",
+    "contactBuyerButton": "வாங்குவோரை தொடர்பு கொள்ளுங்கள்",
+
+    "postBuyingAnnouncementTitle": "வாங்கும் அறிவிப்பை இடுக",
+    "announcementInfoBanner": "நீங்கள் வாங்கும் அறிவிப்பை இடுகிறீர்கள். விற்பனையாளர்கள் உங்களை நேரடியாக தொடர்பு கொள்வார்கள்.",
+    "categoryHint": "வகை",
+    "announcementTitleHint": "எ.கா. Alba தர இலவங்கப்பட்டை கட்டுகள் தேவை",
+    "announcementDescriptionHint": "நீங்கள் தேடுவதை, விரும்பிய தரம் போன்றவற்றை விவரிக்கவும்.",
+    "offeredPriceHint": "வழங்கப்பட்ட விலை (ரூ/kg)",
+    "selectGradesLabel": "தரங்களை தேர்ந்தெடுக்கவும்",
+    "selectGradesTitle": "தரங்களை தேர்ந்தெடுக்கவும்",
+    "clearAll": "அனைத்தையும் அழி",
+    "confirmButton": "உறுதிப்படுத்து",
+    "confirmWithCount": "உறுதிப்படுத்து ({count})",
+    "@confirmWithCount": {
+      "placeholders": { "count": { "type": "int" } }
+    },
+    "postAnnouncementButton": "அறிவிப்பை இடுக",
+    "announcementPostedSuccess": "அறிவிப்பு வெற்றிகரமாக இடப்பட்டது!",
+    "gradesSelectedLabel": "{count} தரங்கள் தேர்ந்தெடுக்கப்பட்டன",
+    "@gradesSelectedLabel": {
+      "placeholders": { "count": { "type": "int" } }
+    },
+
+    "notificationsTitle": "அறிவிப்புகள்",
+    "pleaseLoginToViewNotifications": "அறிவிப்புகளை பார்க்க உள்நுழையவும்",
+    "markAllRead": "அனைத்தையும் படித்ததாக குறி",
+    "noNotificationsYet": "இன்னும் அறிவிப்புகள் இல்லை"
 }
