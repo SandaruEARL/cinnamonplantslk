@@ -24,7 +24,7 @@ dependencies:
   flutter_local_notifications: ^21.0.0
 
   # icons
-  font_awesome_flutter: ^10.12.0
+  font_awesome_flutter: ^11.0.0
 
   # Image Upload
   cloudinary_api: ^1.1.1
