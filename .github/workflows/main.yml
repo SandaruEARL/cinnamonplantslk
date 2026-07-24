@@ -1,20 +1,20 @@
-name: Build Release APK
+name: Build Release APK (v2)
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - "v*.*.*"   # optional: build on version tags like v1.0.0
+      - "v*.*.*"
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -25,13 +25,19 @@ jobs:
         with:
           channel: stable
 
-      - name: Flutter pub get
+      - name: Install dependencies
         run: flutter pub get
 
-      # Optional: create .env from GitHub secret if the app needs env values at build time
-      - name: Create .env file
-        if: ${{ secrets.ENV_FILE != '' }}
-        run: echo "${{ secrets.ENV_FILE }}" > .env
+      - name: Create .env file (optional)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          if [ -n "$ENV_FILE" ]; then
+            echo "$ENV_FILE" > .env
+            echo ".env file created."
+          else
+            echo "ENV_FILE secret not set. Skipping .env creation."
+          fi
 
       - name: Build release APK
         run: flutter build apk --release
