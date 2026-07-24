@@ -28,16 +28,19 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create .env file (optional)
+      - name: Create .env file
         env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          NOTIFY_SECRET: ${{ secrets.NOTIFY_SECRET }}
+          NOTIFY_URL: ${{ secrets.NOTIFY_URL }}
         run: |
-          if [ -n "$ENV_FILE" ]; then
-            echo "$ENV_FILE" > .env
-            echo ".env file created."
-          else
-            echo "ENV_FILE secret not set. Skipping .env creation."
-          fi
+          echo "CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY" >> .env
+          echo "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET" >> .env
+          echo "CLOUDINARY_CLOUD_NAME=$CLOUDINARY_CLOUD_NAME" >> .env
+          echo "NOTIFY_SECRET=$NOTIFY_SECRET" >> .env
+          echo "NOTIFY_URL=$NOTIFY_URL" >> .env
 
       - name: Build release APK
         run: flutter build apk --release
