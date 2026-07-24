@@ -7,6 +7,8 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,8 +49,20 @@ jobs:
           test -s assets/models/price_predictor.tflite || exit 1
       - name: Build release APK
         run: flutter build apk --release
+      - name: Rename APK
+        run: |
+          mkdir -p build/app/outputs/flutter-apk/renamed
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/renamed/cinnamonplantslk-release-${{ github.ref_name }}.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: build/app/outputs/flutter-apk/renamed/cinnamonplantslk-release-${{ github.ref_name }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
