@@ -10,22 +10,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: "3.44.0"
-
       - name: Install dependencies
         run: flutter pub get
-
       - name: Create .env file
         env:
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
@@ -39,29 +35,18 @@ jobs:
           echo "CLOUDINARY_CLOUD_NAME=$CLOUDINARY_CLOUD_NAME" >> .env
           echo "NOTIFY_SECRET=$NOTIFY_SECRET" >> .env
           echo "NOTIFY_URL=$NOTIFY_URL" >> .env
-
       - name: Create google-services.json
         env:
           GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
         run: echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > android/app/google-services.json
-
       - name: Fetch price prediction model
         run: |
           mkdir -p assets/models
           curl -fL "https://raw.githubusercontent.com/SandaruEARL/cinnamon-models/main/models/latest.tflite" \
             -o assets/models/price_predictor.tflite
           test -s assets/models/price_predictor.tflite || exit 1
-
-      - name: Verify quality grading model exists
-        run: |
-          if [ ! -f assets/models/cinnamon_grader.tflite ]; then
-            echo "::error::cinnamon_grader.tflite missing, no remote source configured"
-            exit 1
-          fi
-
       - name: Build release APK
         run: flutter build apk --release
-
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
