@@ -8,7 +8,6 @@ import '../ml/model_update_service.dart';
 import '../ml/ml_preprocessing_service.dart';
 
 class TFLiteService {
-  Interpreter? _qualityGradingInterpreter;
   Interpreter? _pricePredictionInterpreter;
 
   final ModelUpdateService _modelUpdateService;
@@ -24,22 +23,11 @@ class TFLiteService {
   }
 
   Future<void> initialize() async {
-    await loadQualityGradingModel();
     await loadPricePredictionModel();
     await _preprocessingService.loadPreprocessing();
     await _preprocessingService.loadRecentData();
   }
 
-  Future<void> loadQualityGradingModel() async {
-    try {
-      _qualityGradingInterpreter = await Interpreter.fromAsset(
-        'assets/models/cinnamon_grader.tflite',
-      );
-      debugPrint('✅ Quality grading model loaded');
-    } catch (e) {
-      debugPrint('⚠️  Quality grading model not available: $e');
-    }
-  }
 
   Future<void> loadPricePredictionModel() async {
     try {
@@ -214,14 +202,10 @@ class TFLiteService {
 
   Future<Map<String, dynamic>> predictGrade(File imageFile) async {
     try {
-      if (_qualityGradingInterpreter == null) {
-        return _getMockGradeResult();
-      }
 
       final inputImage = await _preprocessImageForGrading(imageFile);
       final output = List.filled(4, 0.0).reshape([1, 4]);
 
-      _qualityGradingInterpreter!.run(inputImage, output);
 
       final grades = ['Alba', 'C5', 'C4', 'C3'];
       final probabilities = output[0] as List<double>;
@@ -327,7 +311,6 @@ class TFLiteService {
   }
 
   void dispose() {
-    _qualityGradingInterpreter?.close();
     _pricePredictionInterpreter?.close();
   }
 }
