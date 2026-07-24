@@ -1,0 +1,11 @@
+app_id: com.example.cinnamonmarketplace
+
+android:
+  fully_qualified_test_runner_class: pl.leancode.patrol.PatrolJUnitRunner
+
+timeout: 300s
+
+targets:
+  - patrol_test/auth_flow_test.dart
+  - patrol_test/marketplace_flow_test.dart
+  - patrol_test/price_prediction_flow_test.dart
