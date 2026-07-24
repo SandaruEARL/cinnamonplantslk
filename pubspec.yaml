@@ -120,5 +120,3 @@ flutter:
   assets:
     - .env
     - assets/images/
-    - assets/models/
-    - assets/l10n/
