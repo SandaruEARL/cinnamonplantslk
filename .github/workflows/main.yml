@@ -49,7 +49,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "$RELEASE_KEYSTORE_B64" | base64 -d > android/app/release-key.jks
-          cat > key.properties <<EOF
+          cat > android/key.properties <<EOF
           storeFile=release-key.jks
           storePassword=$KEYSTORE_PASSWORD
           keyAlias=$KEY_ALIAS
